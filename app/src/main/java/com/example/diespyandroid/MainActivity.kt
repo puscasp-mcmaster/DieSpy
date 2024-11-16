@@ -1,6 +1,7 @@
 package com.example.diespyandroid
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -47,93 +48,48 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.diespyandroid.ui.theme.DieSpyAndroidTheme
 import kotlinx.coroutines.launch
+import org.pytorch.IValue
+import org.pytorch.Module
+import org.pytorch.torchvision.TensorImageUtils
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
+    private lateinit var model: Module
+    //private val executor = Executors.newSingleThreadExecutor()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if(!hasRequiredPermissions()){
+        //Get camera permission
+        if (!hasRequiredPermissions()) {
             ActivityCompat.requestPermissions(
                 this, CAMERAX_PERMISSIONS, 0
             )
         }
-        setContent{
-            DieSpyAndroidTheme{
-                val scaffoldState = rememberBottomSheetScaffoldState()
+        //TODO keep getting file not found when loading model.
+        //model = Module.load(Utils.assetFilePath(this, "healthy-bleach-coral-classifier.pt"))
+        setContent {
+            DieSpyAndroidTheme {
                 val controller = remember {
                     LifecycleCameraController(applicationContext).apply {
-                        setEnabledUseCases(
-                            CameraController.IMAGE_CAPTURE or
-                                    CameraController.VIDEO_CAPTURE
-                        )
+                        setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
                     }
                 }
-                BottomSheetScaffold(
-                    scaffoldState = scaffoldState,
-                    sheetPeekHeight = 0.dp,
-                    sheetContent = {
-
-                    }
-                )
-                { padding ->
-                    Box(
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    CameraPreview(
+                        controller = controller,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(padding)
-                    ){
-                        CameraPreview(
-                            controller = controller,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
-
-                        Row (
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceAround
-                        ){
-                            IconButton(
-                                onClick = {
-                                    takePhoto(
-                                        controller = controller
-                                    )
-
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.PhotoCamera,
-                                    contentDescription = "Take Photo"
-                                )
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
     }
-    private fun takePhoto(
-        controller: LifecycleCameraController,
-//        onPhotoTaken: (Bitmap) -> Unit
-    ) {
-        controller.takePicture(
-            ContextCompat.getMainExecutor(applicationContext),
-            object : OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    super.onCaptureSuccess(image)
-//                    onPhotoTaken(image.toBitmap())
-
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    super.onError(exception)
-                    Log.e("Camera", "Couldn't take photo: ", exception)
-                }
-            }
-        )
-    }
-
 
     private fun hasRequiredPermissions(): Boolean {
         return CAMERAX_PERMISSIONS.all {
@@ -149,5 +105,6 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.CAMERA
         )
     }
+
 }
 
