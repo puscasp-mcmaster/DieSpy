@@ -70,7 +70,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
 
     val cameraxVersion = "1.3.0-rc01"
-    // PyTorch Mobile
-    implementation ("org.pytorch:pytorch_android:1.10.0")
-    implementation ("org.pytorch:pytorch_android_torchvision:1.10.0")
+    // tflite mobile
+    implementation ("org.tensorflow:tensorflow-lite-task-vision:0.4.0")
+    implementation ("org.tensorflow:tensorflow-lite-gpu-delegate-plugin:0.4.0")
+    implementation ("org.tensorflow:tensorflow-lite-gpu:2.9.0")
 }
