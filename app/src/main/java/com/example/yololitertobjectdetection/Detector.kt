@@ -11,6 +11,7 @@ import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.common.ops.CastOp
+import org.tensorflow.lite.support.common.ops.NormalizeOp
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
@@ -33,9 +34,8 @@ class Detector(
 
 
     private val imageProcessor = ImageProcessor.Builder()
-        //TODO add this once normalization occurs
-        //.add(NormalizeOp(INPUT_MEAN, INPUT_STANDARD_DEVIATION)) //normalize pixel values
-        .add(CastOp(INPUT_IMAGE_TYPE))//converting to FLOAT32
+        .add(NormalizeOp(INPUT_MEAN, INPUT_STANDARD_DEVIATION))
+        .add(CastOp(INPUT_IMAGE_TYPE))
         .build()
 
     init {
@@ -175,6 +175,6 @@ class Detector(
         private const val INPUT_STANDARD_DEVIATION = 255f //for normalization 255f was default
         private val INPUT_IMAGE_TYPE = DataType.FLOAT32
         private val OUTPUT_IMAGE_TYPE = DataType.FLOAT32
-        private const val CONFIDENCE_THRESHOLD = 0.2F //minimum confidence score
+        private const val CONFIDENCE_THRESHOLD = 0.5F //minimum confidence score
     }
 }
