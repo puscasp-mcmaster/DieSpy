@@ -108,6 +108,11 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
 
         //analyze frames
         imageAnalyzer?.setAnalyzer(cameraExecutor) { imageProxy ->
+            frameCounter++
+            if (frameCounter % frameSkipRate != 0) {
+                imageProxy.close()
+                return@setAnalyzer
+            }
             val bitmapBuffer =
                 Bitmap.createBitmap(
                     imageProxy.width,
@@ -180,15 +185,6 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         }
     }
 
-    //variables
-    companion object {
-        private const val TAG = "Camera"
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = mutableListOf (
-            Manifest.permission.CAMERA
-        ).toTypedArray()
-    }
-
     //clears empty detection
     override fun onEmptyDetect() {
         requireActivity().runOnUiThread {
@@ -212,5 +208,16 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         }
     }
 
+    //variables
+    companion object {
+        private const val TAG = "Camera"
+        private const val REQUEST_CODE_PERMISSIONS = 10
+        private val REQUIRED_PERMISSIONS = mutableListOf (
+            Manifest.permission.CAMERA
+        ).toTypedArray()
+        private var frameCounter = 0
+        private val frameSkipRate = 4 //Process every 3rd frame
+
+    }
 
 }
