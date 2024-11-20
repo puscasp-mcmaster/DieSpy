@@ -115,7 +115,7 @@ class Detector(
 
         var inferenceTime = SystemClock.uptimeMillis()
 
-        //resize bitmap to match model input dimenstion
+        //resize bitmap to match model input dimension
         val resizedBitmap = Bitmap.createScaledBitmap(frame, tensorWidth, tensorHeight, false)
 
         //convert resized bitmap to TensorImage
@@ -138,7 +138,6 @@ class Detector(
         }
 
         detectorListener.onDetect(bestBoxes, inferenceTime)
-
     }
 
     //extracting best box from model output

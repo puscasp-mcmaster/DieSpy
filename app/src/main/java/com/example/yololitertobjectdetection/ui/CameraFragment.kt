@@ -115,7 +115,6 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
                     Bitmap.Config.ARGB_8888
                 )
             imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
-            Log.d("Camera", "Rotation degrees: ${imageProxy.imageInfo.rotationDegrees}")
             imageProxy.close()
 
             //adjust image orientation
