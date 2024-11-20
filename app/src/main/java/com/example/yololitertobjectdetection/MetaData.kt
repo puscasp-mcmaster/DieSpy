@@ -10,6 +10,8 @@ import java.nio.MappedByteBuffer
 
 object MetaData {
 
+    //extracts class name from model metadata
+    //tensorflow model and returns list of class names
     fun extractNamesFromMetadata(model: MappedByteBuffer): List<String> {
         try {
             val metadataExtractor = MetadataExtractor(model)
@@ -31,6 +33,7 @@ object MetaData {
         }
     }
 
+    //reads class labels txt file if need be
     fun extractNamesFromLabelFile(context: Context, labelPath: String): List<String> {
         val labels = mutableListOf<String>()
         try {

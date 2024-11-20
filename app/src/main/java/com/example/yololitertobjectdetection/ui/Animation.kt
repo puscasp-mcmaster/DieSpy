@@ -6,8 +6,10 @@ import android.widget.ImageView
 
 object Animation {
 
+
     fun animateArrow(imageView: ImageView, startAngle: Float, endAngle: Float) {
         val animator = ValueAnimator.ofFloat(startAngle, endAngle).apply {
+            //300 milliseconds
             duration = 300
             interpolator = DecelerateInterpolator()
             addUpdateListener { animation ->

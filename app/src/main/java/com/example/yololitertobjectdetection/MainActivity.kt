@@ -17,7 +17,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         enableEdgeToEdge()
@@ -35,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
     }
-
 
     private fun setStatusBarColor(color: Int) {
         window?.statusBarColor = ContextCompat.getColor(baseContext, color)

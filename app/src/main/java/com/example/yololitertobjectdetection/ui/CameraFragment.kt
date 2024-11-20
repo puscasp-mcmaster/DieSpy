@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -32,6 +31,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class CameraFragment : Fragment(), Detector.DetectorListener {
+    //view binding for accessing UI components
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
@@ -57,12 +57,14 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         super.onViewCreated(view, savedInstanceState)
         cameraExecutor = Executors.newSingleThreadExecutor()
 
+        //Initialize the object detector in a background thread
         cameraExecutor.execute {
             detector = Detector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
                 toast(it)
             }
         }
 
+        //requesting permissions
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -80,28 +82,31 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
+    //configure camera use cases: preview image analysis
     private fun bindCameraUseCases() {
         val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
 
         val rotation = binding.viewFinder.display.rotation
 
+        //select back camera, no need for front
         val cameraSelector = CameraSelector
             .Builder()
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
+
         preview =  Preview.Builder()
-            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
             .setTargetRotation(rotation)
             .build()
 
+        //setup image analysis
         imageAnalyzer = ImageAnalysis.Builder()
-            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setTargetRotation(binding.viewFinder.display.rotation)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
 
+        //analyze frames
         imageAnalyzer?.setAnalyzer(cameraExecutor) { imageProxy ->
             val bitmapBuffer =
                 Bitmap.createBitmap(
@@ -110,8 +115,10 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
                     Bitmap.Config.ARGB_8888
                 )
             imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
+            Log.d("Camera", "Rotation degrees: ${imageProxy.imageInfo.rotationDegrees}")
             imageProxy.close()
 
+            //adjust image orientation
             val matrix = Matrix().apply {
                 postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
 
@@ -174,6 +181,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         }
     }
 
+    //variables
     companion object {
         private const val TAG = "Camera"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -182,12 +190,14 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         ).toTypedArray()
     }
 
+    //clears empty detection
     override fun onEmptyDetect() {
         requireActivity().runOnUiThread {
             binding.overlay.clear()
         }
     }
 
+    //handle detection results
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         requireActivity().runOnUiThread {
             binding.overlay.apply {
