@@ -61,7 +61,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
 
             canvas.drawRoundRect(left, top, right, bottom, 16f, 16f, boxPaint)
 
-            val drawableText = "${boundingBox.clsName} ${Math.round(boundingBox.cnf * 100.0) / 100.0}"
+            val drawableText = "${boundingBox.clsName} - ${Math.round(boundingBox.cnf * 100.0) }%"
 
             textBackgroundPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
             val textWidth = bounds.width()
@@ -82,8 +82,16 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
 
     private fun getColorForLabel(label: String): Int {
         return colorMap.getOrPut(label) {
-            // Generate a random color or you can use a predefined set of colors
-            Color.rgb((0..255).random(), (0..255).random(), (0..255).random())
+            // Generating preset colours for all of our d6s
+            when (label){
+                "1" -> Color.rgb(255, 0, 0)
+                "2" -> Color.rgb(102, 0, 204)
+                "3" -> Color.rgb(0, 204, 0)
+                "4" -> Color.rgb(102, 178, 255)
+                "5" -> Color.rgb(0, 0, 255)
+                "6" -> Color.rgb(255, 0, 127)
+                else -> Color.rgb((0..255).random(), (0..255).random(), (0..255).random())
+            }
         }
     }
 
