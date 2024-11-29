@@ -35,6 +35,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
+    private val statsView = StatsView()
     private val isFrontCamera = false
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -109,7 +110,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         //analyze frames
         imageAnalyzer?.setAnalyzer(cameraExecutor) { imageProxy ->
             frameCounter++
-            if (frameCounter % frameSkipRate != 0) {
+            if (frameCounter % FRAME_SKIP_RATE != 0) {
                 imageProxy.close()
                 return@setAnalyzer
             }
@@ -188,13 +189,25 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
     //clears empty detection
     override fun onEmptyDetect() {
         requireActivity().runOnUiThread {
+            //Remove binding boxes
             binding.overlay.clear()
+            //remove bottom stats
+            statsView.reset()
+            binding.statsCalc.text = statsView.getCalcs()
+            binding.statsFaces.text = statsView.getFaces()
         }
     }
 
     //handle detection results
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         requireActivity().runOnUiThread {
+            statsView.updateStats(boundingBoxes)
+            //Update the TextView at the bottom
+            binding.statsCalc.text = statsView.getCalcs()
+            binding.statsFaces.text = statsView.getFaces()
+
+
+            //Update the binding boxes overlay
             binding.overlay.apply {
                 setResults(boundingBoxes)
                 invalidate()
@@ -216,7 +229,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
             Manifest.permission.CAMERA
         ).toTypedArray()
         private var frameCounter = 0
-        private val frameSkipRate = 4 //Process every 3rd frame
+        private const val FRAME_SKIP_RATE = 6 //Process every 3rd frame
 
     }
 

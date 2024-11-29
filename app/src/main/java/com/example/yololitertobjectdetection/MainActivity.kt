@@ -12,6 +12,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.yololitertobjectdetection.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+    //Binding for the activity's layout, allowing access to the views in XML without needing findViewById
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
 
@@ -24,12 +25,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setStatusBarColor(R.color.primary)
 
+        //Adjusts padding to ensure content does not overlap with system bars (e.g., status bar, navigation bar)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            //Sets padding for the view based on the system bar dimensions
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
+        //Finds the navigation host fragment (the container for the NavController)
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 

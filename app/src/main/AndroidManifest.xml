@@ -14,7 +14,7 @@
         android:label="Die Spy"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.YOLOLiteRTObjectDetection"
+        android:theme="@style/Theme.DieSpy"
         tools:targetApi="31">
         <activity
             android:name="com.example.yololitertobjectdetection.MainActivity"

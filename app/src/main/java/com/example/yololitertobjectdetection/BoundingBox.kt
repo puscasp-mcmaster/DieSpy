@@ -9,3 +9,4 @@ data class BoundingBox(
     val cls: Int, //class index
     val clsName: String //name of detected class
 )
+
