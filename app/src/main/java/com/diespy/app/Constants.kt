@@ -1,4 +1,4 @@
-package com.example.DieSpy
+package com.diespy.app
 
 object Constants {
     const val MODEL_PATH = "best_float32.tflite"

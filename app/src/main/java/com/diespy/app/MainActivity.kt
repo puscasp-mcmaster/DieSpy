@@ -1,4 +1,4 @@
-package com.example.DieSpy
+package com.diespy.app
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -9,7 +9,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import com.example.DieSpy.databinding.ActivityMainBinding
+import com.diespy.app.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     //Binding for the activity's layout, allowing access to the views in XML without needing findViewById

@@ -1,4 +1,4 @@
-package com.example.DieSpy.ui
+package com.diespy.app.ui
 
 import android.animation.ValueAnimator
 import android.view.animation.DecelerateInterpolator

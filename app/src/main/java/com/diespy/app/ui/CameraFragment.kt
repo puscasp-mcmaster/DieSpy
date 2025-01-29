@@ -1,4 +1,4 @@
-package com.example.DieSpy.ui
+package com.diespy.app.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -20,11 +20,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.example.DieSpy.BoundingBox
-import com.example.DieSpy.Constants.LABELS_PATH
-import com.example.DieSpy.Constants.MODEL_PATH
-import com.example.DieSpy.Detector
-import com.example.DieSpy.databinding.FragmentCameraBinding
+import com.diespy.app.BoundingBox
+import com.diespy.app.Constants.LABELS_PATH
+import com.diespy.app.Constants.MODEL_PATH
+import com.diespy.app.Detector
+import com.diespy.app.databinding.FragmentCameraBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService

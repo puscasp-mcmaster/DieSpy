@@ -1,6 +1,6 @@
-package com.example.DieSpy.ui
+package com.diespy.app.ui
 
-import com.example.DieSpy.BoundingBox
+import com.diespy.app.BoundingBox
 
 class StatsView {
     private var sum: Int = 0

@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.DieSpy"
+    namespace = "com.diespy.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.DieSpy"
+        applicationId = "com.diespy.app"
         minSdk = 28
         targetSdk = 34
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.example.DieSpy
+package com.diespy.app
 
 data class BoundingBox(
     val x1: Float, //top left

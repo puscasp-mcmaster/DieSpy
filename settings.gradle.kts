@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DieSpy"
+rootProject.name = "app"
 include(":app")
  

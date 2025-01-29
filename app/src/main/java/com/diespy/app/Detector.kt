@@ -1,10 +1,10 @@
-package com.example.DieSpy
+package com.diespy.app
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
-import com.example.DieSpy.MetaData.extractNamesFromLabelFile
-import com.example.DieSpy.MetaData.extractNamesFromMetadata
+import com.diespy.app.MetaData.extractNamesFromLabelFile
+import com.diespy.app.MetaData.extractNamesFromMetadata
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList

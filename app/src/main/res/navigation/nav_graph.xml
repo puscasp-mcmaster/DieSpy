@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/cameraFragment"
-        android:name="com.example.DieSpy.ui.CameraFragment"
+        android:name="com.diespy.app.ui.CameraFragment"
         android:label="fragment_camera"
         tools:layout="@layout/fragment_camera" />
 </navigation>
