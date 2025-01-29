@@ -1,4 +1,4 @@
-package com.example.yololitertobjectdetection
+package com.example.DieSpy
 
 object Constants {
     const val MODEL_PATH = "best_float32.tflite"

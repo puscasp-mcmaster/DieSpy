@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "YOLO LiteRT Object Detection"
+rootProject.name = "DieSpy"
 include(":app")
  

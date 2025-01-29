@@ -1,6 +1,6 @@
-package com.example.yololitertobjectdetection.ui
+package com.example.DieSpy.ui
 
-import com.example.yololitertobjectdetection.BoundingBox
+import com.example.DieSpy.BoundingBox
 
 class StatsView {
     private var sum: Int = 0

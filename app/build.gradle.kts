@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.yololitertobjectdetection"
+    namespace = "com.example.DieSpy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.yololitertobjectdetection"
+        applicationId = "com.example.DieSpy"
         minSdk = 28
         targetSdk = 34
         versionCode = 1

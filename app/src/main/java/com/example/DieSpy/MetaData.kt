@@ -1,4 +1,4 @@
-package com.example.yololitertobjectdetection
+package com.example.DieSpy
 
 import android.content.Context
 import org.tensorflow.lite.support.metadata.MetadataExtractor

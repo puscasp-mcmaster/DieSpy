@@ -1,4 +1,4 @@
-package com.example.yololitertobjectdetection.ui
+package com.example.DieSpy.ui
 
 import android.animation.ValueAnimator
 import android.view.animation.DecelerateInterpolator

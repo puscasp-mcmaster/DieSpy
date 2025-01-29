@@ -1,4 +1,4 @@
-package com.example.yololitertobjectdetection.ui
+package com.example.DieSpy.ui
 
 import android.content.Context
 import android.graphics.Canvas
@@ -8,7 +8,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
-import com.example.yololitertobjectdetection.BoundingBox
+import com.example.DieSpy.BoundingBox
 
 
 class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {

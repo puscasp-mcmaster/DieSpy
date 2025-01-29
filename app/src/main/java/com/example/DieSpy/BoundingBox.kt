@@ -1,4 +1,4 @@
-package com.example.yololitertobjectdetection
+package com.example.DieSpy
 
 data class BoundingBox(
     val x1: Float, //top left

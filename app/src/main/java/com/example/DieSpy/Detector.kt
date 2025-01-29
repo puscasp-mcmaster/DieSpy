@@ -1,10 +1,10 @@
-package com.example.yololitertobjectdetection
+package com.example.DieSpy
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
-import com.example.yololitertobjectdetection.MetaData.extractNamesFromLabelFile
-import com.example.yololitertobjectdetection.MetaData.extractNamesFromMetadata
+import com.example.DieSpy.MetaData.extractNamesFromLabelFile
+import com.example.DieSpy.MetaData.extractNamesFromMetadata
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
