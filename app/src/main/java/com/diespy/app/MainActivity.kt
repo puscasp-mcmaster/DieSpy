@@ -11,34 +11,59 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.diespy.app.databinding.ActivityMainBinding
 
+/**
+ * MainActivity serves as the entry point of the application.
+ * It manages the navigation host and applies UI enhancements like edge-to-edge display.
+ */
 class MainActivity : AppCompatActivity() {
-    //Binding for the activity's layout, allowing access to the views in XML without needing findViewById
+
+    // View binding for accessing views in the layout file
     private lateinit var binding: ActivityMainBinding
+
+    // Navigation controller for managing app navigation
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inflate the layout using View Binding
         binding = ActivityMainBinding.inflate(layoutInflater)
-
-        enableEdgeToEdge()
-
         setContentView(binding.root)
+
+        // Enable edge-to-edge layout display
+        enableEdgeToEdge()
         setStatusBarColor(R.color.primary)
 
-        //Adjusts padding to ensure content does not overlap with system bars (e.g., status bar, navigation bar)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            //Sets padding for the view based on the system bar dimensions
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        // Apply padding adjustments to prevent system bars overlapping content
+        applySystemBarInsets()
 
-        //Finds the navigation host fragment (the container for the NavController)
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        navController = navHostFragment.navController
-
+        // Initialize Navigation Component
+        setupNavigation()
     }
 
+    /**
+     * Configures padding adjustments to prevent system bars (status & navigation bar) from overlapping content.
+     */
+    private fun applySystemBarInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+    }
+
+    /**
+     * Initializes the Navigation Component by binding the NavController to the NavHostFragment.
+     */
+    private fun setupNavigation() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
+    }
+
+    /**
+     * Sets the status bar color dynamically.
+     */
     private fun setStatusBarColor(color: Int) {
         window?.statusBarColor = ContextCompat.getColor(baseContext, color)
         WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false

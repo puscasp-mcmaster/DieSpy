@@ -3,43 +3,55 @@ package com.diespy.app.ui
 import com.diespy.app.BoundingBox
 
 class StatsView {
-    private var sum: Int = 0
-    private var count: Int = 0
-    private val faces = IntArray(6)
+    private var rollSum = 0              // Total sum of dice rolls
+    private var numDice = 0              // Number of detected dice
+    private val faceCounts = IntArray(6) // Count of each face (1-6) appearing
 
-    //Update stats based on logic
-    fun updateStats(die: List<BoundingBox>) {
-        sum = 0
-        count = 0
-        faces.fill(0)
-        for (element in die){
-            //Must add 1 because the dice rolls start at 0
-            sum = sum + (element.cls+1)
-            faces[element.cls]++
-            count++
+    /**
+     * Updates the dice roll statistics based on detected dice.
+     */
+    fun updateStats(detectedDice: List<BoundingBox>) {
+        rollSum = 0
+        faceCounts.fill(0)
+
+        detectedDice.forEach { dice ->
+            val diceValue = dice.classIndex + 1  // Convert from 0-based index to 1-6
+            rollSum += diceValue
+            faceCounts[dice.classIndex]++
         }
+        numDice = detectedDice.size
     }
 
+    /**
+     * Resets all stored statistics.
+     */
     fun reset() {
-        sum = 0
-        count = 0
+        rollSum = 0
+        numDice = 0
+        faceCounts.fill(0)  // Also reset face counts
     }
 
-    //Return the current stats as a formatted string
-    fun getCalcs(): String {
+    /**
+     * Returns a summary of dice statistics.
+     */
+    fun getStatSummary(): String {
         return """
-            Sum: $sum
-            Count: $count
+            Sum: $rollSum
+            Count: $numDice
         """.trimIndent()
     }
-    fun getFaces(): String {
+
+    /**
+     * Returns a breakdown of detected dice face occurrences.
+     */
+    fun getFaceCounts(): String {
         return """
-            1: ${faces[0]}
-            2: ${faces[1]}
-            3: ${faces[2]}
-            4: ${faces[3]}
-            5: ${faces[4]}
-            6: ${faces[5]}
+            1: ${faceCounts[0]}
+            2: ${faceCounts[1]}
+            3: ${faceCounts[2]}
+            4: ${faceCounts[3]}
+            5: ${faceCounts[4]}
+            6: ${faceCounts[5]}
         """.trimIndent()
     }
 }

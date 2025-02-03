@@ -1,106 +1,99 @@
 package com.diespy.app.ui
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
-import android.graphics.RectF
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import com.diespy.app.BoundingBox
 
-
 class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
+    // List to store detected bounding boxes
     private var results = listOf<BoundingBox>()
-    private val boxPaint = Paint()
-    private val textBackgroundPaint = Paint()
-    private val textPaint = Paint()
 
-    private var bounds = Rect()
-    private val colorMap = mutableMapOf<String, Int>()
+    // Paint objects for drawing bounding boxes and labels
+    private val boxPaint = Paint().apply { style = Paint.Style.STROKE; strokeWidth = 8F }
+    private val textPaint = Paint().apply { color = Color.WHITE; textSize = 42f; style = Paint.Style.FILL }
+    private val textBackgroundPaint = Paint().apply { style = Paint.Style.FILL }
 
-    init {
-        initPaints()
-    }
+    private val bounds = Rect() // Text bounds for label placement
+    private val colorMap = mutableMapOf<String, Int>() // Stores unique colors for each detected label
 
+    /**
+     * Clears overlay by resetting detected results and invalidating view.
+     */
     fun clear() {
-        results = listOf()
-        textPaint.reset()
-        textBackgroundPaint.reset()
-        boxPaint.reset()
+        results = emptyList()
         invalidate()
-        initPaints()
     }
 
-    private fun initPaints() {
-        textBackgroundPaint.color = Color.WHITE
-        textBackgroundPaint.style = Paint.Style.FILL
-        textBackgroundPaint.textSize = 42f
-
-        textPaint.color = Color.WHITE
-        textPaint.style = Paint.Style.FILL
-        textPaint.textSize = 42f
+    /**
+     * Sets new bounding boxes and refreshes the overlay.
+     */
+    fun setResults(boundingBoxes: List<BoundingBox>) {
+        results = boundingBoxes
+        invalidate()
     }
 
+    /**
+     * Overrides the default Android `draw()` method to render bounding boxes.
+     */
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-
-        results.forEach { boundingBox ->
-            // Get or create a color for this label
-            val color = getColorForLabel(boundingBox.clsName)
-            boxPaint.color = color
-            boxPaint.strokeWidth = 8F
-            boxPaint.style = Paint.Style.STROKE
-
-            val left = boundingBox.x1 * width
-            val top = boundingBox.y1 * height
-            val right = boundingBox.x2 * width
-            val bottom = boundingBox.y2 * height
-
-            canvas.drawRoundRect(left, top, right, bottom, 16f, 16f, boxPaint)
-
-            val drawableText = "${boundingBox.clsName} - ${Math.round(boundingBox.cnf * 100.0) }%"
-
-            textBackgroundPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
-            val textWidth = bounds.width()
-            val textHeight = bounds.height()
-
-            val textBackgroundRect = RectF(
-                left,
-                top,
-                left + textWidth + BOUNDING_RECT_TEXT_PADDING,
-                top + textHeight + BOUNDING_RECT_TEXT_PADDING
-            )
-            textBackgroundPaint.color = color // Set background color same as bounding box
-            canvas.drawRoundRect(textBackgroundRect, 8f, 8f, textBackgroundPaint)
-
-            canvas.drawText(drawableText, left, top + textHeight, textPaint)
-        }
+        results.forEach { boundingBox -> drawBoundingBox(canvas, boundingBox.toPixelCoordinates(width, height)) }
     }
 
+    /**
+     * Draws a bounding box and label text on the canvas.
+     */
+    private fun drawBoundingBox(canvas: Canvas, boundingBox: BoundingBox) {
+        val color = getColorForLabel(boundingBox.className)
+        boxPaint.color = color
+
+        val left = boundingBox.x1
+        val top = boundingBox.y1
+        val right = boundingBox.x2
+        val bottom = boundingBox.y2
+
+        // Draw bounding box
+        canvas.drawRoundRect(left, top, right, bottom, 16f, 16f, boxPaint)
+
+        // Format label text
+        val drawableText = "${boundingBox.className} - ${Math.round(boundingBox.confidence * 100.0)}%"
+        textPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
+
+        // Draw background for label
+        val textBackgroundRect = RectF(
+            left,
+            top,
+            left + bounds.width() + TEXT_PADDING,
+            top + bounds.height() + TEXT_PADDING
+        )
+        textBackgroundPaint.color = color
+        canvas.drawRoundRect(textBackgroundRect, 8f, 8f, textBackgroundPaint)
+
+        // Draw label text
+        canvas.drawText(drawableText, left, top + bounds.height(), textPaint)
+    }
+
+    /**
+     * Generates or retrieves a unique color for each detected label.
+     */
     private fun getColorForLabel(label: String): Int {
         return colorMap.getOrPut(label) {
-            // Generating preset colours for all of our d6s
-            when (label){
-                "1" -> Color.rgb(255, 0, 0)
+            when (label) {
+                "1" -> Color.RED
                 "2" -> Color.rgb(102, 0, 204)
                 "3" -> Color.rgb(0, 204, 0)
                 "4" -> Color.rgb(102, 178, 255)
-                "5" -> Color.rgb(0, 0, 255)
+                "5" -> Color.BLUE
                 "6" -> Color.rgb(255, 0, 127)
                 else -> Color.rgb((0..255).random(), (0..255).random(), (0..255).random())
             }
         }
     }
 
-    fun setResults(boundingBoxes: List<BoundingBox>) {
-        results = boundingBoxes
-        invalidate()
-    }
-
     companion object {
-        private const val BOUNDING_RECT_TEXT_PADDING = 8
+        private const val TEXT_PADDING = 8
     }
 }

@@ -8,52 +8,57 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.MappedByteBuffer
 
+/**
+ * Utility object for extracting class names from a TensorFlow Lite model's metadata
+ * or an external label file.
+ */
 object MetaData {
 
-    //extracts class name from model metadata
-    //tensorflow model and returns list of class names
-    fun extractNamesFromMetadata(model: MappedByteBuffer): List<String> {
-        try {
+    /**
+     * Extracts class names from the metadata of a TensorFlow Lite model.
+     */
+    fun extractClassNamesFromMetadata(model: MappedByteBuffer): List<String> {
+        return try {
             val metadataExtractor = MetadataExtractor(model)
             val inputStream = metadataExtractor.getAssociatedFile("temp_meta.txt")
-            val metadata = inputStream?.bufferedReader()?.use { it.readText() } ?: return emptyList()
 
+            // Read metadata file content if available
+            val metadataContent = inputStream?.bufferedReader()?.use { it.readText() } ?: return emptyList()
+
+            // Regex to extract the 'names' section from metadata
             val regex = Regex("'names': \\{(.*?)\\}", RegexOption.DOT_MATCHES_ALL)
+            val match = regex.find(metadataContent)
+            val extractedNames = match?.groups?.get(1)?.value ?: return emptyList()
 
-            val match = regex.find(metadata)
-            val namesContent = match?.groups?.get(1)?.value ?: return emptyList()
-
-            val regex2 = Regex("\"([^\"]*)\"|'([^']*)'")
-            val match2 = regex2.findAll(namesContent)
-            val list = match2.map { it.groupValues[1].ifEmpty { it.groupValues[2] }}.toList()
-
-            return list
-        } catch (_: Exception) {
-            return emptyList()
+            // Extract individual class names from metadata
+            val nameRegex = Regex("\"([^\"]*)\"|'([^']*)'")
+            nameRegex.findAll(extractedNames)
+                .map { it.groupValues[1].ifEmpty { it.groupValues[2] } }
+                .toList()
+        } catch (exception: Exception) {
+            emptyList()
         }
     }
 
-    //reads class labels txt file if need be
-    fun extractNamesFromLabelFile(context: Context, labelPath: String): List<String> {
-        val labels = mutableListOf<String>()
-        try {
-            val inputStream: InputStream = context.assets.open(labelPath)
-            val reader = BufferedReader(InputStreamReader(inputStream))
-
-            var line: String? = reader.readLine()
-            while (line != null && line != "") {
-                labels.add(line)
-                line = reader.readLine()
+    /**
+     * Reads class labels from a label file stored in the app's assets.
+     */
+    fun extractClassNamesFromLabelFile(context: Context, labelFilePath: String): List<String> {
+        return try {
+            val inputStream: InputStream = context.assets.open(labelFilePath)
+            BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                reader.lineSequence()
+                    .filter { it.isNotBlank() }
+                    .toList()
             }
-
-            reader.close()
-            inputStream.close()
-            return labels
-        } catch (e: IOException) {
-            return emptyList()
+        } catch (exception: IOException) {
+            emptyList()
         }
     }
 
-
-    val TEMP_CLASSES = List(1000) { "class${it + 1}" }
+    /**
+     * Default placeholder labels (1,000 class names) for use when no labels are found.
+     * Example: "Class1", "Class2", ..., "Class1000"
+     */
+    val DEFAULT_CLASSES = List(1000) { "Class${it + 1}" }
 }

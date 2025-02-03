@@ -11,10 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -30,184 +27,230 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+/**
+ * CameraFragment handles the camera preview, object detection,
+ * and updating UI elements with the detected results.
+ */
 class CameraFragment : Fragment(), Detector.DetectorListener {
-    //view binding for accessing UI components
+
+    // View binding to interact with UI components in FragmentCameraBinding
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
-    private val statsView = StatsView()
-    private val isFrontCamera = false
+    // Camera and detector-related components
+    private lateinit var cameraExecutor: ExecutorService
+    private var cameraProvider: ProcessCameraProvider? = null
+    private var detector: Detector? = null
+
+    // UI-related components
+    private val statsView = StatsView() // Handles statistics of detected dice
+    private val isFrontCamera = false  // Indicates if the front camera is being used (default: false)
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
-    private var cameraProvider: ProcessCameraProvider? = null
-    private var detector: Detector? = null
-    private lateinit var cameraExecutor: ExecutorService
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    /**
+     * Inflates the view and sets up View Binding.
+     */
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
         return binding.root
     }
 
+    /**
+     * Cleans up View Binding to prevent memory leaks.
+     */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
+    /**
+     * Called when the view is created. Initializes camera and object detector.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Executor for running camera operations in a background thread
         cameraExecutor = Executors.newSingleThreadExecutor()
 
-        //Initialize the object detector in a background thread
+        // Initialize object detector asynchronously
         cameraExecutor.execute {
             detector = Detector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
-                toast(it)
+                showToast(it)
             }
         }
 
-        //requesting permissions
+        // Check permissions before starting the camera
         if (allPermissionsGranted()) {
             startCamera()
         } else {
-            ActivityCompat.requestPermissions(requireActivity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                REQUIRED_PERMISSIONS,
+                REQUEST_CODE_PERMISSIONS
+            )
         }
-
     }
 
-
+    /**
+     * Initializes and starts the CameraX provider.
+     */
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
-            cameraProvider  = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
             bindCameraUseCases()
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
-    //configure camera use cases: preview image analysis
+    /**
+     * Binds camera preview and image analysis for object detection.
+     */
     private fun bindCameraUseCases() {
-        val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
+        val cameraProvider =
+            cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
 
         val rotation = binding.viewFinder.display.rotation
 
-        //select back camera, no need for front
-        val cameraSelector = CameraSelector
-            .Builder()
+        // Selects the back camera
+        val cameraSelector = CameraSelector.Builder()
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
-
-        preview =  Preview.Builder()
+        // Configures camera preview
+        preview = Preview.Builder()
             .setTargetRotation(rotation)
             .build()
 
-        //setup image analysis
+        // Sets up image analysis pipeline
         imageAnalyzer = ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setTargetRotation(binding.viewFinder.display.rotation)
+            .setTargetRotation(rotation)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
 
-        //analyze frames
+        // Sets the frame analyzer for object detection
         imageAnalyzer?.setAnalyzer(cameraExecutor) { imageProxy ->
-            frameCounter++
-            if (frameCounter % FRAME_SKIP_RATE != 0) {
-                imageProxy.close()
-                return@setAnalyzer
-            }
-            val bitmapBuffer =
-                Bitmap.createBitmap(
-                    imageProxy.width,
-                    imageProxy.height,
-                    Bitmap.Config.ARGB_8888
-                )
-            imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
-            imageProxy.close()
-
-            //adjust image orientation
-            val matrix = Matrix().apply {
-                postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
-
-                if (isFrontCamera) {
-                    postScale(
-                        -1f,
-                        1f,
-                        imageProxy.width.toFloat(),
-                        imageProxy.height.toFloat()
-                    )
-                }
-            }
-
-            val rotatedBitmap = Bitmap.createBitmap(
-                bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height,
-                matrix, true
-            )
-
-            detector?.detect(rotatedBitmap)
+            processImage(imageProxy)
         }
 
+        // Unbind previous camera use cases before rebinding
         cameraProvider.unbindAll()
 
         try {
+            // Bind camera lifecycle to this fragment
             camera = cameraProvider.bindToLifecycle(
-                this,
-                cameraSelector,
-                preview,
-                imageAnalyzer
+                this, cameraSelector, preview, imageAnalyzer
             )
-
             preview?.surfaceProvider = binding.viewFinder.surfaceProvider
-        } catch(exc: Exception) {
+        } catch (exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
-
     }
 
+    /**
+     * Processes frames and sends them to the object detector.
+     */
+    private fun processImage(imageProxy: ImageProxy) {
+        frameCounter++
+        if (frameCounter % FRAME_SKIP_RATE != 0) {
+            imageProxy.close()
+            return
+        }
+
+        // Converts ImageProxy to Bitmap
+        val bitmap = imageProxy.toBitmap()
+
+        // Rotates and corrects orientation before passing to detector
+        val correctedBitmap = rotateAndFlipBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
+
+        imageProxy.close()
+
+        // Runs object detection on the processed frame
+        detector?.detect(correctedBitmap)
+    }
+
+    /**
+     * Rotates and flips the image if needed.
+     * This ensures bounding boxes align correctly with detected dice.
+     */
+    private fun rotateAndFlipBitmap(bitmap: Bitmap, rotationDegrees: Int): Bitmap {
+        val matrix = Matrix().apply {
+            postRotate(rotationDegrees.toFloat()) // Rotates image based on sensor rotation
+            if (isFrontCamera) {
+                postScale(-1f, 1f) // Mirrors image if using front camera
+            }
+        }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+    /**
+     * Checks if all required permissions are granted.
+     */
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()) {
-        if (it[Manifest.permission.CAMERA] == true) { startCamera() }
-    }
+    /**
+     * Handles camera permission requests.
+     */
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (it[Manifest.permission.CAMERA] == true) {
+                startCamera()
+            }
+        }
 
+    /**
+     * Cleans up resources when the fragment is destroyed.
+     */
     override fun onDestroy() {
         super.onDestroy()
         detector?.close()
         cameraExecutor.shutdown()
     }
 
+    /**
+     * Restarts the camera when the fragment is resumed.
+     */
     override fun onResume() {
         super.onResume()
-        if (allPermissionsGranted()){
+        if (allPermissionsGranted()) {
             startCamera()
         } else {
             requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
         }
     }
 
-    //clears empty detection
+    /**
+     * Clears bounding boxes and resets stats when no dice are detected.
+     */
     override fun onEmptyDetect() {
         requireActivity().runOnUiThread {
-            //Remove binding boxes
             binding.overlay.clear()
-            //remove bottom stats
             statsView.reset()
-            binding.statsCalc.text = statsView.getCalcs()
-            binding.statsFaces.text = statsView.getFaces()
+            binding.statsCalc.text = statsView.getStatSummary()
+            binding.statsFaces.text = statsView.getFaceCounts()
         }
     }
 
-    //handle detection results
+    /**
+     * Handles detection results, updates UI, and displays bounding boxes.
+     */
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         requireActivity().runOnUiThread {
             statsView.updateStats(boundingBoxes)
-            //Update the TextView at the bottom
-            binding.statsCalc.text = statsView.getCalcs()
-            binding.statsFaces.text = statsView.getFaces()
 
+            // Updates UI with dice statistics
+            binding.statsCalc.text = statsView.getStatSummary()
+            binding.statsFaces.text = statsView.getFaceCounts()
 
-            //Update the binding boxes overlay
+            // Updates overlay with bounding boxes
             binding.overlay.apply {
                 setResults(boundingBoxes)
                 invalidate()
@@ -215,22 +258,23 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         }
     }
 
-    private fun toast(message: String) {
+    /**
+     * Displays a toast message on the UI thread.
+     */
+    private fun showToast(message: String) {
         lifecycleScope.launch(Dispatchers.Main) {
             Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
         }
     }
 
-    //variables
+    /**
+     * Companion object stores constants used throughout the class.
+     */
     companion object {
-        private const val TAG = "Camera"
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = mutableListOf (
-            Manifest.permission.CAMERA
-        ).toTypedArray()
-        private var frameCounter = 0
-        private const val FRAME_SKIP_RATE = 6 //Process every 3rd frame
-
+        private const val TAG = "CameraFragment" // Log tag for debugging
+        private const val REQUEST_CODE_PERMISSIONS = 10 // Request code for camera permissions
+        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA) // Permissions needed
+        private var frameCounter = 0 // Counter to skip frames for efficiency
+        private const val FRAME_SKIP_RATE = 6 // Processes every 6th frame for performance
     }
-
 }

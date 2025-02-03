@@ -3,8 +3,8 @@ package com.diespy.app
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
-import com.diespy.app.MetaData.extractNamesFromLabelFile
-import com.diespy.app.MetaData.extractNamesFromMetadata
+import com.diespy.app.MetaData.extractClassNamesFromLabelFile
+import com.diespy.app.MetaData.extractClassNamesFromMetadata
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
@@ -16,146 +16,166 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
+/**
+ * Detector class responsible for running inference using a TensorFlow Lite model.
+ * Detects dice faces in images and returns bounding boxes.
+ */
 class Detector(
-    private val context: Context, //accessing resources
-    private val modelPath: String,
-    private val labelPath: String?, //optional
-    private val detectorListener: DetectorListener,
-    private val message: (String) -> Unit
+    private val context: Context, // Context for resource access
+    private val modelFilePath: String, // Path to TFLite model
+    private val labelFilePath: String?, // Optional label file path
+    private val listener: DetectorListener, // Callback listener for detection events
+    private val showMessage: (String) -> Unit // Function to display messages
 ) {
-    private var interpreter: Interpreter
-    private var labels = mutableListOf<String>()
 
-    //Tensor properties
-    private var tensorWidth = 0
-    private var tensorHeight = 0
-    private var numChannel = 0
-    private var numElements = 0
+    private var interpreter: Interpreter // TFLite model interpreter
+    private val labels = mutableListOf<String>() // List of class labels
 
+    // Model input/output properties
+    private var inputWidth = 0
+    private var inputHeight = 0
+    private var numChannels = 0
+    private var numDetections = 0
 
+    /**
+     * Image pre-processing pipeline (Normalizes and converts input format)
+     */
     private val imageProcessor = ImageProcessor.Builder()
-        .add(NormalizeOp(INPUT_MEAN, INPUT_STANDARD_DEVIATION))
-        .add(CastOp(INPUT_IMAGE_TYPE))
+        .add(NormalizeOp(INPUT_MEAN, INPUT_STD_DEV)) // Normalize pixel values (0-1 range)
+        .add(CastOp(INPUT_DATA_TYPE)) // Convert to required data type
         .build()
 
     init {
-        val options = Interpreter.Options().apply{
-            this.setNumThreads(4)
+        val options = Interpreter.Options().apply {
+            numThreads = THREAD_COUNT // Optimize inference speed
         }
 
-        val model = FileUtil.loadMappedFile(context, modelPath)
-        interpreter = Interpreter(model, options)
+        // Load TFLite model
+        val modelFile = FileUtil.loadMappedFile(context, modelFilePath)
+        interpreter = Interpreter(modelFile, options)
 
-        labels.addAll(extractNamesFromMetadata(model))
+        // Load labels (if available)
+        labels.addAll(extractClassNamesFromMetadata(modelFile))
         if (labels.isEmpty()) {
-            if (labelPath == null) {
-                message("Model not contains metadata, provide LABELS_PATH in Constants.kt")
-                labels.addAll(MetaData.TEMP_CLASSES)
+            if (labelFilePath == null) {
+                showMessage("Model metadata missing. Provide LABELS_PATH in Constants.kt")
+                labels.addAll(MetaData.DEFAULT_CLASSES) // Default labels
             } else {
-                labels.addAll(extractNamesFromLabelFile(context, labelPath))
+                labels.addAll(extractClassNamesFromLabelFile(context, labelFilePath))
             }
         }
-        labels.forEach(::println)
 
+        labels.forEach(::println) // Debug: Print loaded labels
+
+        // Retrieve model input/output dimensions
         val inputShape = interpreter.getInputTensor(0)?.shape()
         val outputShape = interpreter.getOutputTensor(0)?.shape()
 
         if (inputShape != null) {
-            tensorWidth = inputShape[1]
-            tensorHeight = inputShape[2]
+            inputWidth = inputShape[1]
+            inputHeight = inputShape[2]
 
-            // If in case input shape is in format of [1, 3, ..., ...]
+            // Handle different input shape formats
             if (inputShape[1] == 3) {
-                tensorWidth = inputShape[2]
-                tensorHeight = inputShape[3]
+                inputWidth = inputShape[2]
+                inputHeight = inputShape[3]
             }
         }
 
         if (outputShape != null) {
-            numElements = outputShape[1]
-            numChannel = outputShape[2]
+            numDetections = outputShape[1] // Number of detected objects
+            numChannels = outputShape[2] // Data per object (e.g., bounding box + confidence)
         }
     }
 
-    fun restart(isGpu: Boolean) {
-        interpreter.close()
+    /**
+     * Restarts the detector with optional GPU acceleration.
+     */
+    fun restart(useGpu: Boolean) {
+        interpreter.close() // Close existing interpreter
 
-        //configure for gpu
-        val options = if (isGpu) {
+        val options = if (useGpu) {
             val compatList = CompatibilityList()
-            Interpreter.Options().apply{
-                if(compatList.isDelegateSupportedOnThisDevice){
-                    val delegateOptions = compatList.bestOptionsForThisDevice
-                    this.addDelegate(GpuDelegate(delegateOptions))
+            Interpreter.Options().apply {
+                if (compatList.isDelegateSupportedOnThisDevice) {
+                    addDelegate(GpuDelegate(compatList.bestOptionsForThisDevice)) // Enable GPU
                 } else {
-                    this.setNumThreads(4)
+                    numThreads = THREAD_COUNT // Fallback to CPU
                 }
             }
         } else {
-            Interpreter.Options().apply{
-                this.setNumThreads(4)
+            Interpreter.Options().apply {
+                numThreads = THREAD_COUNT // Use CPU with multi-threading
             }
         }
 
-        val model = FileUtil.loadMappedFile(context, modelPath)
-        interpreter = Interpreter(model, options)
+        val modelFile = FileUtil.loadMappedFile(context, modelFilePath)
+        interpreter = Interpreter(modelFile, options)
     }
 
+    /**
+     * Closes the TFLite interpreter to free resources.
+     */
     fun close() {
         interpreter.close()
     }
 
-
-    fun detect(frame: Bitmap) {
-        //skipping if tensor properties are not initialized
-        if (tensorWidth == 0
-            || tensorHeight == 0
-            || numChannel == 0
-            || numElements == 0) return
+    /**
+     * Runs object detection on the provided bitmap image.
+     */
+    fun detect(image: Bitmap) {
+        if (inputWidth == 0 || inputHeight == 0 || numChannels == 0 || numDetections == 0) return
 
         var inferenceTime = SystemClock.uptimeMillis()
 
-        //resize bitmap to match model input dimension
-        val resizedBitmap = Bitmap.createScaledBitmap(frame, tensorWidth, tensorHeight, false)
+        // Resize the image to match model input dimensions
+        val resizedImage = Bitmap.createScaledBitmap(image, inputWidth, inputHeight, false)
 
-        //convert resized bitmap to TensorImage
-        val tensorImage = TensorImage(INPUT_IMAGE_TYPE)
-        tensorImage.load(resizedBitmap)
+        // Convert image to tensor format
+        val tensorImage = TensorImage(INPUT_DATA_TYPE)
+        tensorImage.load(resizedImage)
         val processedImage = imageProcessor.process(tensorImage)
-        val imageBuffer = processedImage.buffer
+        val inputBuffer = processedImage.buffer
 
-        //prepare output buffer for model
-        val output = TensorBuffer.createFixedSize(intArrayOf(1, numChannel, numElements), OUTPUT_IMAGE_TYPE)
-        interpreter.run(imageBuffer, output.buffer)
+        // Prepare output buffer
+        val outputBuffer = TensorBuffer.createFixedSize(
+            intArrayOf(1, numChannels, numDetections), OUTPUT_DATA_TYPE
+        )
+        interpreter.run(inputBuffer, outputBuffer.buffer)
 
-        //processing and finding best box
-        val bestBoxes = bestBox(output.floatArray)
+        // Process model output
+        val detectedBoxes = extractBoundingBoxes(outputBuffer.floatArray)
         inferenceTime = SystemClock.uptimeMillis() - inferenceTime
 
-        if (bestBoxes.isEmpty()) {
-            detectorListener.onEmptyDetect()
-            return
+        // Notify listener
+        if (detectedBoxes.isEmpty()) {
+            listener.onEmptyDetect()
+        } else {
+            listener.onDetect(detectedBoxes, inferenceTime)
         }
-
-        detectorListener.onDetect(bestBoxes, inferenceTime)
     }
 
-    //extracting best box from model output
-    private fun bestBox(array: FloatArray) : List<BoundingBox> {
+    /**
+     * Extracts bounding boxes from the model output.
+     */
+    private fun extractBoundingBoxes(outputArray: FloatArray): List<BoundingBox> {
         val boundingBoxes = mutableListOf<BoundingBox>()
-        for (r in 0 until numElements) {
-            val cnf = array[r * numChannel + 4]
-            if (cnf > CONFIDENCE_THRESHOLD) {
-                val x1 = array[r * numChannel]
-                val y1 = array[r * numChannel + 1]
-                val x2 = array[r * numChannel + 2]
-                val y2 = array[r * numChannel + 3]
-                val cls = array[r * numChannel + 5].toInt()
-                val clsName = labels[cls]
+
+        for (i in 0 until numDetections) {
+            val confidence = outputArray[i * numChannels + 4] // Confidence score
+
+            if (confidence > CONFIDENCE_THRESHOLD) {
+                val x1 = outputArray[i * numChannels]
+                val y1 = outputArray[i * numChannels + 1]
+                val x2 = outputArray[i * numChannels + 2]
+                val y2 = outputArray[i * numChannels + 3]
+                val classIndex = outputArray[i * numChannels + 5].toInt()
+                val className = labels[classIndex]
+
                 boundingBoxes.add(
                     BoundingBox(
                         x1 = x1, y1 = y1, x2 = x2, y2 = y2,
-                        cnf = cnf, cls = cls, clsName = clsName
+                        confidence = confidence, classIndex = classIndex, className = className
                     )
                 )
             }
@@ -163,17 +183,23 @@ class Detector(
         return boundingBoxes
     }
 
-    //listener interface for detection events
+    /**
+     * Interface for handling detection results.
+     */
     interface DetectorListener {
-        fun onEmptyDetect()
-        fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long)
+        fun onEmptyDetect() // No objects detected
+        fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) // Objects detected
     }
 
+    /**
+     * Companion object for constants.
+     */
     companion object {
-        private const val INPUT_MEAN = 0f //for normalization
-        private const val INPUT_STANDARD_DEVIATION = 255f //for normalization 255f was default
-        private val INPUT_IMAGE_TYPE = DataType.FLOAT32
-        private val OUTPUT_IMAGE_TYPE = DataType.FLOAT32
-        private const val CONFIDENCE_THRESHOLD = 0.5F //minimum confidence score
+        private const val THREAD_COUNT = 4 // Number of threads for CPU inference
+        private const val INPUT_MEAN = 0f // Mean for input normalization
+        private const val INPUT_STD_DEV = 255f // Standard deviation for normalization
+        private val INPUT_DATA_TYPE = DataType.FLOAT32 // Input tensor data type
+        private val OUTPUT_DATA_TYPE = DataType.FLOAT32 // Output tensor data type
+        private const val CONFIDENCE_THRESHOLD = 0.5F // Minimum confidence score
     }
 }
