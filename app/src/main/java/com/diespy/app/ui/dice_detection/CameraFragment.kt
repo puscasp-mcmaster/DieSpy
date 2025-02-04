@@ -1,4 +1,4 @@
-package com.diespy.app.ui
+package com.diespy.app.ui.dice_detection
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -17,10 +17,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.diespy.app.BoundingBox
+import com.diespy.app.ml.models.DiceBoundingBox
 import com.diespy.app.Constants.LABELS_PATH
 import com.diespy.app.Constants.MODEL_PATH
-import com.diespy.app.Detector
+import com.diespy.app.ml.detector.DiceDetector
 import com.diespy.app.databinding.FragmentCameraBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,7 +31,7 @@ import java.util.concurrent.Executors
  * CameraFragment handles the camera preview, object detection,
  * and updating UI elements with the detected results.
  */
-class CameraFragment : Fragment(), Detector.DetectorListener {
+class CameraFragment : Fragment(), DiceDetector.DetectorListener {
 
     // View binding to interact with UI components in FragmentCameraBinding
     private var _binding: FragmentCameraBinding? = null
@@ -40,7 +40,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
     // Camera and detector-related components
     private lateinit var cameraExecutor: ExecutorService
     private var cameraProvider: ProcessCameraProvider? = null
-    private var detector: Detector? = null
+    private var diceDetector: DiceDetector? = null
 
     // UI-related components
     private val statsView = StatsView() // Handles statistics of detected dice
@@ -80,7 +80,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
 
         // Initialize object detector asynchronously
         cameraExecutor.execute {
-            detector = Detector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
+            diceDetector = DiceDetector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
                 showToast(it)
             }
         }
@@ -172,7 +172,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         imageProxy.close()
 
         // Runs object detection on the processed frame
-        detector?.detect(correctedBitmap)
+        diceDetector?.detect(correctedBitmap)
     }
 
     /**
@@ -211,7 +211,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
      */
     override fun onDestroy() {
         super.onDestroy()
-        detector?.close()
+        diceDetector?.close()
         cameraExecutor.shutdown()
     }
 
@@ -242,9 +242,9 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
     /**
      * Handles detection results, updates UI, and displays bounding boxes.
      */
-    override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
+    override fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) {
         requireActivity().runOnUiThread {
-            statsView.updateStats(boundingBoxes)
+            statsView.updateStats(diceBoundingBoxes)
 
             // Updates UI with dice statistics
             binding.statsCalc.text = statsView.getStatSummary()
@@ -252,7 +252,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
 
             // Updates overlay with bounding boxes
             binding.overlay.apply {
-                setResults(boundingBoxes)
+                setResults(diceBoundingBoxes)
                 invalidate()
             }
         }

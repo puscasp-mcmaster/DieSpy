@@ -1,6 +1,6 @@
-package com.diespy.app.ui
+package com.diespy.app.ui.dice_detection
 
-import com.diespy.app.BoundingBox
+import com.diespy.app.ml.models.DiceBoundingBox
 
 class StatsView {
     private var rollSum = 0              // Total sum of dice rolls
@@ -10,7 +10,7 @@ class StatsView {
     /**
      * Updates the dice roll statistics based on detected dice.
      */
-    fun updateStats(detectedDice: List<BoundingBox>) {
+    fun updateStats(detectedDice: List<DiceBoundingBox>) {
         rollSum = 0
         faceCounts.fill(0)
 

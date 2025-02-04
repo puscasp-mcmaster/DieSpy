@@ -1,4 +1,4 @@
-package com.diespy.app
+package com.diespy.app.ml.metadata
 
 import android.content.Context
 import org.tensorflow.lite.support.metadata.MetadataExtractor

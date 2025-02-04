@@ -1,10 +1,12 @@
-package com.diespy.app
+package com.diespy.app.ml.detector
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
-import com.diespy.app.MetaData.extractClassNamesFromLabelFile
-import com.diespy.app.MetaData.extractClassNamesFromMetadata
+import com.diespy.app.ml.metadata.MetaData
+import com.diespy.app.ml.metadata.MetaData.extractClassNamesFromLabelFile
+import com.diespy.app.ml.metadata.MetaData.extractClassNamesFromMetadata
+import com.diespy.app.ml.models.DiceBoundingBox
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
@@ -20,7 +22,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
  * Detector class responsible for running inference using a TensorFlow Lite model.
  * Detects dice faces in images and returns bounding boxes.
  */
-class Detector(
+class DiceDetector(
     private val context: Context, // Context for resource access
     private val modelFilePath: String, // Path to TFLite model
     private val labelFilePath: String?, // Optional label file path
@@ -158,8 +160,8 @@ class Detector(
     /**
      * Extracts bounding boxes from the model output.
      */
-    private fun extractBoundingBoxes(outputArray: FloatArray): List<BoundingBox> {
-        val boundingBoxes = mutableListOf<BoundingBox>()
+    private fun extractBoundingBoxes(outputArray: FloatArray): List<DiceBoundingBox> {
+        val diceBoundingBoxes = mutableListOf<DiceBoundingBox>()
 
         for (i in 0 until numDetections) {
             val confidence = outputArray[i * numChannels + 4] // Confidence score
@@ -172,15 +174,15 @@ class Detector(
                 val classIndex = outputArray[i * numChannels + 5].toInt()
                 val className = labels[classIndex]
 
-                boundingBoxes.add(
-                    BoundingBox(
+                diceBoundingBoxes.add(
+                    DiceBoundingBox(
                         x1 = x1, y1 = y1, x2 = x2, y2 = y2,
                         confidence = confidence, classIndex = classIndex, className = className
                     )
                 )
             }
         }
-        return boundingBoxes
+        return diceBoundingBoxes
     }
 
     /**
@@ -188,7 +190,7 @@ class Detector(
      */
     interface DetectorListener {
         fun onEmptyDetect() // No objects detected
-        fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) // Objects detected
+        fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) // Objects detected
     }
 
     /**

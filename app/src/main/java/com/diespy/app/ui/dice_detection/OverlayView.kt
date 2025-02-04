@@ -1,15 +1,15 @@
-package com.diespy.app.ui
+package com.diespy.app.ui.dice_detection
 
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
-import com.diespy.app.BoundingBox
+import com.diespy.app.ml.models.DiceBoundingBox
 
 class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     // List to store detected bounding boxes
-    private var results = listOf<BoundingBox>()
+    private var results = listOf<DiceBoundingBox>()
 
     // Paint objects for drawing bounding boxes and labels
     private val boxPaint = Paint().apply { style = Paint.Style.STROKE; strokeWidth = 8F }
@@ -30,8 +30,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
     /**
      * Sets new bounding boxes and refreshes the overlay.
      */
-    fun setResults(boundingBoxes: List<BoundingBox>) {
-        results = boundingBoxes
+    fun setResults(diceBoundingBoxes: List<DiceBoundingBox>) {
+        results = diceBoundingBoxes
         invalidate()
     }
 
@@ -46,20 +46,20 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
     /**
      * Draws a bounding box and label text on the canvas.
      */
-    private fun drawBoundingBox(canvas: Canvas, boundingBox: BoundingBox) {
-        val color = getColorForLabel(boundingBox.className)
+    private fun drawBoundingBox(canvas: Canvas, diceBoundingBox: DiceBoundingBox) {
+        val color = getColorForLabel(diceBoundingBox.className)
         boxPaint.color = color
 
-        val left = boundingBox.x1
-        val top = boundingBox.y1
-        val right = boundingBox.x2
-        val bottom = boundingBox.y2
+        val left = diceBoundingBox.x1
+        val top = diceBoundingBox.y1
+        val right = diceBoundingBox.x2
+        val bottom = diceBoundingBox.y2
 
         // Draw bounding box
         canvas.drawRoundRect(left, top, right, bottom, 16f, 16f, boxPaint)
 
         // Format label text
-        val drawableText = "${boundingBox.className} - ${Math.round(boundingBox.confidence * 100.0)}%"
+        val drawableText = "${diceBoundingBox.className} - ${Math.round(diceBoundingBox.confidence * 100.0)}%"
         textPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
 
         // Draw background for label
