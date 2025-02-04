@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import com.diespy.app.ml.models.DiceBoundingBox
 
-class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
+class BoundingBoxOverlay(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     // List to store detected bounding boxes
     private var results = listOf<DiceBoundingBox>()
