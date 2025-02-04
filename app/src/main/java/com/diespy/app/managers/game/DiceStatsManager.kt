@@ -1,8 +1,8 @@
-package com.diespy.app.ui.dice_detection
+package com.diespy.app.managers.game
 
 import com.diespy.app.ml.models.DiceBoundingBox
 
-class StatsView {
+class DiceStatsManager {
     private var rollSum = 0              // Total sum of dice rolls
     private var numDice = 0              // Number of detected dice
     private val faceCounts = IntArray(6) // Count of each face (1-6) appearing

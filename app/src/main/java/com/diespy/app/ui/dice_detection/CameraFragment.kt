@@ -17,6 +17,7 @@ import com.diespy.app.Constants.MODEL_PATH
 import com.diespy.app.ml.detector.DiceDetector
 import com.diespy.app.managers.camera.CameraManager
 import com.diespy.app.databinding.FragmentCameraBinding
+import com.diespy.app.managers.game.DiceStatsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -30,7 +31,7 @@ class CameraFragment : Fragment(), DiceDetector.DetectorListener {
 
     private lateinit var cameraManager: CameraManager
     private var diceDetector: DiceDetector? = null
-    private val statsView = StatsView() // Handles statistics of detected dice
+    private val diceStatsManager = DiceStatsManager() // Handles statistics of detected dice
 
     /**
      * Inflates the view and sets up View Binding.
@@ -117,9 +118,9 @@ class CameraFragment : Fragment(), DiceDetector.DetectorListener {
     override fun onEmptyDetect() {
         requireActivity().runOnUiThread {
             binding.overlay.clear()
-            statsView.reset()
-            binding.statsCalc.text = statsView.getStatSummary()
-            binding.statsFaces.text = statsView.getFaceCounts()
+            diceStatsManager.reset()
+            binding.statsCalc.text = diceStatsManager.getStatSummary()
+            binding.statsFaces.text = diceStatsManager.getFaceCounts()
         }
     }
 
@@ -128,11 +129,11 @@ class CameraFragment : Fragment(), DiceDetector.DetectorListener {
      */
     override fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) {
         requireActivity().runOnUiThread {
-            statsView.updateStats(diceBoundingBoxes)
+            diceStatsManager.updateStats(diceBoundingBoxes)
 
             // Updates UI with dice statistics
-            binding.statsCalc.text = statsView.getStatSummary()
-            binding.statsFaces.text = statsView.getFaceCounts()
+            binding.statsCalc.text = diceStatsManager.getStatSummary()
+            binding.statsFaces.text = diceStatsManager.getFaceCounts()
 
             // Updates overlay with bounding boxes
             binding.overlay.apply {
