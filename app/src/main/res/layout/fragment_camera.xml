@@ -100,6 +100,7 @@
                 app:layout_constraintStart_toStartOf="@+id/guideline10"
                 app:layout_constraintTop_toBottomOf="@+id/view_finder" />
 
+            <!--            Constraint for top image -->
             <TextView
                 android:id="@+id/stats_text"
                 android:layout_width="0dp"
@@ -114,10 +115,11 @@
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="@+id/guideline20"
-                app:layout_constraintTop_toBottomOf="@+id/view_finder" />
+                app:layout_constraintTop_toBottomOf="@+id/view_finder"
+                app:layout_constraintVertical_bias="0.0" />
 
-<!--            Constraint for top image -->
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline13"
                 android:layout_width="wrap_content"
