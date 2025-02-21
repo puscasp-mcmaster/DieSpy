@@ -2,12 +2,122 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph.xml"
-    app:startDestination="@id/cameraFragment">
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
 
+    <!-- Login Screen -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.diespy.app.ui.login.LoginFragment"
+        android:label="Login Screen"
+        tools:layout="@layout/fragment_login">
+        <action android:id="@+id/action_login_to_home" app:destination="@id/homeFragment"/>
+    </fragment>
+
+    <!-- Home Screen (Start a Party / Join a Party) -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.diespy.app.ui.home.HomeFragment"
+        android:label="Home Screen"
+        tools:layout="@layout/fragment_home">
+        <action android:id="@+id/action_home_to_createParty" app:destination="@id/createPartyFragment"/>
+        <action android:id="@+id/action_home_to_joinParty" app:destination="@id/joinPartyFragment"/>
+        <action android:id="@+id/action_home_to_profile" app:destination="@id/profileFragment"/>
+        <action android:id="@+id/action_home_to_settings" app:destination="@id/settingsFragment"/>
+    </fragment>
+
+    <!-- Create Party -->
+    <fragment
+        android:id="@+id/createPartyFragment"
+        android:name="com.diespy.app.ui.create_party.CreatePartyFragment"
+        android:label="Create Party"
+        tools:layout="@layout/fragment_create_party">
+        <action android:id="@+id/action_createParty_to_party" app:destination="@id/partyFragment"/>
+    </fragment>
+
+    <!-- Join Party -->
+    <fragment
+        android:id="@+id/joinPartyFragment"
+        android:name="com.diespy.app.ui.join_party.JoinPartyFragment"
+        android:label="Join Party"
+        tools:layout="@layout/fragment_join_party">
+        <action android:id="@+id/action_joinParty_to_party" app:destination="@id/partyFragment"/>
+    </fragment>
+
+    <!-- Party Screen -->
+    <fragment
+        android:id="@+id/partyFragment"
+        android:name="com.diespy.app.ui.party.PartyFragment"
+        android:label="Party"
+        tools:layout="@layout/fragment_party">
+        <action android:id="@+id/action_party_to_diceDetection" app:destination="@id/cameraFragment"/>
+        <action android:id="@+id/action_party_to_chat" app:destination="@id/chatFragment"/>
+        <action android:id="@+id/action_party_to_members" app:destination="@id/membersFragment"/>
+        <action android:id="@+id/action_party_to_logs" app:destination="@id/logsFragment"/>
+    </fragment>
+
+    <!-- Dice Detection Screen -->
     <fragment
         android:id="@+id/cameraFragment"
         android:name="com.diespy.app.ui.dice_detection.CameraFragment"
-        android:label="fragment_camera"
-        tools:layout="@layout/fragment_camera" />
+        android:label="Dice Detection"
+        tools:layout="@layout/fragment_camera">
+        <action android:id="@+id/action_diceDetection_to_party" app:destination="@id/partyFragment"/>
+    </fragment>
+
+    <!-- Chat Room -->
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.diespy.app.ui.chat.ChatFragment"
+        android:label="Chat"
+        tools:layout="@layout/fragment_chat">
+        <action android:id="@+id/action_chat_to_party" app:destination="@id/partyFragment"/>
+    </fragment>
+
+    <!-- Members List -->
+    <fragment
+        android:id="@+id/membersFragment"
+        android:name="com.diespy.app.ui.members.MembersFragment"
+        android:label="Members"
+        tools:layout="@layout/fragment_members">
+        <action android:id="@+id/action_members_to_party" app:destination="@id/partyFragment"/>
+    </fragment>
+
+    <!-- Logs -->
+    <fragment
+        android:id="@+id/logsFragment"
+        android:name="com.diespy.app.ui.logs.LogsFragment"
+        android:label="Logs"
+        tools:layout="@layout/fragment_logs">
+        <action android:id="@+id/action_logs_to_party" app:destination="@id/partyFragment"/>
+        <action android:id="@+id/action_logs_to_rollDetails" app:destination="@id/rollsFragment"/>
+    </fragment>
+
+    <!-- Roll Details -->
+    <fragment
+        android:id="@+id/rollsFragment"
+        android:name="com.diespy.app.ui.rolls.RollsFragment"
+        android:label="Roll Details"
+        tools:layout="@layout/fragment_rolls">
+        <action android:id="@+id/action_rollDetails_to_logs" app:destination="@id/logsFragment"/>
+    </fragment>
+
+    <!-- Profile -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.diespy.app.ui.profile.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile">
+        <action android:id="@+id/action_profile_to_home" app:destination="@id/homeFragment"/>
+    </fragment>
+
+    <!-- Settings -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.diespy.app.ui.settings.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings">
+        <action android:id="@+id/action_settings_to_home" app:destination="@id/homeFragment"/>
+    </fragment>
+
 </navigation>
