@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment">
+    app:startDestination="@id/diceDetectionFragment">
 
     <!-- Login Screen -->
     <fragment
@@ -50,7 +50,7 @@
         android:name="com.diespy.app.ui.party.PartyFragment"
         android:label="Party"
         tools:layout="@layout/fragment_party">
-        <action android:id="@+id/action_party_to_diceDetection" app:destination="@id/cameraFragment"/>
+        <action android:id="@+id/action_party_to_diceDetection" app:destination="@id/diceDetectionFragment"/>
         <action android:id="@+id/action_party_to_chat" app:destination="@id/chatFragment"/>
         <action android:id="@+id/action_party_to_members" app:destination="@id/membersFragment"/>
         <action android:id="@+id/action_party_to_logs" app:destination="@id/logsFragment"/>
@@ -58,10 +58,10 @@
 
     <!-- Dice Detection Screen -->
     <fragment
-        android:id="@+id/cameraFragment"
-        android:name="com.diespy.app.ui.dice_detection.CameraFragment"
+        android:id="@+id/diceDetectionFragment"
+        android:name="com.diespy.app.ui.dice_detection.DiceDetectionFragment"
         android:label="Dice Detection"
-        tools:layout="@layout/fragment_camera">
+        tools:layout="@layout/fragment_dice_detection">
         <action android:id="@+id/action_diceDetection_to_party" app:destination="@id/partyFragment"/>
     </fragment>
 

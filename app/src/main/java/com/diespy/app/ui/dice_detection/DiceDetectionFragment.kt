@@ -16,17 +16,17 @@ import com.diespy.app.Constants.LABELS_PATH
 import com.diespy.app.Constants.MODEL_PATH
 import com.diespy.app.ml.detector.DiceDetector
 import com.diespy.app.managers.camera.CameraManager
-import com.diespy.app.databinding.FragmentCameraBinding
+import com.diespy.app.databinding.FragmentDiceDetectionBinding
 import com.diespy.app.managers.game.DiceStatsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * CameraFragment handles the UI, dice detection, and bounding box overlay.
+ * DiceDetectionFragment handles the UI, dice detection, and bounding box overlay.
  */
-class CameraFragment : Fragment(), DiceDetector.DetectorListener {
+class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
-    private var _binding: FragmentCameraBinding? = null
+    private var _binding: FragmentDiceDetectionBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var cameraManager: CameraManager
@@ -41,7 +41,7 @@ class CameraFragment : Fragment(), DiceDetector.DetectorListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentCameraBinding.inflate(inflater, container, false)
+        _binding = FragmentDiceDetectionBinding.inflate(inflater, container, false)
         return binding.root
     }
 

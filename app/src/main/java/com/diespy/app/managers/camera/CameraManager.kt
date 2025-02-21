@@ -86,7 +86,7 @@ class CameraManager(
         val bitmap = imageProxy.toBitmap()
         val correctedBitmap = rotateBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
 
-        onFrameCaptured(correctedBitmap) // Sends frame to `CameraFragment`
+        onFrameCaptured(correctedBitmap) // Sends frame to `DiceDetectionFragment`
         imageProxy.close()
     }
 
