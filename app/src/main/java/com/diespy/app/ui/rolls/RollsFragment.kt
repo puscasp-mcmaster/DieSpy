@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.diespy.app.R
 import com.diespy.app.databinding.FragmentRollsBinding
 
 class RollsFragment : Fragment() {
@@ -14,15 +15,17 @@ class RollsFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentRollsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toLogsScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_rolls_to_logs)
+        }
     }
 
     override fun onDestroyView() {

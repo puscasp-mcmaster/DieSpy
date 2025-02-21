@@ -20,6 +20,10 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toHomeScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_login_to_home)
+        }
     }
 
     override fun onDestroyView() {

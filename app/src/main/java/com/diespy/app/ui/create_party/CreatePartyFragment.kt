@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
 
 class CreatePartyFragment : Fragment() {
@@ -22,6 +23,14 @@ class CreatePartyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toPartyScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_createParty_to_party)
+        }
+
+        binding.toHomeScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_createParty_to_home)
+        }
     }
 
     override fun onDestroyView() {

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.diespy.app.R
 import com.diespy.app.databinding.FragmentSettingsBinding
 
 class SettingsFragment : Fragment() {
@@ -14,15 +15,21 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toHomeScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_settings_to_home)
+        }
+
+        binding.toLoginScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_settings_to_login)
+        }
     }
 
     override fun onDestroyView() {

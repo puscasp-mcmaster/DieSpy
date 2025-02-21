@@ -24,6 +24,11 @@ class ChatFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toPartyScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_chat_to_party)
+        }
+
     }
 
     override fun onDestroyView() {

@@ -16,15 +16,29 @@ class PartyFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentPartyBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.toDiceDetectionScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_diceDetection)
+        }
+        binding.toHomeScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_home)
+        }
+        binding.toMemberScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_members)
+        }
+        binding.toLogsScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_logs)
+        }
+        binding.toChatScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_chat)
+        }
     }
 
     override fun onDestroyView() {
