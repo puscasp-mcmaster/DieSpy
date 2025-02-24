@@ -10,23 +10,45 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/loginTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
             android:text="Login Screen"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp"/>
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/loginErrorMessage"
+            android:layout_width="161dp"
+            android:layout_height="wrap_content"
+            android:textColor="#F00303" />
+
+        <EditText
+            android:id="@+id/loginUsernameInput"
+            android:layout_width="199dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="text"
+            android:text="Username" />
+
+        <EditText
+            android:id="@+id/loginPwInput"
+            android:layout_width="177dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPassword" />
 
         <Button
             android:id="@+id/toHomeScreenButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="To Home Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
+            android:layout_marginBottom="10dp"
             android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
+            android:padding="12dp"
+            android:text="Login"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
     </LinearLayout>
 
 </FrameLayout>
