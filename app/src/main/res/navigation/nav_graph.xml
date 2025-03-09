@@ -12,6 +12,9 @@
         android:label="Login Screen"
         tools:layout="@layout/fragment_login">
         <action android:id="@+id/action_login_to_home" app:destination="@id/homeFragment"/>
+        <action
+            android:id="@+id/action_login_to_createAccount"
+            app:destination="@id/createAccountFragment" />
     </fragment>
 
     <!-- Home Screen (Start a Party / Join a Party) -->
@@ -123,5 +126,14 @@
         <action android:id="@+id/action_settings_to_home" app:destination="@id/homeFragment"/>
         <action android:id="@+id/action_settings_to_login" app:destination="@id/loginFragment"/>
     </fragment>
+
+
+    <fragment
+        android:id="@+id/createAccountFragment"
+        android:name="com.diespy.app.ui.create_account.CreateAccountFragment"
+        android:label="CreateAccount"
+        tools:layout="@layout/fragment_create_account">
+    </fragment>
+
 
 </navigation>

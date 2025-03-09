@@ -40,8 +40,7 @@ class LoginFragment : Fragment() {
             val pw = binding.loginPwInput.text.toString()
             val username = binding.loginUsernameInput.text.toString()
             val status = am.authenticate(requireContext(),username, pw)
-
-                if (status == 1) {
+            if (status == 1) {
                 binding.loginErrorMessage.text = ""
                 findNavController().navigate(R.id.action_login_to_home)
             }
@@ -51,6 +50,11 @@ class LoginFragment : Fragment() {
 
 
         }
+
+        binding.toCreateAccountButton.setOnClickListener {
+            findNavController().navigate(R.id.action_login_to_createAccount)
+        }
+
     }
 
     override fun onDestroyView() {
