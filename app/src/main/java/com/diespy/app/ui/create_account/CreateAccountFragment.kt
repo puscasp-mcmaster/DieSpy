@@ -55,10 +55,6 @@ class CreateAccountFragment : Fragment() {
                 binding.createAccountPwInput2.text.clear() // Clear the password field
                 binding.createAccountErrorMessage.text = "Error: Passwords do not match" // Set the error message
             }
-
-
-
-
         }
     }
 

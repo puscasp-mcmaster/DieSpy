@@ -28,6 +28,9 @@ class ChatFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
+        binding.recyclerView.post {
+            binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+        }
         return binding.root
     }
 
@@ -51,6 +54,9 @@ class ChatFragment : Fragment() {
                 chatManager.saveMessage(username, message)
                 chatAdapter.updateMessages(chatManager.loadMessages())
                 binding.messageInput.text.clear()
+                binding.recyclerView.post {
+                    binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                }
             }
         }
     }
@@ -62,12 +68,11 @@ class ChatFragment : Fragment() {
 }
 
 class ChatAdapter(private var messages: List<JSONObject>) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.chat_message_item, parent, false)
         return ChatViewHolder(view).apply {
             itemView.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,  // ✅ No extra height
+                ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         }
