@@ -19,11 +19,12 @@ class ChatManager(private val context: Context) {
         }
     }
 
-    fun saveMessage(username: String, message: String) {
+    fun saveMessage(username: String, message: String, timeStamp: String) {
         val messages = loadMessages().toMutableList()
         val newMessage = JSONObject().apply {
             put("username", username)
             put("message", message)
+            put("timestamp", timeStamp)
         }
         messages.add(newMessage)
 

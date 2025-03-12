@@ -5,14 +5,34 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Chat Screen"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:layout_marginBottom="10dp" />
+        >
+
+        <Button
+            android:id="@+id/toPartyScreenButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#6200EE"
+            android:padding="12dp"
+            android:text="To Party"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:gravity="start"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chat"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"/>
+
+    </RelativeLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -21,43 +41,44 @@
         android:layout_weight="1"
         android:scrollbars="vertical" />
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/page_buttons"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal">
+        android:layout_gravity="center_horizontal|center_vertical">
 
         <EditText
             android:id="@+id/messageInput"
-            android:inputType="text"
-            android:layout_width="290dp"
+            android:inputType="textMultiLine"
+            android:singleLine="false"
+            android:scrollbars="vertical"
+            android:overScrollMode="never"
+            android:gravity="top|start"
+            android:maxLines="4"
+            android:minLines="1"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:background="@android:drawable/editbox_background"
             android:hint="Type a message"
             android:minHeight="48dp"
-            android:padding="10dp" />
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/sendButton"
+            android:padding="10dp"
+            android:focusableInTouchMode="true"
+            android:descendantFocusability="afterDescendants" />
 
         <Button
             android:id="@+id/sendButton"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
             android:backgroundTint="#6200EE"
+            android:gravity="center_horizontal|center_vertical"
             android:text="Send"
             android:textColor="#FFFFFF"
-            android:textSize="16sp" />
-    </LinearLayout>
+            android:textSize="16sp"
+            android:layout_alignParentEnd="true" />
 
-    <Button
-        android:id="@+id/toPartyScreenButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#6200EE"
-        android:padding="12dp"
-        android:text="To Party Screen"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp" />
+    </RelativeLayout>
+
+
 </LinearLayout>
