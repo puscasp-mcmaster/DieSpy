@@ -5,10 +5,7 @@ import com.diespy.app.managers.firestore.FireStoreManager
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.File
-import java.io.FileWriter
 
 data class ChatMessage(
     val username: String = "",
@@ -17,7 +14,6 @@ data class ChatMessage(
 )
 
 class ChatManager(private val context: Context) {
-    private val fireStoreManager = FireStoreManager()
     private val db = FirebaseFirestore.getInstance() // Firestore instance
     private val collection = "Parties"
 
@@ -44,30 +40,7 @@ class ChatManager(private val context: Context) {
         )
 
         db.collection(collection).document("christian_dev").collection("chat").add(chat)
-
-//        //JSON way of adding messages
-//        val messages = loadMessages().toMutableList()
-//        val newMessage = JSONObject().apply {
-//            put("username", username)
-//            put("message", message)
-//            put("timestamp", timestamp)
-//        }
-//        messages.add(newMessage)
-//
-//        FileWriter(chatFile).use { writer ->
-//            writer.write(JSONArray(messages).toString())
-//        }
     }
-
-//    fun loadMessages(): List<JSONObject> {
-//        return try {
-//            val jsonContent = chatFile.readText()
-//            val jsonArray = JSONArray(jsonContent)
-//            List(jsonArray.length()) { i -> jsonArray.getJSONObject(i) }
-//        } catch (e: Exception) {
-//            emptyList()
-//        }
-//    }
 
     suspend fun loadMessages(): List<ChatMessage> {
         return try {

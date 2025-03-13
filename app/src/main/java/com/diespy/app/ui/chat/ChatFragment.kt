@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.databinding.FragmentChatBinding
 import com.diespy.app.managers.chat.ChatManager
-import org.json.JSONObject
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
@@ -22,13 +21,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 class ChatFragment : Fragment() {
-
     private var _binding: FragmentChatBinding? = null
     private val binding get() = _binding!!
     private lateinit var chatManager: ChatManager
     private lateinit var chatAdapter: ChatAdapter
     private val db = FirebaseFirestore.getInstance() // Firestore instance
     private val collection = "Parties"
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,12 +37,10 @@ class ChatFragment : Fragment() {
 
     }
 
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Party Screen button
+        //Party Screen button
         binding.toPartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_chat_to_party)
         }
@@ -51,24 +48,24 @@ class ChatFragment : Fragment() {
         chatManager = ChatManager(requireContext())
         chatAdapter = ChatAdapter(emptyList()) // Start with an empty list
 
-        // Set layout manager with stackFromEnd = true (messages start at bottom)
+        //Set layout manager with stackFromEnd = true (messages start at bottom)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
         }
         binding.recyclerView.adapter = chatAdapter
 
-        // Load chat messages from Firestore asynchronously
+        //Load chat messages from Firestore asynchronously
         lifecycleScope.launch {
             val messages = chatManager.loadMessages()
             chatAdapter.updateMessages(messages)
 
-            // Move chat to latest message
+            //Move chat to latest message
             binding.recyclerView.post {
                 binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
             }
         }
 
-        // Send message button
+        //Send message button
         binding.sendButton.setOnClickListener {
             val timeStamp: String = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
             val username = "User" // Replace with actual username logic
@@ -93,7 +90,7 @@ class ChatFragment : Fragment() {
             }
         }
 
-        // Real-time listener for Firestore updates
+        //Real-time listener for Firestore updates
         db.collection(collection)
             .document("christian_dev") // Change this to the actual party ID dynamically
             .collection("chat")
@@ -119,7 +116,7 @@ class ChatFragment : Fragment() {
 }
 
 
-
+//prints chat messages on screen
 class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
