@@ -14,7 +14,7 @@ class FireStoreManager {
      *              HashMap<String, Any> to store
      * returns true if saved correctly, and false if error
      */
-    suspend fun saveData(collection: String, documentId: String, data: Map<String, Any>): Boolean {
+    suspend fun saveDocument(collection: String, documentId: String, data: Map<String, Any>): Boolean {
         return try {
             db.collection(collection).document(documentId).set(data).await()
             true

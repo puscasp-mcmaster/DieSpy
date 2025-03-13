@@ -27,7 +27,7 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.toHomeScreenButton.setOnClickListener {
-            val username = binding.loginUsernameInput.text.toString()
+            val username = binding.loginUsernameInput.text.toString().lowercase()
             val password = binding.loginPwInput.text.toString()
 
             if (username.isBlank() || password.isBlank()) {

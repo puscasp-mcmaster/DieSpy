@@ -27,7 +27,7 @@ class CreateAccountFragment : Fragment() {
         binding.createAccountButton.setOnClickListener {
             val password1 = binding.createAccountPwInput1.text.toString()
             val password2 = binding.createAccountPwInput2.text.toString()
-            val username = binding.createAccountUsernameInput.text.toString()
+            val username = binding.createAccountUsernameInput.text.toString().lowercase()
 
             if (password1.isBlank() || username.isBlank()) {
                 binding.createAccountErrorMessage.text = "Error: Username and Password cannot be empty"
