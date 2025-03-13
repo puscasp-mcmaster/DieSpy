@@ -12,6 +12,8 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.diespy.app.databinding.ActivityMainBinding
 
+import com.google.firebase.firestore.FirebaseFirestore
+
 /**
  * MainActivity serves as the entry point of the application.
  * It manages the navigation host and applies UI enhancements like edge-to-edge display.
@@ -41,6 +43,17 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize Navigation Component
         setupNavigation()
+
+        // Step 1: Initialize Firestore instance
+        val db = FirebaseFirestore.getInstance()
+
+        // Step 2: Create a sample data object to store in Firestore
+        val testData = hashMapOf("testField" to "Hello, Firestore!")
+
+        // Step 3: Add testData to Firestore in a collection named "testCollection"
+        db.collection("testCollection").add(testData)
+            .addOnSuccessListener { println("Firestore write successful!") }  // ✅ Success callback
+            .addOnFailureListener { e -> println("Firestore write failed: $e") }  // ❌ Failure callback
     }
 
     /**

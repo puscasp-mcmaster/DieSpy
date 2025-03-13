@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "694122438367",
+    "project_id": "diespy-46200",
+    "storage_bucket": "diespy-46200.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:694122438367:android:e52da7065f13f09f8b536a",
+        "android_client_info": {
+          "package_name": "com.diespy.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdHChp6kELmf2LlMdrBZS20H2kUwEa36g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
