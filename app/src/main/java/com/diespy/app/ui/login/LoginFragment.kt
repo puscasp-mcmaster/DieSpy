@@ -5,28 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentLoginBinding
-import com.diespy.app.managers.game.AuthenticationManager
-import java.io.File
-import java.security.MessageDigest
+import com.diespy.app.managers.authentication.AuthenticationManager
+import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
 
-
-    private var am: AuthenticationManager = AuthenticationManager()
+    private val authManager = AuthenticationManager()
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
-
-    private fun String.encrypt(): String {
-        val bytes = this.toByteArray()
-        val digest = MessageDigest.getInstance("SHA-256")
-        val hashBytes = digest.digest(bytes)
-        return hashBytes.joinToString("") { "%02x".format(it) }
-    }
-
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
@@ -36,25 +26,31 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-            binding.toHomeScreenButton.setOnClickListener {
-            val pw = binding.loginPwInput.text.toString()
+        binding.toHomeScreenButton.setOnClickListener {
             val username = binding.loginUsernameInput.text.toString()
-            val status = am.authenticate(requireContext(),username, pw)
-            if (status == 1) {
-                binding.loginErrorMessage.text = ""
-                findNavController().navigate(R.id.action_login_to_home)
+            val password = binding.loginPwInput.text.toString()
+
+            if (username.isBlank() || password.isBlank()) {
+                binding.loginErrorMessage.text = "Error: Username and password cannot be empty"
+                return@setOnClickListener
             }
-            binding.loginPwInput.text.clear() // Clear the password field
-            binding.loginErrorMessage.text = "Incorrect login, please try again" // Set the error message
 
+            lifecycleScope.launch {
+                val isAuthenticated = authManager.authenticate(username, password)
 
-
+                if (isAuthenticated == 1) {
+                    binding.loginErrorMessage.text = "" // Clear errors
+                    findNavController().navigate(R.id.action_login_to_home)
+                } else {
+                    binding.loginPwInput.text.clear()
+                    binding.loginErrorMessage.text = "Incorrect login, please try again"
+                }
+            }
         }
 
         binding.toCreateAccountButton.setOnClickListener {
             findNavController().navigate(R.id.action_login_to_createAccount)
         }
-
     }
 
     override fun onDestroyView() {
