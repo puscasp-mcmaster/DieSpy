@@ -7,7 +7,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="20dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -17,6 +18,39 @@
             android:textStyle="bold"
             android:layout_marginBottom="20dp"/>
 
+        <!-- Party Name Input -->
+        <EditText
+            android:id="@+id/partyNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Party Name"
+            android:inputType="text"
+            android:padding="12dp"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Party Password Input -->
+        <EditText
+            android:id="@+id/partyPasswordInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Party Password"
+            android:inputType="textPassword"
+            android:padding="12dp"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Create Party Button -->
+        <Button
+            android:id="@+id/createPartyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Create Party"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#6200EE"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Existing Buttons -->
         <Button
             android:id="@+id/toPartyScreenButton"
             android:layout_width="wrap_content"

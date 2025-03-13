@@ -4,25 +4,48 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
+import com.diespy.app.managers.party.PartyManager
+import kotlinx.coroutines.launch
 
 class CreatePartyFragment : Fragment() {
     private var _binding: FragmentCreatePartyBinding? = null
     private val binding get() = _binding!!
+    private val partyManager = PartyManager() // Firestore manager for party creation
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCreatePartyBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.createPartyButton.setOnClickListener {
+            val partyName = binding.partyNameInput.text.toString().trim()
+            val partyPassword = binding.partyPasswordInput.text.toString().trim()
+
+            if (partyName.isNotEmpty() && partyPassword.isNotEmpty()) {
+                lifecycleScope.launch {
+                    val success = partyManager.createParty(partyName, partyPassword, "test")
+                    if (success != null) {
+                        binding.partyNameInput.text.clear()
+                        binding.partyPasswordInput.text.clear()
+                        Toast.makeText(requireContext(), "Party Created!", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.action_createParty_to_party)
+                    } else {
+                        Toast.makeText(requireContext(), "Failed to create party", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(requireContext(), "Please enter all fields", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         binding.toPartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_createParty_to_party)
