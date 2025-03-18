@@ -11,10 +11,13 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentLoginBinding
 import com.diespy.app.managers.authentication.AuthenticationManager
 import kotlinx.coroutines.launch
+import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.profile.SharedPrefManager
 
 class LoginFragment : Fragment() {
 
     private val authManager = AuthenticationManager()
+    private val fireStoreManager = FireStoreManager()
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
@@ -25,6 +28,13 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Retrieve logged in information and move to home screen if already logged in
+        val savedUserId = SharedPrefManager.getLoggedInUserId(requireContext())
+        if (!savedUserId.isNullOrEmpty()) {
+            findNavController().navigate(R.id.action_login_to_home)
+            return
+        }
 
         binding.toHomeScreenButton.setOnClickListener {
             handleLogin()
@@ -48,8 +58,18 @@ class LoginFragment : Fragment() {
             val isAuthenticated = authManager.authenticate(username, password)
 
             if (isAuthenticated == 1) {
-                binding.loginErrorMessage.visibility = View.GONE
-                findNavController().navigate(R.id.action_login_to_home)
+
+                val userDocumentId = fireStoreManager.getDocumentIdByField("Users", "username", username)
+
+                if (userDocumentId != null) {
+                    SharedPrefManager.saveUsername(requireContext(), username)
+                    SharedPrefManager.saveLoggedInUserId(requireContext(), userDocumentId)
+
+                    binding.loginErrorMessage.visibility = View.GONE
+                    findNavController().navigate(R.id.action_login_to_home)
+                } else {
+                    showError("Error retrieving user data")
+                }
             } else {
                 binding.loginPwInput.text.clear()
                 showError("Incorrect login, please try again")

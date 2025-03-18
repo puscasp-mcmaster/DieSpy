@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
 import com.diespy.app.managers.party.PartyManager
+import com.diespy.app.managers.profile.SharedPrefManager
 import kotlinx.coroutines.launch
 
 class CreatePartyFragment : Fragment() {
@@ -28,10 +29,11 @@ class CreatePartyFragment : Fragment() {
 
         binding.createPartyButton.setOnClickListener {
             val partyName = binding.partyNameInput.text.toString().trim()
+            val userId = SharedPrefManager.getLoggedInUserId(requireContext()) ?: ""
 
             if (partyName.isNotEmpty()) {
                 lifecycleScope.launch {
-                    val success = partyManager.createParty(partyName, "test")
+                    val success = partyManager.createParty(partyName, userId)
                     if (success != null) {
                         binding.partyNameInput.text.clear()
                         Toast.makeText(requireContext(), "Party Created!", Toast.LENGTH_SHORT).show()

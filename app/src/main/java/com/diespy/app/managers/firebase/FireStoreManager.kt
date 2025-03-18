@@ -112,4 +112,35 @@ class FireStoreManager {
             false
         }
     }
+
+
+    /**
+     * Query Firestore for documentId
+     * ONLY WORKS FOR UNIQUE FIELDS
+     * parameters:
+     *   - collection: The Firestore collection name as a string.
+     *   - fieldName: The Firestore document field name as a string.
+     *   - value: The field value to search for.
+     * returns: documentID if found, null if not found
+     */
+    suspend fun getDocumentIdByField(collection: String, field: String, value: String): String? {
+        return try {
+            val querySnapshot = db.collection(collection)
+                .whereEqualTo(field, value)
+                .limit(1)
+                .get()
+                .await()
+
+            if (!querySnapshot.isEmpty) {
+                querySnapshot.documents[0].id // Return the document ID
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
 }

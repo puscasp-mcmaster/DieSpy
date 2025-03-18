@@ -10,11 +10,14 @@ import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreateAccountBinding
 import com.diespy.app.managers.authentication.AuthenticationManager
+import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.profile.SharedPrefManager
 import kotlinx.coroutines.launch
 
 class CreateAccountFragment : Fragment() {
 
     private val authManager = AuthenticationManager()
+    private val fireStoreManager = FireStoreManager()
     private var _binding: FragmentCreateAccountBinding? = null
     private val binding get() = _binding!!
 
@@ -55,6 +58,13 @@ class CreateAccountFragment : Fragment() {
 
             val success = authManager.createAccount(username, password1)
             if (success) {
+                val userDocumentId = fireStoreManager.getDocumentIdByField("Users", "username", username)
+
+                if (userDocumentId != null) {
+                    SharedPrefManager.saveUsername(requireContext(), username)
+                    SharedPrefManager.saveLoggedInUserId(requireContext(), userDocumentId)
+                }
+
                 clearFields()
                 binding.createAccountErrorMessage.text = "" // Clear error message
                 findNavController().navigate(R.id.action_createAccount_to_home) // Navigate to home screen
