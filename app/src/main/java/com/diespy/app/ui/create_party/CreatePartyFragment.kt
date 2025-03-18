@@ -28,14 +28,12 @@ class CreatePartyFragment : Fragment() {
 
         binding.createPartyButton.setOnClickListener {
             val partyName = binding.partyNameInput.text.toString().trim()
-            val partyPassword = binding.partyPasswordInput.text.toString().trim()
 
-            if (partyName.isNotEmpty() && partyPassword.isNotEmpty()) {
+            if (partyName.isNotEmpty()) {
                 lifecycleScope.launch {
-                    val success = partyManager.createParty(partyName, partyPassword, "test")
+                    val success = partyManager.createParty(partyName, "test")
                     if (success != null) {
                         binding.partyNameInput.text.clear()
-                        binding.partyPasswordInput.text.clear()
                         Toast.makeText(requireContext(), "Party Created!", Toast.LENGTH_SHORT).show()
                         findNavController().navigate(R.id.action_createParty_to_party)
                     } else {
