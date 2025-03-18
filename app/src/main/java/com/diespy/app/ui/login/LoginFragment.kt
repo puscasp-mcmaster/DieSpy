@@ -27,29 +27,40 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.toHomeScreenButton.setOnClickListener {
-            val username = binding.loginUsernameInput.text.toString().lowercase()
-            val password = binding.loginPwInput.text.toString()
-
-            if (username.isBlank() || password.isBlank()) {
-                binding.loginErrorMessage.text = "Error: Username and password cannot be empty"
-                return@setOnClickListener
-            }
-
-            lifecycleScope.launch {
-                val isAuthenticated = authManager.authenticate(username, password)
-
-                if (isAuthenticated == 1) {
-                    binding.loginErrorMessage.text = "" // Clear errors
-                    findNavController().navigate(R.id.action_login_to_home)
-                } else {
-                    binding.loginPwInput.text.clear()
-                    binding.loginErrorMessage.text = "Incorrect login, please try again"
-                }
-            }
+            handleLogin()
         }
 
         binding.toCreateAccountButton.setOnClickListener {
             findNavController().navigate(R.id.action_login_to_createAccount)
+        }
+    }
+
+    private fun handleLogin() {
+        val username = binding.loginUsernameInput.text.toString().trim().lowercase()
+        val password = binding.loginPwInput.text.toString().trim()
+
+        if (username.isBlank() || password.isBlank()) {
+            showError("Username and password cannot be empty")
+            return
+        }
+
+        lifecycleScope.launch {
+            val isAuthenticated = authManager.authenticate(username, password)
+
+            if (isAuthenticated == 1) {
+                binding.loginErrorMessage.visibility = View.GONE
+                findNavController().navigate(R.id.action_login_to_home)
+            } else {
+                binding.loginPwInput.text.clear()
+                showError("Incorrect login, please try again")
+            }
+        }
+    }
+
+    private fun showError(message: String) {
+        binding.loginErrorMessage.apply {
+            text = message
+            visibility = View.VISIBLE
         }
     }
 

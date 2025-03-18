@@ -45,10 +45,6 @@ class CreatePartyFragment : Fragment() {
             }
         }
 
-        binding.toPartyScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_createParty_to_party)
-        }
-
         binding.toHomeScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_createParty_to_home)
         }
