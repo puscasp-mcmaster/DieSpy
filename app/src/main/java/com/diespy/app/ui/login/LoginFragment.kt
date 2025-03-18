@@ -11,10 +11,13 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentLoginBinding
 import com.diespy.app.managers.authentication.AuthenticationManager
 import kotlinx.coroutines.launch
+import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.profile.SharedPrefManager
 
 class LoginFragment : Fragment() {
 
     private val authManager = AuthenticationManager()
+    private val fireStoreManager = FireStoreManager()
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
@@ -26,30 +29,58 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Retrieve logged in information and move to home screen if already logged in
+        val savedUserId = SharedPrefManager.getLoggedInUserId(requireContext())
+        if (!savedUserId.isNullOrEmpty()) {
+            findNavController().navigate(R.id.action_login_to_home)
+            return
+        }
+
         binding.toHomeScreenButton.setOnClickListener {
-            val username = binding.loginUsernameInput.text.toString().lowercase()
-            val password = binding.loginPwInput.text.toString()
-
-            if (username.isBlank() || password.isBlank()) {
-                binding.loginErrorMessage.text = "Error: Username and password cannot be empty"
-                return@setOnClickListener
-            }
-
-            lifecycleScope.launch {
-                val isAuthenticated = authManager.authenticate(username, password)
-
-                if (isAuthenticated == 1) {
-                    binding.loginErrorMessage.text = "" // Clear errors
-                    findNavController().navigate(R.id.action_login_to_home)
-                } else {
-                    binding.loginPwInput.text.clear()
-                    binding.loginErrorMessage.text = "Incorrect login, please try again"
-                }
-            }
+            handleLogin()
         }
 
         binding.toCreateAccountButton.setOnClickListener {
             findNavController().navigate(R.id.action_login_to_createAccount)
+        }
+    }
+
+    private fun handleLogin() {
+        val username = binding.loginUsernameInput.text.toString().trim().lowercase()
+        val password = binding.loginPwInput.text.toString().trim()
+
+        if (username.isBlank() || password.isBlank()) {
+            showError("Username and password cannot be empty")
+            return
+        }
+
+        lifecycleScope.launch {
+            val isAuthenticated = authManager.authenticate(username, password)
+
+            if (isAuthenticated == 1) {
+
+                val userDocumentId = fireStoreManager.getDocumentIdByField("Users", "username", username)
+
+                if (userDocumentId != null) {
+                    SharedPrefManager.saveUsername(requireContext(), username)
+                    SharedPrefManager.saveLoggedInUserId(requireContext(), userDocumentId)
+
+                    binding.loginErrorMessage.visibility = View.GONE
+                    findNavController().navigate(R.id.action_login_to_home)
+                } else {
+                    showError("Error retrieving user data")
+                }
+            } else {
+                binding.loginPwInput.text.clear()
+                showError("Incorrect login, please try again")
+            }
+        }
+    }
+
+    private fun showError(message: String) {
+        binding.loginErrorMessage.apply {
+            text = message
+            visibility = View.VISIBLE
         }
     }
 

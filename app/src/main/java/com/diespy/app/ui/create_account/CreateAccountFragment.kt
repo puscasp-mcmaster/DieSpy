@@ -6,13 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreateAccountBinding
 import com.diespy.app.managers.authentication.AuthenticationManager
+import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.profile.SharedPrefManager
 import kotlinx.coroutines.launch
 
 class CreateAccountFragment : Fragment() {
 
     private val authManager = AuthenticationManager()
+    private val fireStoreManager = FireStoreManager()
     private var _binding: FragmentCreateAccountBinding? = null
     private val binding get() = _binding!!
 
@@ -25,41 +30,70 @@ class CreateAccountFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.createAccountButton.setOnClickListener {
-            val password1 = binding.createAccountPwInput1.text.toString()
-            val password2 = binding.createAccountPwInput2.text.toString()
-            val username = binding.createAccountUsernameInput.text.toString().lowercase()
+            handleAccountCreation()
+        }
+        binding.toLoginScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_createAccount_to_login)
+        }
+    }
 
-            if (password1.isBlank() || username.isBlank()) {
-                binding.createAccountErrorMessage.text = "Error: Username and Password cannot be empty"
-                return@setOnClickListener
+    private fun handleAccountCreation() {
+        val username = binding.createAccountUsernameInput.text.toString().trim().lowercase()
+        val password1 = binding.createAccountPwInput1.text.toString().trim()
+        val password2 = binding.createAccountPwInput2.text.toString().trim()
+
+        val validationError = validateInput(username, password1, password2)
+        if (validationError != null) {
+            showError(validationError)
+            return
+        }
+
+        lifecycleScope.launch {
+            val userExists = authManager.checkUserExists(username)
+
+            if (userExists == 1) {
+                showError("Username already exists.")
+                return@launch
             }
 
-            if (password1 == password2) {
-                lifecycleScope.launch {
-                    val userExists = authManager.checkUserExists(username)
+            val success = authManager.createAccount(username, password1)
+            if (success) {
+                val userDocumentId = fireStoreManager.getDocumentIdByField("Users", "username", username)
 
-                    if (userExists == 0) {
-                        val success = authManager.createAccount(username, password1)
-
-                        if (success) {
-                            binding.createAccountErrorMessage.text = "Account Successfully Created!"
-                            binding.createAccountUsernameInput.text.clear()
-                            binding.createAccountPwInput1.text.clear()
-                            binding.createAccountPwInput2.text.clear()
-                        } else {
-                            binding.createAccountErrorMessage.text = "Error: Failed to create account."
-                        }
-                    } else {
-                        binding.createAccountUsernameInput.text.clear()
-                        binding.createAccountErrorMessage.text = "Error: Username already exists"
-                    }
+                if (userDocumentId != null) {
+                    SharedPrefManager.saveUsername(requireContext(), username)
+                    SharedPrefManager.saveLoggedInUserId(requireContext(), userDocumentId)
                 }
+
+                clearFields()
+                binding.createAccountErrorMessage.text = "" // Clear error message
+                findNavController().navigate(R.id.action_createAccount_to_home) // Navigate to home screen
             } else {
-                binding.createAccountPwInput1.text.clear()
-                binding.createAccountPwInput2.text.clear()
-                binding.createAccountErrorMessage.text = "Error: Passwords do not match"
+                showError("Failed to create account. Try again.")
             }
         }
+    }
+
+    private fun validateInput(username: String, password1: String, password2: String): String? {
+        return when {
+            username.isBlank() || password1.isBlank() -> "Username and password cannot be empty"
+            password1 != password2 -> "Passwords do not match"
+            password1.length < 6 -> "Password must be at least 6 characters"
+            else -> null // No errors
+        }
+    }
+
+    private fun showError(message: String) {
+        binding.createAccountErrorMessage.apply {
+            text = message
+            visibility = View.VISIBLE
+        }
+    }
+
+    private fun clearFields() {
+        binding.createAccountUsernameInput.text.clear()
+        binding.createAccountPwInput1.text.clear()
+        binding.createAccountPwInput2.text.clear()
     }
 
     override fun onDestroyView() {

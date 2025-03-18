@@ -8,14 +8,14 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentProfileBinding
+import com.diespy.app.managers.profile.SharedPrefManager
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -26,6 +26,15 @@ class ProfileFragment : Fragment() {
         binding.toHomeScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_profile_to_home)
         }
+
+        binding.logoutButton.setOnClickListener {
+            handleLogout()
+        }
+    }
+
+    private fun handleLogout() {
+        SharedPrefManager.clearUserData(requireContext()) // Clears stored login info
+        findNavController().navigate(R.id.action_profile_to_login) // Redirects to Login
     }
 
     override fun onDestroyView() {

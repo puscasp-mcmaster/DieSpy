@@ -1,24 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.create_party.CreatePartyFragment">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="40dp">
 
         <TextView
+            android:id="@+id/createPartyTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create Party Screen"
+            android:text="Create Party"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="20dp"/>
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"/>
 
-        <!-- Party Name Input -->
+        <TextView
+            android:id="@+id/createPartyErrorMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#F00303"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"/>
+
         <EditText
             android:id="@+id/partyNameInput"
             android:layout_width="match_parent"
@@ -26,52 +46,30 @@
             android:hint="Enter Party Name"
             android:inputType="text"
             android:padding="12dp"
-            android:layout_marginBottom="10dp" />
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginBottom="10dp"/>
 
-        <!-- Party Password Input -->
-        <EditText
-            android:id="@+id/partyPasswordInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Party Password"
-            android:inputType="textPassword"
-            android:padding="12dp"
-            android:layout_marginBottom="20dp" />
-
-        <!-- Create Party Button -->
         <Button
             android:id="@+id/createPartyButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Create Party"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
             android:backgroundTint="#6200EE"
-            android:layout_marginBottom="20dp"/>
-
-        <!-- Existing Buttons -->
-        <Button
-            android:id="@+id/toPartyScreenButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="To Party Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
+            android:padding="12dp"
+            android:layout_marginBottom="12dp"/>
 
         <Button
             android:id="@+id/toHomeScreenButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="To Home Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
+            android:text="Back to Home"
             android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
+            android:textColor="#FFFFFF"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp"/>
+
+
     </LinearLayout>
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

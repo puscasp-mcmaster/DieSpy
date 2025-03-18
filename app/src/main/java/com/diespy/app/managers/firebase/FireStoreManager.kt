@@ -8,15 +8,54 @@ class FireStoreManager {
     private val db = FirebaseFirestore.getInstance()
 
     /**
-     * Saves data to Firestore
-     * paramters:   firestore collection name as string
-     *              unique firestore document as string
-     *              HashMap<String, Any> to store
-     * returns true if saved correctly, and false if error
+     * Creates a new document in Firestore within a given collection and returns the generated document ID.
+     * parameters:
+     *   - collection: The Firestore collection name as a string.
+     *   - data: A HashMap<String, Any> containing the document data.
+     * returns: The generated document ID as a string if successful, null if error occurs.
      */
-    suspend fun saveDocument(collection: String, documentId: String, data: Map<String, Any>): Boolean {
+    suspend fun createDocument(collection: String, data: Map<String, Any>): String? {
         return try {
-            db.collection(collection).document(documentId).set(data).await()
+            val documentReference = db.collection(collection).add(data).await()
+            documentReference.id // Return the generated document ID
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * Updates document to Firestore using a specific document ID and collection name.
+     * fields not in data map will remain the same
+     * parameters:
+     *   - collection: The Firestore collection name as a string.
+     *   - documentId: The specific Firestore document ID as a string.
+     *   - data: A HashMap<String, Any> containing the updated document data.
+     * returns: True if saved correctly, false if error occurs.
+     */
+    suspend fun updateDocument(collection: String, documentId: String, data: Map<String, Any>): Boolean {
+        return try {
+            db.collection(collection).document(documentId).update(data).await()
+            true
+        } catch (e: Exception) {
+            if (e.message?.contains("NOT_FOUND") == true) {
+                println("Error: Document with ID $documentId does not exist.")
+            }
+            e.printStackTrace()
+            false
+        }
+    }
+
+    /**
+     * Deletes a document from Firestore.
+     * parameters:
+     *   - collection: The Firestore collection name as a string.
+     *   - documentId: The Firestore document ID to delete.
+     * returns: True if deleted successfully, false if error occurs.
+     */
+    suspend fun deleteDocument(collection: String, documentId: String): Boolean {
+        return try {
+            db.collection(collection).document(documentId).delete().await()
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -26,9 +65,11 @@ class FireStoreManager {
 
     /**
      * Queries Firestore for a document where a field matches a given value.
-     * paramters:   firestore collection name as string
-     *              firestore document field name as string
-     *              value as string
+     * parameters:
+     *   - collection: The Firestore collection name as a string.
+     *   - field: The Firestore document field name as a string.
+     *   - value: The field value to search for.
+     * returns: The found document data as a Map<String, Any>, or null if not found.
      */
     suspend fun queryDocument(collection: String, field: String, value: String): Map<String, Any>? {
         return try {
@@ -39,8 +80,7 @@ class FireStoreManager {
                 .await()
 
             if (!querySnapshot.isEmpty) {
-                val document = querySnapshot.documents[0]
-                document.data
+                querySnapshot.documents[0].data
             } else {
                 null
             }
@@ -51,11 +91,12 @@ class FireStoreManager {
     }
 
     /**
-     * Checks firestore if a document exists where a field matches a given value.
-     * paramters:   firestore collection name as string
-     *              firestore document field name as string
-     *              value as string
-     * returns true if found, false if not
+     * Checks Firestore if a document exists where a field matches a given value.
+     * parameters:
+     *   - collection: The Firestore collection name as a string.
+     *   - fieldName: The Firestore document field name as a string.
+     *   - value: The field value to search for.
+     * returns: True if found, false if not.
      */
     suspend fun documentExists(collection: String, fieldName: String, value: String): Boolean {
         return try {
@@ -71,4 +112,35 @@ class FireStoreManager {
             false
         }
     }
+
+
+    /**
+     * Query Firestore for documentId
+     * ONLY WORKS FOR UNIQUE FIELDS
+     * parameters:
+     *   - collection: The Firestore collection name as a string.
+     *   - fieldName: The Firestore document field name as a string.
+     *   - value: The field value to search for.
+     * returns: documentID if found, null if not found
+     */
+    suspend fun getDocumentIdByField(collection: String, field: String, value: String): String? {
+        return try {
+            val querySnapshot = db.collection(collection)
+                .whereEqualTo(field, value)
+                .limit(1)
+                .get()
+                .await()
+
+            if (!querySnapshot.isEmpty) {
+                querySnapshot.documents[0].id // Return the document ID
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
 }

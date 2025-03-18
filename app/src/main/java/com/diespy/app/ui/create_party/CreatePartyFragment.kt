@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
 import com.diespy.app.managers.party.PartyManager
+import com.diespy.app.managers.profile.SharedPrefManager
 import kotlinx.coroutines.launch
 
 class CreatePartyFragment : Fragment() {
@@ -28,14 +29,13 @@ class CreatePartyFragment : Fragment() {
 
         binding.createPartyButton.setOnClickListener {
             val partyName = binding.partyNameInput.text.toString().trim()
-            val partyPassword = binding.partyPasswordInput.text.toString().trim()
+            val userId = SharedPrefManager.getLoggedInUserId(requireContext()) ?: ""
 
-            if (partyName.isNotEmpty() && partyPassword.isNotEmpty()) {
+            if (partyName.isNotEmpty()) {
                 lifecycleScope.launch {
-                    val success = partyManager.createParty(partyName, partyPassword, "test")
+                    val success = partyManager.createParty(partyName, userId)
                     if (success != null) {
                         binding.partyNameInput.text.clear()
-                        binding.partyPasswordInput.text.clear()
                         Toast.makeText(requireContext(), "Party Created!", Toast.LENGTH_SHORT).show()
                         findNavController().navigate(R.id.action_createParty_to_party)
                     } else {
@@ -45,10 +45,6 @@ class CreatePartyFragment : Fragment() {
             } else {
                 Toast.makeText(requireContext(), "Please enter all fields", Toast.LENGTH_SHORT).show()
             }
-        }
-
-        binding.toPartyScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_createParty_to_party)
         }
 
         binding.toHomeScreenButton.setOnClickListener {

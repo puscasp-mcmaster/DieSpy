@@ -12,9 +12,17 @@
         android:label="Login Screen"
         tools:layout="@layout/fragment_login">
         <action android:id="@+id/action_login_to_home" app:destination="@id/homeFragment"/>
-        <action
-            android:id="@+id/action_login_to_createAccount"
-            app:destination="@id/createAccountFragment" />
+        <action android:id="@+id/action_login_to_createAccount" app:destination="@id/createAccountFragment" />
+    </fragment>
+
+    <!-- Login Screen -->
+    <fragment
+        android:id="@+id/createAccountFragment"
+        android:name="com.diespy.app.ui.create_account.CreateAccountFragment"
+        android:label="CreateAccount"
+        tools:layout="@layout/fragment_create_account">
+        <action android:id="@+id/action_createAccount_to_home" app:destination="@id/homeFragment"/>
+        <action android:id="@+id/action_createAccount_to_login" app:destination="@id/loginFragment" />
     </fragment>
 
     <!-- Home Screen (Start a Party / Join a Party) -->
@@ -115,6 +123,7 @@
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
         <action android:id="@+id/action_profile_to_home" app:destination="@id/homeFragment"/>
+        <action android:id="@+id/action_profile_to_login" app:destination="@id/loginFragment"/>
     </fragment>
 
     <!-- Settings -->
@@ -125,14 +134,6 @@
         tools:layout="@layout/fragment_settings">
         <action android:id="@+id/action_settings_to_home" app:destination="@id/homeFragment"/>
         <action android:id="@+id/action_settings_to_login" app:destination="@id/loginFragment"/>
-    </fragment>
-
-
-    <fragment
-        android:id="@+id/createAccountFragment"
-        android:name="com.diespy.app.ui.create_account.CreateAccountFragment"
-        android:label="CreateAccount"
-        tools:layout="@layout/fragment_create_account">
     </fragment>
 
 
