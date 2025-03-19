@@ -17,21 +17,7 @@ class ChatManager(private val context: Context) {
     private val db = FirebaseFirestore.getInstance() // Firestore instance
     private val collection = "Parties"
 
-
-    private val chatDir = File(context.filesDir, "chat")
-    private val chatFile = File(chatDir, "chat_messages.json")
-
-    init {
-        if (!chatDir.exists()) {
-            chatDir.mkdirs()
-        }
-        if (!chatFile.exists()) {
-            chatFile.writeText("[]")
-        }
-    }
-
-    fun saveMessage(username: String, message: String, timestamp: String) {
-        //L6WRTNjIOXw7DTRuEwTt is the default party
+    fun saveMessage(username: String, message: String, timestamp: String, party: String) {
         //Create chat object
         val chat = hashMapOf(
             "username" to username,
@@ -39,13 +25,13 @@ class ChatManager(private val context: Context) {
             "timestamp" to timestamp
         )
 
-        db.collection(collection).document("christian_dev").collection("chat").add(chat)
+        db.collection(collection).document(party).collection("chat").add(chat)
     }
 
-    suspend fun loadMessages(): List<ChatMessage> {
+    suspend fun loadMessages(party: String): List<ChatMessage> {
         return try {
             val querySnapshot = db.collection(collection)
-                .document("christian_dev") // Replace with dynamic party ID if needed
+                .document(party)
                 .collection("chat")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
@@ -60,3 +46,4 @@ class ChatManager(private val context: Context) {
         }
     }
 }
+
