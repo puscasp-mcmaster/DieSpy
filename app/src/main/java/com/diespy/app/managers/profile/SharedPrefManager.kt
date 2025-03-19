@@ -9,8 +9,7 @@ object SharedPrefManager {
     // Define Keys
     private const val KEY_LOGGED_IN_USER_ID = "loggedInUserId"
     private const val KEY_USERNAME = "username"
-    //TODO remove hard code
-    private const val KEY_PARTY = "cLkDPwOjRwmlXlhIh8s1"
+    private const val KEY_PARTY = "party"
 
     // Get SharedPreferences Instance
     private fun getPreferences(context: Context) =
@@ -37,8 +36,8 @@ object SharedPrefManager {
     }
 
     // Save Party
-    fun saveCurrentParty(context: Context, username: String) {
-        getPreferences(context).edit().putString(KEY_PARTY, username).apply()
+    fun saveCurrentParty(context: Context, party: String) {
+        getPreferences(context).edit().putString(KEY_PARTY, party).apply()
     }
 
     // Retrieve Party

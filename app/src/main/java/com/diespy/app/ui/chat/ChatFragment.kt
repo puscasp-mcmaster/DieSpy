@@ -26,7 +26,7 @@ class ChatFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var chatManager: ChatManager
     private lateinit var chatAdapter: ChatAdapter
-    private val db = FirebaseFirestore.getInstance() // Firestore instance
+    private val db = FirebaseFirestore.getInstance()
     private val collection = "Parties"
 
     override fun onCreateView(
@@ -35,12 +35,12 @@ class ChatFragment : Fragment() {
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: "party"
+        SharedPrefManager.saveCurrentParty(requireContext(),"cLkDPwOjRwmlXlhIh8s1",)
+        val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
         //Party Screen button
         binding.toPartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_chat_to_party)
@@ -48,8 +48,6 @@ class ChatFragment : Fragment() {
 
         chatManager = ChatManager(requireContext())
         chatAdapter = ChatAdapter(emptyList()) // Start with an empty list
-
-        //Set layout manager with stackFromEnd = true (messages start at bottom)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
         }
@@ -59,11 +57,6 @@ class ChatFragment : Fragment() {
         lifecycleScope.launch {
             val messages = chatManager.loadMessages(currentParty)
             chatAdapter.updateMessages(messages)
-
-            //Move chat to latest message
-//            binding.recyclerView.post {
-//                binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
-//            }
         }
 
         //Send message button
