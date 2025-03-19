@@ -17,6 +17,7 @@ import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.lifecycle.lifecycleScope
+import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
@@ -25,7 +26,7 @@ class ChatFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var chatManager: ChatManager
     private lateinit var chatAdapter: ChatAdapter
-    private val db = FirebaseFirestore.getInstance() // Firestore instance
+    private val db = FirebaseFirestore.getInstance()
     private val collection = "Parties"
 
     override fun onCreateView(
@@ -34,12 +35,12 @@ class ChatFragment : Fragment() {
     ): View {
         _binding = FragmentChatBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        SharedPrefManager.saveCurrentParty(requireContext(),"cLkDPwOjRwmlXlhIh8s1",)
+        val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
         //Party Screen button
         binding.toPartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_chat_to_party)
@@ -47,8 +48,6 @@ class ChatFragment : Fragment() {
 
         chatManager = ChatManager(requireContext())
         chatAdapter = ChatAdapter(emptyList()) // Start with an empty list
-
-        //Set layout manager with stackFromEnd = true (messages start at bottom)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
         }
@@ -56,27 +55,22 @@ class ChatFragment : Fragment() {
 
         //Load chat messages from Firestore asynchronously
         lifecycleScope.launch {
-            val messages = chatManager.loadMessages()
+            val messages = chatManager.loadMessages(currentParty)
             chatAdapter.updateMessages(messages)
-
-            //Move chat to latest message
-            binding.recyclerView.post {
-                binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
-            }
         }
 
         //Send message button
         binding.sendButton.setOnClickListener {
             val timeStamp: String = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
-            val username = "User" // Replace with actual username logic
+            //Tries to grab username, if there is not one, it defaults to User
+            val username = (SharedPrefManager.getUsername(requireContext()))?: "User"
             val message = binding.messageInput.text.toString()
-
             if (message.isNotBlank()) {
                 lifecycleScope.launch {
-                    chatManager.saveMessage(username, message, timeStamp)
+                    chatManager.saveMessage(username, message, timeStamp, currentParty)
 
                     // Reload messages after sending
-                    val updatedMessages = chatManager.loadMessages()
+                    val updatedMessages = chatManager.loadMessages(currentParty)
                     chatAdapter.updateMessages(updatedMessages)
 
                     // Clear input field
@@ -92,7 +86,7 @@ class ChatFragment : Fragment() {
 
         //Real-time listener for Firestore updates
         db.collection(collection)
-            .document("christian_dev") // Change this to the actual party ID dynamically
+            .document(currentParty)
             .collection("chat")
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshots, error ->
@@ -100,10 +94,11 @@ class ChatFragment : Fragment() {
                     val newMessages = snapshots.documents.mapNotNull { it.toObject(ChatMessage::class.java) }
                     chatAdapter.updateMessages(newMessages)
 
+                    //TODO may not need this maybe have it show a notification icon instead of scroll
                     // Auto-scroll to the last message when a new one arrives
-                    binding.recyclerView.post {
-                        binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
-                    }
+//                    binding.recyclerView.post {
+//                        binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+//                    }
                 }
             }
     }
@@ -134,8 +129,9 @@ class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapte
     }
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
+        //capitalizes first letter of the Username.
         val message = messages[position]
-        holder.messageText.text = "${message.username}: ${message.timestamp}\n${message.msg}"
+        holder.messageText.text = "${(message.username).replaceFirstChar { char ->char.titlecase()}}: ${message.timestamp}\n${message.msg}"
     }
 
     override fun getItemCount(): Int = messages.size
@@ -146,5 +142,11 @@ class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapte
     }
 }
 
+private inline fun String.replaceFirstChar(transform: (Char) -> CharSequence): String {
+    return if (isNotEmpty())
+        transform(this[0]).toString() + substring(1)
+    else
+        this
+}
 
 
