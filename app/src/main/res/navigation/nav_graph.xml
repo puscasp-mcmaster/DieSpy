@@ -33,7 +33,6 @@
         tools:layout="@layout/fragment_home">
         <action android:id="@+id/action_home_to_createParty" app:destination="@id/createPartyFragment"/>
         <action android:id="@+id/action_home_to_joinParty" app:destination="@id/joinPartyFragment"/>
-        <action android:id="@+id/action_home_to_profile" app:destination="@id/profileFragment"/>
         <action android:id="@+id/action_home_to_settings" app:destination="@id/settingsFragment"/>
     </fragment>
 
@@ -134,6 +133,7 @@
         tools:layout="@layout/fragment_settings">
         <action android:id="@+id/action_settings_to_home" app:destination="@id/homeFragment"/>
         <action android:id="@+id/action_settings_to_login" app:destination="@id/loginFragment"/>
+        <action android:id="@+id/action_settings_to_profile" app:destination="@id/profileFragment"/>
     </fragment>
 
 

@@ -28,9 +28,6 @@ class HomeFragment : Fragment() {
         binding.toJoinPartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_joinParty)
         }
-        binding.toProfileScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_home_to_profile)
-        }
         binding.toSettingScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_settings)
         }

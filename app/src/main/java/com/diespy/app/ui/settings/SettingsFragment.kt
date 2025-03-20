@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentSettingsBinding
+import com.diespy.app.managers.profile.SharedPrefManager
 
 class SettingsFragment : Fragment() {
 
@@ -27,9 +28,18 @@ class SettingsFragment : Fragment() {
             findNavController().navigate(R.id.action_settings_to_home)
         }
 
-        binding.toLoginScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_settings_to_login)
+        binding.logoutButton.setOnClickListener {
+            handleLogout()
         }
+
+        binding.toProfileScreenButton.setOnClickListener {
+            findNavController().navigate(R.id.action_settings_to_profile)
+        }
+    }
+
+    private fun handleLogout() {
+        SharedPrefManager.clearUserData(requireContext()) // Clears stored login info
+        findNavController().navigate(R.id.action_profile_to_login) // Redirects to Login
     }
 
     override fun onDestroyView() {

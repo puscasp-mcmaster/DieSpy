@@ -1,43 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         android:gravity="center"
-        android:orientation="vertical">
+        android:padding="24dp"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
             android:text="Settings Screen"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="20dp"/>
+            />
 
         <Button
             android:id="@+id/toHomeScreenButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="To Home Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
             android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
+            android:padding="12dp"
+            android:text="To Home Screen"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="10dp"
+            android:textSize="16sp"
+            />
 
         <Button
-            android:id="@+id/toLoginScreenButton"
-            android:layout_width="wrap_content"
+            android:id="@+id/toProfileScreenButton"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="To Login Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
             android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
+            android:padding="12dp"
+            android:text="Profile"
+            android:layout_marginBottom="10dp"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#D32F2F"
+            android:padding="12dp"
+            android:text="Logout"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
-</FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
