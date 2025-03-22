@@ -15,14 +15,13 @@
         <action android:id="@+id/action_login_to_createAccount" app:destination="@id/createAccountFragment" />
     </fragment>
 
-    <!-- Login Screen -->
+    <!-- Create Account Screen -->
     <fragment
         android:id="@+id/createAccountFragment"
         android:name="com.diespy.app.ui.create_account.CreateAccountFragment"
         android:label="CreateAccount"
         tools:layout="@layout/fragment_create_account">
         <action android:id="@+id/action_createAccount_to_home" app:destination="@id/homeFragment"/>
-        <action android:id="@+id/action_createAccount_to_login" app:destination="@id/loginFragment" />
     </fragment>
 
     <!-- Home Screen (Start a Party / Join a Party) -->
@@ -33,7 +32,6 @@
         tools:layout="@layout/fragment_home">
         <action android:id="@+id/action_home_to_createParty" app:destination="@id/createPartyFragment"/>
         <action android:id="@+id/action_home_to_joinParty" app:destination="@id/joinPartyFragment"/>
-        <action android:id="@+id/action_home_to_settings" app:destination="@id/settingsFragment"/>
     </fragment>
 
     <!-- Create Party -->
@@ -43,7 +41,6 @@
         android:label="Create Party"
         tools:layout="@layout/fragment_create_party">
         <action android:id="@+id/action_createParty_to_party" app:destination="@id/partyFragment"/>
-        <action android:id="@+id/action_createParty_to_home" app:destination="@id/homeFragment"/>
     </fragment>
 
     <!-- Join Party -->
@@ -53,7 +50,6 @@
         android:label="Join Party"
         tools:layout="@layout/fragment_join_party">
         <action android:id="@+id/action_joinParty_to_party" app:destination="@id/partyFragment"/>
-        <action android:id="@+id/action_joinParty_to_home" app:destination="@id/homeFragment"/>
     </fragment>
 
     <!-- Party Screen -->
@@ -63,7 +59,6 @@
         android:label="Party"
         tools:layout="@layout/fragment_party">
         <action android:id="@+id/action_party_to_diceDetection" app:destination="@id/diceDetectionFragment"/>
-        <action android:id="@+id/action_party_to_home" app:destination="@id/homeFragment"/>
     </fragment>
 
     <!-- Dice Detection Screen -->
@@ -106,7 +101,6 @@
         android:name="com.diespy.app.ui.rolls.RollsFragment"
         android:label="Roll Details"
         tools:layout="@layout/fragment_rolls">
-        <action android:id="@+id/action_rolls_to_logs" app:destination="@id/logsFragment"/>
     </fragment>
 
     <!-- Profile -->
@@ -115,7 +109,6 @@
         android:name="com.diespy.app.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
-        <action android:id="@+id/action_profile_to_home" app:destination="@id/homeFragment"/>
         <action android:id="@+id/action_profile_to_changePassword" app:destination="@id/changePasswordFragment"/>
         <action android:id="@+id/action_profile_to_login" app:destination="@id/loginFragment"/>
     </fragment>
@@ -135,7 +128,6 @@
         android:name="com.diespy.app.ui.settings.SettingsFragment"
         android:label="Settings"
         tools:layout="@layout/fragment_settings">
-        <action android:id="@+id/action_settings_to_home" app:destination="@id/homeFragment"/>
         <action android:id="@+id/action_settings_to_login" app:destination="@id/loginFragment"/>
         <action android:id="@+id/action_settings_to_profile" app:destination="@id/profileFragment"/>
     </fragment>

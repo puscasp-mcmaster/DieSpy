@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
         // Force Light mode
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-        // View Binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -35,6 +34,7 @@ class MainActivity : AppCompatActivity() {
         FirebaseApp.initializeApp(this)
 
         setupCustomBottomNav()
+        setupCustomTopNav()
     }
 
     private fun setupCustomBottomNav() {
@@ -65,15 +65,100 @@ class MainActivity : AppCompatActivity() {
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val shouldShowCustomNav = destination.id in setOf(
+            val shouldShowBottomNav = destination.id in setOf(
                 R.id.partyFragment,
                 R.id.chatFragment,
                 R.id.membersFragment,
-                R.id.logsFragment
+                R.id.logsFragment,
+                R.id.rollsFragment,
+                R.id.diceDetectionFragment
             )
-            findViewById<View>(R.id.customBottomNav).visibility = if (shouldShowCustomNav) View.VISIBLE else View.GONE
+            findViewById<View>(R.id.customBottomNav).visibility = if (shouldShowBottomNav) View.VISIBLE else View.GONE
         }
     }
+
+    private fun setupCustomTopNav() {
+        val navController = (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController
+
+        val navBack = findViewById<View>(R.id.nav_back)
+        val navSettings = findViewById<View>(R.id.nav_settings)
+        val navCamera = findViewById<View>(R.id.nav_camera)
+        val customTopNav = findViewById<View>(R.id.customTopNav)
+
+        navBack.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+
+        navSettings.setOnClickListener {
+            if (navController.currentDestination?.id != R.id.settingsFragment) {
+                navController.navigate(R.id.settingsFragment)
+            }
+        }
+
+        navCamera.setOnClickListener {
+            if (navController.currentDestination?.id != R.id.diceDetectionFragment) {
+                navController.navigate(R.id.diceDetectionFragment)
+            }
+        }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val showTopNav = destination.id in setOf(
+                R.id.partyFragment,
+                R.id.homeFragment,
+                R.id.createAccountFragment,
+                R.id.joinPartyFragment,
+                R.id.createPartyFragment,
+                R.id.chatFragment,
+                R.id.membersFragment,
+                R.id.logsFragment,
+                R.id.loginFragment,
+                R.id.settingsFragment,
+                R.id.profileFragment,
+                R.id.rollsFragment,
+                R.id.diceDetectionFragment
+            )
+            customTopNav.visibility = if (showTopNav) View.VISIBLE else View.GONE
+
+            when (destination.id) {
+                R.id.createAccountFragment -> {
+                    navBack.visibility = View.VISIBLE
+                    navSettings.visibility = View.GONE
+                    navCamera.visibility = View.GONE
+                }
+                R.id.loginFragment -> {
+                    navBack.visibility = View.GONE
+                    navSettings.visibility = View.GONE
+                    navCamera.visibility = View.VISIBLE
+                }
+                R.id.settingsFragment -> {
+                    navBack.visibility = View.VISIBLE
+                    navSettings.visibility = View.GONE
+                    navCamera.visibility = View.GONE
+                }
+                R.id.profileFragment -> {
+                    navBack.visibility = View.VISIBLE
+                    navSettings.visibility = View.GONE
+                    navCamera.visibility = View.GONE
+                }
+                R.id.diceDetectionFragment -> {
+                    navBack.visibility = View.VISIBLE
+                    navSettings.visibility = View.GONE
+                    navCamera.visibility = View.GONE
+                }
+                R.id.rollsFragment -> {
+                    navBack.visibility = View.VISIBLE
+                    navSettings.visibility = View.GONE
+                    navCamera.visibility = View.GONE
+                }
+                else -> {
+                    navBack.visibility = View.VISIBLE
+                    navSettings.visibility = View.VISIBLE
+                    navCamera.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
 
     private fun applySystemBarInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->

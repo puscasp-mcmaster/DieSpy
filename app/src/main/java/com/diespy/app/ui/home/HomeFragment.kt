@@ -28,9 +28,6 @@ class HomeFragment : Fragment() {
         binding.toJoinPartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_joinParty)
         }
-        binding.toSettingScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_home_to_settings)
-        }
     }
 
     override fun onDestroyView() {

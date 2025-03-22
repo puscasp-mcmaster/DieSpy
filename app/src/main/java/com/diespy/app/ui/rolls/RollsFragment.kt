@@ -22,10 +22,6 @@ class RollsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.toLogsScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_rolls_to_logs)
-        }
     }
 
     override fun onDestroyView() {

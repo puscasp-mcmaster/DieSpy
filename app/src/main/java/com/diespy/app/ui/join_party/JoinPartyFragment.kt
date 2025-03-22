@@ -25,9 +25,6 @@ class JoinPartyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toHomeScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_joinParty_to_home)
-        }
         binding.toPartyScreenButton.setOnClickListener {
             // TODO remove this v
             SharedPrefManager.saveCurrentParty(requireContext(), "HC7ESmlM190TCMFtLHCu")

@@ -32,17 +32,6 @@
             android:layout_marginBottom="16dp"/>
 
         <Button
-            android:id="@+id/toHomeScreenButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="To Home Screen"
-            android:backgroundTint="#6200EE"
-            android:textColor="#FFFFFF"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
-
-        <Button
             android:id="@+id/toChangePasswordButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

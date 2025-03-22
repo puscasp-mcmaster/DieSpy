@@ -52,10 +52,6 @@ class CreatePartyFragment : Fragment() {
                 Toast.makeText(requireContext(), "Please enter all fields", Toast.LENGTH_SHORT).show()
             }
         }
-
-        binding.toHomeScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_createParty_to_home)
-        }
     }
 
     override fun onDestroyView() {

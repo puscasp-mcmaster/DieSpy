@@ -27,9 +27,6 @@ class PartyFragment : Fragment() {
         binding.toDiceDetectionScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_party_to_diceDetection)
         }
-        binding.toHomeScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_party_to_home)
-        }
     }
 
     override fun onDestroyView() {
