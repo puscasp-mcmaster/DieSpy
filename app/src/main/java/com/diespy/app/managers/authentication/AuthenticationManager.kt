@@ -35,6 +35,26 @@ class AuthenticationManager {
             0
         }
     }
+    suspend fun changePassword(username: String, newPassword: String): Boolean {
+        return try {
+            //Retrieve the document ID using the helper function.
+            val documentId = fireStoreManager.getDocumentIdByField(usersCollection, "username", username)
+            if (documentId != null) {
+                //Hash the new password
+                val hashedPw = newPassword.encrypt()
+
+                //Update password
+                val updatedData = mapOf("hashedPw" to hashedPw)
+                return fireStoreManager.updateDocument(usersCollection, documentId, updatedData)
+            }
+            false //Return false if user was not found
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+
 
     suspend fun checkUserExists(username: String): Int {
         return if (fireStoreManager.documentExists(usersCollection, "username", username)) 1 else 0
