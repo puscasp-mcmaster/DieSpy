@@ -1,6 +1,8 @@
 package com.diespy.app
 
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -67,7 +69,61 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
+
+        // Handle bottom nav item selection
+        binding.bottomNavView.setOnItemSelectedListener { item ->
+            val destinationId = when (item.itemId) {
+                R.id.partyFragment -> R.id.partyFragment
+                R.id.chatFragment -> R.id.chatFragment
+                R.id.logsFragment -> R.id.logsFragment
+                R.id.membersFragment -> R.id.membersFragment
+                else -> null
+            }
+
+            destinationId?.let {
+                if (navController.currentDestination?.id != it) {
+                    navController.popBackStack(it, false)
+                    navController.navigate(it)
+                }
+                true
+            } ?: false
+        }
+
+        // Show/hide bottom nav and handle item highlighting
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.loginFragment,
+                R.id.createAccountFragment,
+                R.id.homeFragment,
+                R.id.createPartyFragment,
+                R.id.joinPartyFragment,
+                R.id.settingsFragment,
+                R.id.profileFragment -> {
+                    binding.bottomNavView.visibility = View.GONE
+                    binding.bottomNavView.menu.setGroupCheckable(0, false, true) // Deselect items
+                }
+                else -> {
+                    binding.bottomNavView.visibility = View.VISIBLE
+                    binding.bottomNavView.menu.setGroupCheckable(0, true, true)
+
+                    // Update selected item in nav bar
+                    val menuItemId = when (destination.id) {
+                        R.id.partyFragment -> R.id.partyFragment
+                        R.id.chatFragment -> R.id.chatFragment
+                        R.id.logsFragment -> R.id.logsFragment
+                        R.id.membersFragment -> R.id.membersFragment
+                        else -> null
+                    }
+                    menuItemId?.let {
+                        binding.bottomNavView.selectedItemId = it
+                    }
+                }
+            }
+
+            Log.d("NavDebug", "Currently at destination: ${destination.label}")
+        }
     }
+
 
     /**
      * Sets the status bar color dynamically.

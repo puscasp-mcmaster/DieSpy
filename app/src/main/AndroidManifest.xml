@@ -19,11 +19,11 @@
         <activity
             android:name="com.diespy.app.MainActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan">
             <!--SoftInputMode adjusts screen when typing in chat so the text bar is dynamic-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
