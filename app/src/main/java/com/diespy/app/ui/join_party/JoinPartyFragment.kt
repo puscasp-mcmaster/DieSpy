@@ -29,6 +29,8 @@ class JoinPartyFragment : Fragment() {
             findNavController().navigate(R.id.action_joinParty_to_home)
         }
         binding.toPartyScreenButton.setOnClickListener {
+            // TODO remove this v
+            SharedPrefManager.saveCurrentParty(requireContext(), "HC7ESmlM190TCMFtLHCu")
             if (SharedPrefManager.getCurrentParty(requireContext())!=null) {
                 findNavController().navigate(R.id.action_joinParty_to_party)
             }

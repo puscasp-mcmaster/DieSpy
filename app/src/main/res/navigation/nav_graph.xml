@@ -63,9 +63,6 @@
         android:label="Party"
         tools:layout="@layout/fragment_party">
         <action android:id="@+id/action_party_to_diceDetection" app:destination="@id/diceDetectionFragment"/>
-        <action android:id="@+id/action_party_to_chat" app:destination="@id/chatFragment"/>
-        <action android:id="@+id/action_party_to_members" app:destination="@id/membersFragment"/>
-        <action android:id="@+id/action_party_to_logs" app:destination="@id/logsFragment"/>
         <action android:id="@+id/action_party_to_home" app:destination="@id/homeFragment"/>
     </fragment>
 
@@ -84,7 +81,6 @@
         android:name="com.diespy.app.ui.chat.ChatFragment"
         android:label="Chat"
         tools:layout="@layout/fragment_chat">
-        <action android:id="@+id/action_chat_to_party" app:destination="@id/partyFragment"/>
     </fragment>
 
     <!-- Members List -->
@@ -93,7 +89,6 @@
         android:name="com.diespy.app.ui.members.MembersFragment"
         android:label="Members"
         tools:layout="@layout/fragment_members">
-        <action android:id="@+id/action_members_to_party" app:destination="@id/partyFragment"/>
     </fragment>
 
     <!-- Logs -->
@@ -102,7 +97,6 @@
         android:name="com.diespy.app.ui.logs.LogsFragment"
         android:label="Logs"
         tools:layout="@layout/fragment_logs">
-        <action android:id="@+id/action_logs_to_party" app:destination="@id/partyFragment"/>
         <action android:id="@+id/action_logs_to_rolls" app:destination="@id/rollsFragment"/>
     </fragment>
 

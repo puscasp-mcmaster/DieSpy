@@ -25,10 +25,6 @@ class LogsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toPartyScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_logs_to_party)
-        }
-
         binding.toRollsScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_logs_to_rolls)
         }

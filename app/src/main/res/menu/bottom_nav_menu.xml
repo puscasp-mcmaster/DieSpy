@@ -14,7 +14,7 @@
     <item
         android:id="@+id/partyFragment"
         android:icon="@drawable/icon_dice"
-        android:title="Home" />
+        android:title="Party" />
 
     <item
         android:id="@+id/chatFragment"

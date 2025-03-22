@@ -39,38 +39,6 @@
             android:backgroundTint="#6200EE"
             android:layout_marginBottom="10dp"/>
 
-        <Button
-            android:id="@+id/toMemberScreenButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="To Member Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
-
-        <Button
-            android:id="@+id/toLogsScreenButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="To Logs Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
-
-        <Button
-            android:id="@+id/toChatScreenButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="To Chat Screen"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
     </LinearLayout>
 
 </FrameLayout>
