@@ -37,7 +37,9 @@ class ProfileFragment : Fragment() {
         binding.toHomeScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_profile_to_home)
         }
-
+        binding.toChangePasswordButton.setOnClickListener {
+            findNavController().navigate(R.id.action_profile_to_changePassword)
+        }
         binding.deleteAccountButton.setOnClickListener {
             val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setMessage("Are you sure you want to delete? This action is permanent and all of " +

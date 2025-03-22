@@ -122,7 +122,17 @@
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
         <action android:id="@+id/action_profile_to_home" app:destination="@id/homeFragment"/>
+        <action android:id="@+id/action_profile_to_changePassword" app:destination="@id/changePasswordFragment"/>
         <action android:id="@+id/action_profile_to_login" app:destination="@id/loginFragment"/>
+    </fragment>
+
+    <!-- Change Password -->
+    <fragment
+        android:id="@+id/changePasswordFragment"
+        android:name="com.diespy.app.ui.change_password.ChangePasswordFragment"
+        android:label="Change Password"
+        tools:layout="@layout/fragment_change_password">
+        <action android:id="@+id/action_changePassword_to_profile" app:destination="@id/profileFragment"/>
     </fragment>
 
     <!-- Settings -->

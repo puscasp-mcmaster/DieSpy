@@ -5,7 +5,7 @@ import com.diespy.app.ml.models.DiceBoundingBox
 class DiceStatsManager {
     private var rollSum = 0              // Total sum of dice rolls
     private var numDice = 0              // Number of detected dice
-    private val faceCounts = IntArray(6) // Count of each face (1-6) appearing
+    private val faceCounts = IntArray(12) // Count of each face (1-6) appearing
 
     /**
      * Updates the dice roll statistics based on detected dice.
@@ -46,12 +46,12 @@ class DiceStatsManager {
      */
     fun getFaceCounts(): String {
         return """
-            1: ${faceCounts[0]}
-            2: ${faceCounts[1]}
-            3: ${faceCounts[2]}
-            4: ${faceCounts[3]}
-            5: ${faceCounts[4]}
-            6: ${faceCounts[5]}
-        """.trimIndent()
+        1: ${faceCounts[0] + faceCounts[6]}
+        2: ${faceCounts[1] + faceCounts[7]}
+        3: ${faceCounts[2] + faceCounts[8]}
+        4: ${faceCounts[3] + faceCounts[9]}
+        5: ${faceCounts[4] + faceCounts[10]}
+        6: ${faceCounts[5] + faceCounts[11]}
+    """.trimIndent()
     }
 }

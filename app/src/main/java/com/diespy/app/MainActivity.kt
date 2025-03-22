@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -11,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.diespy.app.databinding.ActivityMainBinding
+import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.firebase.FirebaseApp
 
 /**
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         // Enable edge-to-edge layout display
         enableEdgeToEdge()
         setStatusBarColor(R.color.primary)
-
+        SharedPrefManager.clearCurrentParty(this)
         // Apply padding adjustments to prevent system bars overlapping content
         applySystemBarInsets()
 

@@ -39,8 +39,6 @@ class ChatFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //TODO remove this once we have party select working
-        SharedPrefManager.saveCurrentParty(requireContext(),"cLkDPwOjRwmlXlhIh8s1",)
         val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
         //Party Screen button
         binding.toPartyScreenButton.setOnClickListener {

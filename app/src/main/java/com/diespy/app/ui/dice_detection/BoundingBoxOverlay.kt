@@ -59,7 +59,12 @@ class BoundingBoxOverlay(context: Context?, attrs: AttributeSet?) : View(context
         canvas.drawRoundRect(left, top, right, bottom, 16f, 16f, boxPaint)
 
         // Format label text
-        val drawableText = "${diceBoundingBox.className} - ${Math.round(diceBoundingBox.confidence * 100.0)}%"
+        var className = diceBoundingBox.className
+        if (className.endsWith("n")) {
+            className = className.dropLast(1)
+        }
+        val drawableText = "$className - ${Math.round(diceBoundingBox.confidence * 100.0)}%"
+
         textPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
 
         // Draw background for label
