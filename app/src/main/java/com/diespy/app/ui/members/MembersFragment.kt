@@ -22,10 +22,6 @@ class MembersFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.toPartyScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_members_to_party)
-        }
     }
 
     override fun onDestroyView() {

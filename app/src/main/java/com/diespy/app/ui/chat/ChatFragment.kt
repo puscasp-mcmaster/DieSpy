@@ -10,13 +10,13 @@ import com.diespy.app.databinding.FragmentChatBinding
 import com.diespy.app.managers.chat.ChatManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
-import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.managers.chat.ChatMessage
 import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.lifecycle.lifecycleScope
+import com.diespy.app.MainActivity
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -40,10 +40,6 @@ class ChatFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
-        //Party Screen button
-        binding.toPartyScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_chat_to_party)
-        }
 
         chatManager = ChatManager(requireContext())
         chatAdapter = ChatAdapter(emptyList()) // Start with an empty list

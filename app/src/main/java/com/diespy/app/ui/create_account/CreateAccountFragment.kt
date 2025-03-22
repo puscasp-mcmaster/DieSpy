@@ -32,9 +32,6 @@ class CreateAccountFragment : Fragment() {
         binding.createAccountButton.setOnClickListener {
             handleAccountCreation()
         }
-        binding.toLoginScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_createAccount_to_login)
-        }
     }
 
     private fun handleAccountCreation() {

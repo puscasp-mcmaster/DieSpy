@@ -59,16 +59,6 @@
             android:padding="12dp"
             android:layout_marginBottom="12dp"/>
 
-        <Button
-            android:id="@+id/toHomeScreenButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Back to Home"
-            android:backgroundTint="#6200EE"
-            android:textColor="#FFFFFF"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp"/>
-
 
     </LinearLayout>
 

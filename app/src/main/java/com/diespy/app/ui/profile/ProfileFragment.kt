@@ -34,9 +34,6 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toHomeScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_profile_to_home)
-        }
         binding.toChangePasswordButton.setOnClickListener {
             findNavController().navigate(R.id.action_profile_to_changePassword)
         }
