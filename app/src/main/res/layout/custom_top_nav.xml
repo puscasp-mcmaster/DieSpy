@@ -8,44 +8,61 @@
     android:orientation="horizontal"
     android:background="@color/white"
     android:gravity="center_vertical"
-    android:elevation="8dp">
+    android:elevation="8dp"
+    android:paddingHorizontal="12dp">
 
-    <ImageButton
-        android:id="@+id/nav_back"
+    <!-- Back Button (Left) -->
+    <FrameLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1.2"
-        android:layout_marginStart="0dp"
-        android:src="@drawable/icon_arrow_left"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:scaleType="centerInside"
-        android:padding="16dp"
-        android:contentDescription="Back"
-        app:tint="@color/black" />
+        android:layout_weight="1.2">
 
-    <ImageButton
-        android:id="@+id/nav_camera"
+        <ImageButton
+            android:id="@+id/nav_back"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/icon_arrow_left"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:contentDescription="Back"
+            app:tint="@color/black" />
+    </FrameLayout>
+
+    <!-- Camera Button (Center) -->
+    <FrameLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="0.6"
-        android:src="@drawable/icon_camera"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:scaleType="centerInside"
-        android:padding="16dp"
-        android:contentDescription="Camera"
-        app:tint="@color/black" />
+        android:layout_weight="0.6">
 
-    <ImageButton
-        android:id="@+id/nav_settings"
+        <ImageButton
+            android:id="@+id/nav_camera"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/icon_camera"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:contentDescription="Camera"
+            app:tint="@color/black" />
+    </FrameLayout>
+
+    <!-- Settings Button (Right) -->
+    <FrameLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1.2"
-        android:layout_marginEnd="0dp"
-        android:src="@drawable/icon_settings"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:scaleType="centerInside"
-        android:padding="16dp"
-        android:contentDescription="Settings"
-        app:tint="@color/black" />
+        android:layout_weight="1.2">
+
+        <ImageButton
+            android:id="@+id/nav_settings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/icon_settings"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:contentDescription="Settings"
+            app:tint="@color/black" />
+    </FrameLayout>
 
 </LinearLayout>

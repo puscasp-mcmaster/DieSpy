@@ -85,9 +85,7 @@ class MainActivity : AppCompatActivity() {
         val navCamera = findViewById<View>(R.id.nav_camera)
         val customTopNav = findViewById<View>(R.id.customTopNav)
 
-        navBack.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
-        }
+        val backButton = navBack as? android.widget.ImageButton
 
         navSettings.setOnClickListener {
             if (navController.currentDestination?.id != R.id.settingsFragment) {
@@ -119,8 +117,33 @@ class MainActivity : AppCompatActivity() {
             )
             customTopNav.visibility = if (showTopNav) View.VISIBLE else View.GONE
 
+            // Back/Home icon logic
+            if (destination.id in setOf(
+                    R.id.partyFragment,
+                    R.id.chatFragment,
+                    R.id.logsFragment,
+                    R.id.membersFragment
+                )) {
+                backButton?.setImageResource(R.drawable.icon_home)
+                navBack.setOnClickListener {
+                    if (navController.currentDestination?.id != R.id.homeFragment) {
+                        navController.navigate(R.id.homeFragment)
+                    }
+                }
+            } else {
+                backButton?.setImageResource(R.drawable.icon_arrow_left)
+                navBack.setOnClickListener {
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+
+            // Icon visibility rules
             when (destination.id) {
-                R.id.createAccountFragment -> {
+                R.id.createAccountFragment,
+                R.id.settingsFragment,
+                R.id.profileFragment,
+                R.id.diceDetectionFragment,
+                R.id.rollsFragment -> {
                     navBack.visibility = View.VISIBLE
                     navSettings.visibility = View.GONE
                     navCamera.visibility = View.GONE
@@ -130,26 +153,6 @@ class MainActivity : AppCompatActivity() {
                     navSettings.visibility = View.GONE
                     navCamera.visibility = View.VISIBLE
                 }
-                R.id.settingsFragment -> {
-                    navBack.visibility = View.VISIBLE
-                    navSettings.visibility = View.GONE
-                    navCamera.visibility = View.GONE
-                }
-                R.id.profileFragment -> {
-                    navBack.visibility = View.VISIBLE
-                    navSettings.visibility = View.GONE
-                    navCamera.visibility = View.GONE
-                }
-                R.id.diceDetectionFragment -> {
-                    navBack.visibility = View.VISIBLE
-                    navSettings.visibility = View.GONE
-                    navCamera.visibility = View.GONE
-                }
-                R.id.rollsFragment -> {
-                    navBack.visibility = View.VISIBLE
-                    navSettings.visibility = View.GONE
-                    navCamera.visibility = View.GONE
-                }
                 else -> {
                     navBack.visibility = View.VISIBLE
                     navSettings.visibility = View.VISIBLE
@@ -158,6 +161,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
 
     private fun applySystemBarInsets() {
