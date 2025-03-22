@@ -1,7 +1,6 @@
 package com.diespy.app
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -11,7 +10,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.NavigationUI
 import com.diespy.app.databinding.ActivityMainBinding
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.firebase.FirebaseApp
@@ -26,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         // Force Light mode
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-        // Set up view binding
+        // View Binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -36,40 +34,45 @@ class MainActivity : AppCompatActivity() {
         applySystemBarInsets()
         FirebaseApp.initializeApp(this)
 
-        setupNavigation()
+        setupCustomBottomNav()
     }
 
-    private fun setupNavigation() {
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
+    private fun setupCustomBottomNav() {
+        val navController = (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController
 
-        // Connect BottomNavView with NavController (auto handles tab switching)
-        NavigationUI.setupWithNavController(binding.bottomNavView, navController)
-
-        // Hide bottom nav on certain screens
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.loginFragment,
-                R.id.createAccountFragment,
-                R.id.homeFragment,
-                R.id.createPartyFragment,
-                R.id.joinPartyFragment,
-                R.id.settingsFragment,
-                R.id.profileFragment -> {
-                    binding.bottomNavView.visibility = View.GONE
-                }
-                else -> {
-                    binding.bottomNavView.visibility = View.VISIBLE
-                }
+        findViewById<View>(R.id.nav_members).setOnClickListener {
+            if (navController.currentDestination?.id != R.id.membersFragment) {
+                navController.navigate(R.id.membersFragment)
             }
-
-            Log.d("NavDebug", "Currently at destination: ${destination.label}")
         }
-    }
 
-    fun setTab(tabId: Int) {
-        binding.bottomNavView.selectedItemId = tabId
+        findViewById<View>(R.id.nav_party).setOnClickListener {
+            if (navController.currentDestination?.id != R.id.partyFragment) {
+                navController.navigate(R.id.partyFragment)
+            }
+        }
+
+        findViewById<View>(R.id.nav_chat).setOnClickListener {
+            if (navController.currentDestination?.id != R.id.chatFragment) {
+                navController.navigate(R.id.chatFragment)
+            }
+        }
+
+        findViewById<View>(R.id.nav_logs).setOnClickListener {
+            if (navController.currentDestination?.id != R.id.logsFragment) {
+                navController.navigate(R.id.logsFragment)
+            }
+        }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val shouldShowCustomNav = destination.id in setOf(
+                R.id.partyFragment,
+                R.id.chatFragment,
+                R.id.membersFragment,
+                R.id.logsFragment
+            )
+            findViewById<View>(R.id.customBottomNav).visibility = if (shouldShowCustomNav) View.VISIBLE else View.GONE
+        }
     }
 
     private fun applySystemBarInsets() {
