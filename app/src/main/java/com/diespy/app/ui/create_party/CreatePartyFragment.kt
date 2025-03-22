@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
@@ -35,9 +36,14 @@ class CreatePartyFragment : Fragment() {
                 lifecycleScope.launch {
                     val success = partyManager.createParty(partyName, userId)
                     if (success != null) {
+                        SharedPrefManager.saveCurrentParty(requireContext(),success)
                         binding.partyNameInput.text.clear()
                         Toast.makeText(requireContext(), "Party Created!", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_createParty_to_party)
+                        findNavController().navigate(R.id.action_createParty_to_party, null,
+                            NavOptions.Builder()
+                                //this will pop back to home instead of coming back to create account screen
+                                .setPopUpTo(R.id.homeFragment, true)
+                                .build())
                     } else {
                         Toast.makeText(requireContext(), "Failed to create party", Toast.LENGTH_SHORT).show()
                     }

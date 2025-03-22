@@ -45,6 +45,9 @@ object SharedPrefManager {
         return getPreferences(context).getString(KEY_PARTY, null)
     }
 
+    fun clearCurrentParty(context: Context) {
+        getPreferences(context).edit().remove(KEY_PARTY).apply()
+    }
     // Clear All User Data (Logout)
     fun clearUserData(context: Context) {
         getPreferences(context).edit().clear().apply()
