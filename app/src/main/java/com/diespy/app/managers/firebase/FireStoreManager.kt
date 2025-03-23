@@ -1,5 +1,6 @@
 package com.diespy.app.managers.firestore
 
+import com.diespy.app.ui.home.PartyItem
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -141,6 +142,70 @@ class FireStoreManager {
             null
         }
     }
+
+    /**
+     * Query Firestore for parties of a user
+     * parameters:
+     *   - userId: The document id for users
+     * returns: list of partys with associated name, member count, and id
+     */
+    suspend fun getAllPartiesForUser(userId: String): List<PartyItem> {
+        return try {
+            val querySnapshot = FirebaseFirestore.getInstance()
+                .collection("Parties")
+                .whereArrayContains("userIds", userId)
+                .get()
+                .await()
+
+            querySnapshot.documents.mapNotNull { doc ->
+                val id = doc.id
+                val name = doc.getString("name") ?: return@mapNotNull null
+                val userIds = doc.get("userIds") as? List<*> ?: emptyList<Any>()
+                val userCount = userIds.size
+
+                PartyItem(id, name, userCount)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    /**
+     * Query Firestore for users of a party
+     * parameters:
+     *   - partyId: The document id for party
+     * returns: list of usernames in the party
+     */
+    suspend fun getUsernamesForParty(partyId: String): List<String> {
+        return try {
+            val partySnapshot = FirebaseFirestore.getInstance()
+                .collection("Parties")
+                .document(partyId)
+                .get()
+                .await()
+
+            val userIds = partySnapshot.get("userIds") as? List<String> ?: return emptyList()
+
+            val usernames = mutableListOf<String>()
+            for (userId in userIds) {
+                val userSnapshot = FirebaseFirestore.getInstance()
+                    .collection("Users")
+                    .document(userId)
+                    .get()
+                    .await()
+
+                userSnapshot.getString("username")?.let { usernames.add(it) }
+            }
+
+            usernames
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+
 
 
 }

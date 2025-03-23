@@ -32,6 +32,7 @@
         tools:layout="@layout/fragment_home">
         <action android:id="@+id/action_home_to_createParty" app:destination="@id/createPartyFragment"/>
         <action android:id="@+id/action_home_to_joinParty" app:destination="@id/joinPartyFragment"/>
+        <action android:id="@+id/action_home_to_party" app:destination="@id/partyFragment"/>
     </fragment>
 
     <!-- Create Party -->
@@ -84,6 +85,7 @@
         android:name="com.diespy.app.ui.members.MembersFragment"
         android:label="Members"
         tools:layout="@layout/fragment_members">
+        <action android:id="@+id/action_members_to_home" app:destination="@id/homeFragment"/>
     </fragment>
 
     <!-- Logs -->

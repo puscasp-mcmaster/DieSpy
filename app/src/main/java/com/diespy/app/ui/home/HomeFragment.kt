@@ -4,17 +4,25 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentHomeBinding
+import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.profile.SharedPrefManager
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private val fireStoreManager = FireStoreManager()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle? ): View {
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -25,9 +33,36 @@ class HomeFragment : Fragment() {
         binding.toCreatePartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_createParty)
         }
+
         binding.toJoinPartyScreenButton.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_joinParty)
         }
+
+        val userId = SharedPrefManager.getLoggedInUserId(requireContext())
+        if (userId == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            val partyItems = fireStoreManager.getAllPartiesForUser(userId)
+
+            if (partyItems.isEmpty()) {
+                binding.noPartiesFoundText.visibility = View.VISIBLE
+                binding.partyRecyclerView.visibility = View.GONE
+            } else {
+                binding.noPartiesFoundText.visibility = View.GONE
+                binding.partyRecyclerView.visibility = View.VISIBLE
+
+                val adapter = PartyAdapter(partyItems) { partyId ->
+                    SharedPrefManager.saveCurrentParty(requireContext(), partyId)
+                    findNavController().navigate(R.id.action_home_to_party)
+                }
+                binding.partyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+                binding.partyRecyclerView.adapter = adapter
+            }
+        }
+
     }
 
     override fun onDestroyView() {
