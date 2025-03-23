@@ -171,6 +171,39 @@ class FireStoreManager {
         }
     }
 
+    /**
+     * Query Firestore for users of a party
+     * parameters:
+     *   - partyId: The document id for party
+     * returns: list of usernames in the party
+     */
+    suspend fun getUsernamesForParty(partyId: String): List<String> {
+        return try {
+            val partySnapshot = FirebaseFirestore.getInstance()
+                .collection("Parties")
+                .document(partyId)
+                .get()
+                .await()
+
+            val userIds = partySnapshot.get("userIds") as? List<String> ?: return emptyList()
+
+            val usernames = mutableListOf<String>()
+            for (userId in userIds) {
+                val userSnapshot = FirebaseFirestore.getInstance()
+                    .collection("Users")
+                    .document(userId)
+                    .get()
+                    .await()
+
+                userSnapshot.getString("username")?.let { usernames.add(it) }
+            }
+
+            usernames
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
 
 
 

@@ -85,6 +85,7 @@
         android:name="com.diespy.app.ui.members.MembersFragment"
         android:label="Members"
         tools:layout="@layout/fragment_members">
+        <action android:id="@+id/action_members_to_home" app:destination="@id/homeFragment"/>
     </fragment>
 
     <!-- Logs -->
