@@ -21,9 +21,6 @@ import com.diespy.app.managers.game.DiceStatsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * DiceDetectionFragment handles the UI, dice detection, and bounding box overlay.
- */
 class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
     private var _binding: FragmentDiceDetectionBinding? = null
@@ -31,11 +28,8 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
     private lateinit var cameraManager: CameraManager
     private var diceDetector: DiceDetector? = null
-    private val diceStatsManager = DiceStatsManager() // Handles statistics of detected dice
+    private val diceStatsManager = DiceStatsManager()
 
-    /**
-     * Inflates the view and sets up View Binding.
-     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -45,41 +39,29 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         return binding.root
     }
 
-    /**
-     * Cleans up View Binding to prevent memory leaks.
-     */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
-    /**
-     * Called when the view is created. Initializes camera and dice detector.
-     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize dice detector asynchronously
         diceDetector = DiceDetector(
             requireContext(),
             MODEL_PATH,
             LABELS_PATH,
-            this, // DetectorListener
-            ::showToast // Passing your toast function as the showMessage lambda
+            this,
+            ::showToast
         )
 
-        // Initialize CameraManager and pass frames to diceDetector
         cameraManager = CameraManager(requireContext(), viewLifecycleOwner) { frame ->
             diceDetector?.detect(frame)
         }
 
-        // Request permissions and start the camera only after granting permissions
         requestCameraPermissions()
     }
 
-    /**
-     * Requests camera permissions and starts the camera once granted.
-     */
     private fun requestCameraPermissions() {
         if (allPermissionsGranted()) {
             cameraManager.startCamera(binding.viewFinder)
@@ -88,16 +70,10 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         }
     }
 
-    /**
-     * Checks if all required permissions are granted.
-     */
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
-    /**
-     * Handles camera permission requests.
-     */
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             if (permissions[Manifest.permission.CAMERA] == true) {
@@ -107,25 +83,17 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             }
         }
 
-    /**
-     * Cleans up resources when the fragment is destroyed.
-     */
     override fun onDestroy() {
         super.onDestroy()
-
-        // Stop camera to prevent new frames from coming in
         cameraManager.stopCamera()
-
-        // Then close the detector to clean up
         diceDetector?.close()
         diceDetector = null
     }
 
-    /**
-     * Clears bounding boxes and resets stats when no dice are detected.
-     */
     override fun onEmptyDetect() {
-        val safeBinding = _binding ?: return // View is destroyed, skip
+        val safeBinding = _binding ?: return
+        if (!isAdded) return  // Prevent crash if fragment is not attached
+
         requireActivity().runOnUiThread {
             diceStatsManager.reset()
             safeBinding.overlay.clear()
@@ -134,11 +102,10 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         }
     }
 
-    /**
-     * Handles detection results, updates UI, and displays bounding boxes.
-     */
     override fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) {
         val safeBinding = _binding ?: return
+        if (!isAdded) return  // Prevent crash if fragment is not attached
+
         requireActivity().runOnUiThread {
             diceStatsManager.updateStats(diceBoundingBoxes)
             safeBinding.statsCalc.text = diceStatsManager.getStatSummary()
@@ -150,10 +117,8 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         }
     }
 
-    /**
-     * Displays a toast message on the UI thread.
-     */
     private fun showToast(message: String) {
+        if (!isAdded) return
         lifecycleScope.launch(Dispatchers.Main) {
             Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
         }
