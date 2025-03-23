@@ -27,7 +27,8 @@ class DiceDetector(
     private val modelFilePath: String, // Path to TFLite model
     private val labelFilePath: String?, // Optional label file path
     private val listener: DetectorListener, // Callback listener for detection events
-    private val showMessage: (String) -> Unit // Function to display messages
+    private val showMessage: (String) -> Unit, // Function to display messages
+    @Volatile private var isClosed: Boolean = false
 ) {
 
     private var interpreter: Interpreter // TFLite model interpreter
@@ -119,6 +120,7 @@ class DiceDetector(
      * Closes the TFLite interpreter to free resources.
      */
     fun close() {
+        isClosed = true
         interpreter.close()
     }
 
@@ -126,30 +128,30 @@ class DiceDetector(
      * Runs object detection on the provided bitmap image.
      */
     fun detect(image: Bitmap) {
-        if (inputWidth == 0 || inputHeight == 0 || numChannels == 0 || numDetections == 0) return
+        if (isClosed || inputWidth == 0 || inputHeight == 0 || numChannels == 0 || numDetections == 0) return
 
         var inferenceTime = SystemClock.uptimeMillis()
 
-        // Resize the image to match model input dimensions
         val resizedImage = Bitmap.createScaledBitmap(image, inputWidth, inputHeight, false)
-
-        // Convert image to tensor format
         val tensorImage = TensorImage(INPUT_DATA_TYPE)
         tensorImage.load(resizedImage)
         val processedImage = imageProcessor.process(tensorImage)
         val inputBuffer = processedImage.buffer
 
-        // Prepare output buffer
         val outputBuffer = TensorBuffer.createFixedSize(
             intArrayOf(1, numChannels, numDetections), OUTPUT_DATA_TYPE
         )
-        interpreter.run(inputBuffer, outputBuffer.buffer)
 
-        // Process model output
-        val detectedBoxes = extractBoundingBoxes(outputBuffer.floatArray)
+        try {
+            interpreter.run(inputBuffer, outputBuffer.buffer)
+        } catch (e: IllegalStateException) {
+            // Interpreter was closed mid-call
+            return
+        }
+
         inferenceTime = SystemClock.uptimeMillis() - inferenceTime
+        val detectedBoxes = extractBoundingBoxes(outputBuffer.floatArray)
 
-        // Notify listener
         if (detectedBoxes.isEmpty()) {
             listener.onEmptyDetect()
         } else {

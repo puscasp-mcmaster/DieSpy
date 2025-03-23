@@ -113,6 +113,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.settingsFragment,
                 R.id.profileFragment,
                 R.id.rollsFragment,
+                R.id.changePasswordFragment,
                 R.id.diceDetectionFragment
             )
             customTopNav.visibility = if (showTopNav) View.VISIBLE else View.GONE
@@ -143,6 +144,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.settingsFragment,
                 R.id.profileFragment,
                 R.id.diceDetectionFragment,
+                R.id.changePasswordFragment,
                 R.id.rollsFragment -> {
                     navBack.visibility = View.VISIBLE
                     navSettings.visibility = View.GONE

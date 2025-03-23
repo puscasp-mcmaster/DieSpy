@@ -12,6 +12,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.diespy.app.ui.dice_detection.DiceDetectionFragment
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -83,10 +84,14 @@ class CameraManager(
      * Processes frames and sends them to the callback.
      */
     private fun processImage(imageProxy: ImageProxy) {
+        if ((lifecycleOwner as? DiceDetectionFragment)?.isRemoving == true) {
+            imageProxy.close()
+            return
+        }
+
         val bitmap = imageProxy.toBitmap()
         val correctedBitmap = rotateBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
-
-        onFrameCaptured(correctedBitmap) // Sends frame to `DiceDetectionFragment`
+        onFrameCaptured(correctedBitmap)
         imageProxy.close()
     }
 

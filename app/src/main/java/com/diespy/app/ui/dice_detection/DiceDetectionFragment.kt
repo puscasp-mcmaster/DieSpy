@@ -60,9 +60,13 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         super.onViewCreated(view, savedInstanceState)
 
         // Initialize dice detector asynchronously
-        diceDetector = DiceDetector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
-            showToast(it)
-        }
+        diceDetector = DiceDetector(
+            requireContext(),
+            MODEL_PATH,
+            LABELS_PATH,
+            this, // DetectorListener
+            ::showToast // Passing your toast function as the showMessage lambda
+        )
 
         // Initialize CameraManager and pass frames to diceDetector
         cameraManager = CameraManager(requireContext(), viewLifecycleOwner) { frame ->
@@ -108,19 +112,25 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
      */
     override fun onDestroy() {
         super.onDestroy()
-        diceDetector?.close()
+
+        // Stop camera to prevent new frames from coming in
         cameraManager.stopCamera()
+
+        // Then close the detector to clean up
+        diceDetector?.close()
+        diceDetector = null
     }
 
     /**
      * Clears bounding boxes and resets stats when no dice are detected.
      */
     override fun onEmptyDetect() {
+        val safeBinding = _binding ?: return // View is destroyed, skip
         requireActivity().runOnUiThread {
-            binding.overlay.clear()
             diceStatsManager.reset()
-            binding.statsCalc.text = diceStatsManager.getStatSummary()
-            binding.statsFaces.text = diceStatsManager.getFaceCounts()
+            safeBinding.overlay.clear()
+            safeBinding.statsCalc.text = diceStatsManager.getStatSummary()
+            safeBinding.statsFaces.text = diceStatsManager.getFaceCounts()
         }
     }
 
@@ -128,15 +138,12 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
      * Handles detection results, updates UI, and displays bounding boxes.
      */
     override fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) {
+        val safeBinding = _binding ?: return
         requireActivity().runOnUiThread {
             diceStatsManager.updateStats(diceBoundingBoxes)
-
-            // Updates UI with dice statistics
-            binding.statsCalc.text = diceStatsManager.getStatSummary()
-            binding.statsFaces.text = diceStatsManager.getFaceCounts()
-
-            // Updates overlay with bounding boxes
-            binding.overlay.apply {
+            safeBinding.statsCalc.text = diceStatsManager.getStatSummary()
+            safeBinding.statsFaces.text = diceStatsManager.getFaceCounts()
+            safeBinding.overlay.apply {
                 setResults(diceBoundingBoxes)
                 invalidate()
             }
