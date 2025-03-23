@@ -1,5 +1,6 @@
 package com.diespy.app.managers.firestore
 
+import com.diespy.app.ui.home.PartyItem
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -146,9 +147,9 @@ class FireStoreManager {
      * Query Firestore for parties of a user
      * parameters:
      *   - userId: The document id for users
-     * returns: list of party names and their documentids associated with the user
+     * returns: list of partys with associated name, member count, and id
      */
-    suspend fun getAllPartiesForUser(userId: String): List<Pair<String, String>> {
+    suspend fun getAllPartiesForUser(userId: String): List<PartyItem> {
         return try {
             val querySnapshot = FirebaseFirestore.getInstance()
                 .collection("Parties")
@@ -159,13 +160,17 @@ class FireStoreManager {
             querySnapshot.documents.mapNotNull { doc ->
                 val id = doc.id
                 val name = doc.getString("name") ?: return@mapNotNull null
-                id to name
+                val userIds = doc.get("userIds") as? List<*> ?: emptyList<Any>()
+                val userCount = userIds.size
+
+                PartyItem(id, name, userCount)
             }
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
     }
+
 
 
 
