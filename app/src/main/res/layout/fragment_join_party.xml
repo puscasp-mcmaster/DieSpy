@@ -1,33 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.join_party.JoinPartyFragment">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:gravity="center"
-        android:orientation="vertical">
+        android:padding="24dp"
+        android:background="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="40dp">
 
         <TextView
+            android:id="@+id/joinPartyTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Join Party Screen"
+            android:text="Join Party By Code"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="20dp"/>
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"/>
 
-        <Button
-            android:id="@+id/toPartyScreenButton"
+        <TextView
+            android:id="@+id/joinPartyErrorMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="To Party Screen"
+            android:textColor="#F00303"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/partyPasswordInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Party Password"
+            android:inputType="text"
             android:padding="12dp"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/joinPartyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Join Party"
             android:backgroundTint="#6200EE"
-            android:layout_marginBottom="10dp"/>
+            android:textColor="#FFFFFF"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp"/>
+
 
     </LinearLayout>
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -142,5 +142,32 @@ class FireStoreManager {
         }
     }
 
+    /**
+     * Query Firestore for parties of a user
+     * parameters:
+     *   - userId: The document id for users
+     * returns: list of party names and their documentids associated with the user
+     */
+    suspend fun getAllPartiesForUser(userId: String): List<Pair<String, String>> {
+        return try {
+            val querySnapshot = FirebaseFirestore.getInstance()
+                .collection("Parties")
+                .whereArrayContains("userIds", userId)
+                .get()
+                .await()
+
+            querySnapshot.documents.mapNotNull { doc ->
+                val id = doc.id
+                val name = doc.getString("name") ?: return@mapNotNull null
+                id to name
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+
+
 
 }
