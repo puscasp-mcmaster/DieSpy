@@ -134,7 +134,11 @@ class MainActivity : AppCompatActivity() {
             } else {
                 backButton?.setImageResource(R.drawable.icon_arrow_left)
                 navBack.setOnClickListener {
-                    onBackPressedDispatcher.onBackPressed()
+                    if (navController.currentDestination?.id == R.id.diceDetectionFragment) {
+                        navController.navigate(R.id.partyFragment)
+                    } else {
+                        onBackPressedDispatcher.onBackPressed()
+                    }
                 }
             }
 
@@ -153,6 +157,11 @@ class MainActivity : AppCompatActivity() {
                 R.id.loginFragment -> {
                     navBack.visibility = View.GONE
                     navSettings.visibility = View.GONE
+                    navCamera.visibility = View.VISIBLE
+                }
+                R.id.homeFragment -> {
+                    navBack.visibility = View.GONE
+                    navSettings.visibility = View.VISIBLE
                     navCamera.visibility = View.VISIBLE
                 }
                 else -> {
