@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -13,6 +14,7 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentMembersBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,26 +58,42 @@ class MembersFragment : Fragment() {
         }
 
         binding.leavePartyButton.setOnClickListener {
-            val context = requireContext()
-            val partyId = SharedPrefManager.getCurrentParty(context)
-            val userId = SharedPrefManager.getLoggedInUserId(context)
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setMessage("Are you sure you want to leave the party? You will not be able to join back without a join password.")
+                .setCancelable(false)
+                .setPositiveButton("Yes") { _, _ ->
+                    val context = requireContext()
+                    val partyId = SharedPrefManager.getCurrentParty(context)
+                    val userId = SharedPrefManager.getLoggedInUserId(context)
 
-            if (partyId != null && userId != null) {
-                lifecycleScope.launch {
-                    val success = FireStoreManager().updateDocument("Parties", partyId, mapOf(
-                        "userIds" to com.google.firebase.firestore.FieldValue.arrayRemove(userId)
-                    ))
+                    if (partyId != null && userId != null) {
+                        lifecycleScope.launch {
+                            val success = FireStoreManager().updateDocument("Parties", partyId, mapOf(
+                                "userIds" to com.google.firebase.firestore.FieldValue.arrayRemove(userId)
+                            ))
 
-                    if (success) {
-                        SharedPrefManager.clearCurrentParty(context)
-                        findNavController().navigate(R.id.action_members_to_home)
+                            if (success) {
+                                SharedPrefManager.clearCurrentParty(context)
+                                findNavController().navigate(R.id.action_members_to_home)
+                            } else {
+                                Toast.makeText(context, "Failed to leave party. Try again.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     } else {
-                        Toast.makeText(context, "Failed to leave party. Try again.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Missing party or user info.", Toast.LENGTH_SHORT).show()
                     }
                 }
-            } else {
-                Toast.makeText(context, "Missing party or user info.", Toast.LENGTH_SHORT).show()
+                .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
+                .create()
+
+            dialog.setOnShowListener {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                    ?.setTextColor(resources.getColor(R.color.red, null))
+                dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                    ?.setTextColor(resources.getColor(R.color.black, null))
             }
+            dialog.show()
+
         }
     }
 
