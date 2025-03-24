@@ -22,10 +22,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:text="Settings Screen"
+            android:text="Settings"
             android:textSize="24sp"
             android:textStyle="bold"
             />
+
+        <TextView
+            android:id="@+id/settingsErrorMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/red"
+            android:text=""
+            android:visibility="gone"
+            android:layout_marginTop="8dp"/>
+
 
         <Button
             android:id="@+id/deleteAccountButton"
