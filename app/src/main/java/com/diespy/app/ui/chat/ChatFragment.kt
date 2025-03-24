@@ -140,7 +140,6 @@ class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapte
         )
         holder.messageText.text = spannable
     }
-
     override fun getItemCount(): Int = messages.size
 
     fun updateMessages(newMessages: List<ChatMessage>) {

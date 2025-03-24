@@ -9,6 +9,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.diespy.app.ml.models.DiceBoundingBox
@@ -41,34 +44,33 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private var lastDetectionTime: Long = System.currentTimeMillis()
 
 
-    // TODO Christian check lines 45 - 68. Is logic for hiding android native nav bar
-    // I dont have it on my phone so check that it works properly
+
     override fun onResume() {
         super.onResume()
         hideSystemUI()
     }
 
     private fun hideSystemUI() {
-        activity?.window?.decorView?.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                )
+        val window = requireActivity().window
+        // Let the window extend into the system window areas, but you'll selectively hide components.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        // Hide only the navigation bars, leaving the status bar visible.
+        controller.hide(WindowInsetsCompat.Type.navigationBars())
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
-
     override fun onPause() {
         super.onPause()
         showSystemUI()
     }
 
     private fun showSystemUI() {
-        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        val window = requireActivity().window
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.show(WindowInsetsCompat.Type.systemBars())
     }
-
-    // End of hide nav bar logic
 
     override fun onCreateView(
         inflater: LayoutInflater,

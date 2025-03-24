@@ -76,6 +76,7 @@ class CreateAccountFragment : Fragment() {
             username.isBlank() || password1.isBlank() -> "Username and password cannot be empty"
             password1 != password2 -> "Passwords do not match"
             password1.length < 6 -> "Password must be at least 6 characters"
+            username.length > 12 -> "Username must be 12 characters or smaller"
             else -> null // No errors
         }
     }
