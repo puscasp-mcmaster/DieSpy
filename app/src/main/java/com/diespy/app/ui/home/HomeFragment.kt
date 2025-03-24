@@ -44,7 +44,7 @@ class HomeFragment : Fragment() {
             return
         }
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val partyItems = fireStoreManager.getAllPartiesForUser(userId)
 
             if (partyItems.isEmpty()) {

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <!-- Rows for Faces 1 to 6 -->
+    <!-- Face Row Template -->
+    <!-- Repeat for 1 to 6 with adjusted IDs and labels -->
+
+    <!-- Face 1 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/face1_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="1"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face1_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="-"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/face1_count"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="0"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face1_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null" />
+    </LinearLayout>
+
+    <!-- Face 2 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/face2_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="2"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face2_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="-"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/face2_count"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="0"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face2_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null" />
+    </LinearLayout>
+
+    <!-- Face 3 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/face3_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="3"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face3_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="-"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/face3_count"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="0"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face3_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null" />
+    </LinearLayout>
+
+    <!-- Face 4 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/face4_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="4"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face4_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="-"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/face4_count"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="0"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face4_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null" />
+    </LinearLayout>
+
+    <!-- Face 5 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/face5_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="5"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face5_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="-"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/face5_count"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="0"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face5_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null" />
+    </LinearLayout>
+
+    <!-- Face 6 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/face6_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="6"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face6_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="-"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/face6_count"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="0"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/face6_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="+"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:background="@drawable/circular_button"
+            android:backgroundTint="@null" />
+    </LinearLayout>
+
+    <!-- Test Button -->
+</LinearLayout>

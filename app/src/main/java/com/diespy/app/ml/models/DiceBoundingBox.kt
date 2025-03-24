@@ -24,11 +24,4 @@ data class DiceBoundingBox(
             confidence, classIndex, className
         )
     }
-    /**
-     * Formats confidence score as a percentage (e.g., 95% instead of 0.95).
-     */
-    fun formattedConfidence(): String {
-        return "${(confidence * 100).toInt()}%"
-    }
-
 }
