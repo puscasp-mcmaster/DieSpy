@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -15,9 +14,7 @@ import com.diespy.app.databinding.FragmentMembersBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MembersFragment : Fragment() {
 
@@ -37,9 +34,13 @@ class MembersFragment : Fragment() {
 
         val partyId = SharedPrefManager.getCurrentParty(requireContext())
         if (partyId == null) {
-            Toast.makeText(requireContext(), "No party selected", Toast.LENGTH_SHORT).show()
+            binding.membersErrorText.text = "No party selected."
+            binding.membersErrorText.visibility = View.VISIBLE
+            binding.membersRecyclerView.visibility = View.GONE
+            binding.noMembersText.visibility = View.GONE
             return
         }
+
 
         lifecycleScope.launch {
             // Load members
@@ -86,11 +87,13 @@ class MembersFragment : Fragment() {
                                 SharedPrefManager.clearCurrentParty(context)
                                 findNavController().navigate(R.id.action_members_to_home)
                             } else {
-                                Toast.makeText(context, "Failed to leave party. Try again.", Toast.LENGTH_SHORT).show()
+                                binding.membersErrorText.text = "Failed to leave party. Try again."
+                                binding.membersErrorText.visibility = View.VISIBLE
                             }
                         }
                     } else {
-                        Toast.makeText(context, "Missing party or user info.", Toast.LENGTH_SHORT).show()
+                        binding.membersErrorText.text = "Missing party or user info."
+                        binding.membersErrorText.visibility = View.VISIBLE
                     }
                 }
                 .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }

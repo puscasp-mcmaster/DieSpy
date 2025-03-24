@@ -34,9 +34,10 @@ class JoinPartyFragment : Fragment() {
 
         binding.joinPartyButton.setOnClickListener {
             val inputPassword = binding.partyPasswordInput.text.toString().trim()
+            clearError()
 
             if (inputPassword.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a party password", Toast.LENGTH_SHORT).show()
+                showError("Please enter a party password.")
                 return@setOnClickListener
             }
 
@@ -52,7 +53,7 @@ class JoinPartyFragment : Fragment() {
         val partyId = firestoreManager.getDocumentIdByField("Parties", "joinPw", password)
         if (partyId == null) {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "No party found with that password.", Toast.LENGTH_SHORT).show()
+                showError("No party found with that password.")
             }
             return
         }
@@ -60,7 +61,7 @@ class JoinPartyFragment : Fragment() {
         val userId = SharedPrefManager.getLoggedInUserId(context)
         if (userId == null) {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "User not found.", Toast.LENGTH_SHORT).show()
+                showError("User not found.")
             }
             return
         }
@@ -71,7 +72,7 @@ class JoinPartyFragment : Fragment() {
 
         if (userIds != null && userIds.contains(userId)) {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "You're already in this party!", Toast.LENGTH_SHORT).show()
+                showError("You're already in this party!")
             }
             return
         }
@@ -81,18 +82,30 @@ class JoinPartyFragment : Fragment() {
             "userIds" to com.google.firebase.firestore.FieldValue.arrayUnion(userId)
         ))
 
-        if (success) {
-            SharedPrefManager.saveCurrentParty(context, partyId)
-            withContext(Dispatchers.Main) {
+        withContext(Dispatchers.Main) {
+            if (success) {
+                SharedPrefManager.saveCurrentParty(context, partyId)
+                Toast.makeText(context, "Party joined!", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_joinParty_to_party)
-            }
-        } else {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Failed to join the party. Please try again.", Toast.LENGTH_SHORT).show()
+            } else {
+                showError("Failed to join the party. Please try again.")
             }
         }
     }
 
+    private fun showError(message: String) {
+        binding.joinPartyErrorMessage.apply {
+            text = message
+            visibility = View.VISIBLE
+        }
+    }
+
+    private fun clearError() {
+        binding.joinPartyErrorMessage.apply {
+            text = ""
+            visibility = View.GONE
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
