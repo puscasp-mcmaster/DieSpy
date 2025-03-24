@@ -23,41 +23,39 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
  * Detects dice faces in images and returns bounding boxes.
  */
 class DiceDetector(
-    private val context: Context, // Context for resource access
-    private val modelFilePath: String, // Path to TFLite model
-    private val labelFilePath: String?, // Optional label file path
-    private val listener: DetectorListener, // Callback listener for detection events
-    private val showMessage: (String) -> Unit, // Function to display messages
+    private val context: Context,
+    private val modelFilePath: String,
+    private val labelFilePath: String?,
+    private val listener: DetectorListener,
+    private val showMessage: (String) -> Unit,
     @Volatile private var isClosed: Boolean = false
 ) {
 
-    private var interpreter: Interpreter // TFLite model interpreter
-    private val labels = mutableListOf<String>() // List of class labels
+    private var interpreter: Interpreter
+    private val labels = mutableListOf<String>()
 
-    // Model input/output properties
+    //Model input/output properties
     private var inputWidth = 0
     private var inputHeight = 0
     private var numChannels = 0
     private var numDetections = 0
 
-    /**
-     * Image pre-processing pipeline (Normalizes and converts input format)
-     */
+    /*** Image pre-processing pipeline (Normalizes and converts input format */
     private val imageProcessor = ImageProcessor.Builder()
-        .add(NormalizeOp(INPUT_MEAN, INPUT_STD_DEV)) // Normalize pixel values (0-1 range)
-        .add(CastOp(INPUT_DATA_TYPE)) // Convert to required data type
+        .add(NormalizeOp(INPUT_MEAN, INPUT_STD_DEV)) //Normalize pixel values (0-1 range)
+        .add(CastOp(INPUT_DATA_TYPE)) //Convert to required data type
         .build()
 
     init {
         val options = Interpreter.Options().apply {
-            numThreads = THREAD_COUNT // Optimize inference speed
+            numThreads = THREAD_COUNT
         }
 
-        // Load TFLite model
+        //Load TFLite model
         val modelFile = FileUtil.loadMappedFile(context, modelFilePath)
         interpreter = Interpreter(modelFile, options)
 
-        // Load labels (if available)
+        //Load labels (if available)
         labels.addAll(extractClassNamesFromMetadata(modelFile))
         if (labels.isEmpty()) {
             if (labelFilePath == null) {
@@ -70,7 +68,7 @@ class DiceDetector(
 
         labels.forEach(::println) // Debug: Print loaded labels
 
-        // Retrieve model input/output dimensions
+        //Retrieve model input/output dimensions
         val inputShape = interpreter.getInputTensor(0)?.shape()
         val outputShape = interpreter.getOutputTensor(0)?.shape()
 
@@ -91,9 +89,8 @@ class DiceDetector(
         }
     }
 
-    /**
-     * Restarts the detector with optional GPU acceleration.
-     */
+
+    //Restarts the detector with optional GPU acceleration.
     fun restart(useGpu: Boolean) {
         interpreter.close() // Close existing interpreter
 
@@ -103,12 +100,12 @@ class DiceDetector(
                 if (compatList.isDelegateSupportedOnThisDevice) {
                     addDelegate(GpuDelegate(compatList.bestOptionsForThisDevice)) // Enable GPU
                 } else {
-                    numThreads = THREAD_COUNT // Fallback to CPU
+                    numThreads = THREAD_COUNT //Fallback to CPU
                 }
             }
         } else {
             Interpreter.Options().apply {
-                numThreads = THREAD_COUNT // Use CPU with multi-threading
+                numThreads = THREAD_COUNT //Use CPU with multi-threading
             }
         }
 
@@ -116,17 +113,12 @@ class DiceDetector(
         interpreter = Interpreter(modelFile, options)
     }
 
-    /**
-     * Closes the TFLite interpreter to free resources.
-     */
+
     fun close() {
         isClosed = true
         interpreter.close()
     }
 
-    /**
-     * Runs object detection on the provided bitmap image.
-     */
     fun detect(image: Bitmap) {
         if (isClosed || inputWidth == 0 || inputHeight == 0 || numChannels == 0 || numDetections == 0) return
 
@@ -159,9 +151,6 @@ class DiceDetector(
         }
     }
 
-    /**
-     * Extracts bounding boxes from the model output.
-     */
     private fun extractBoundingBoxes(outputArray: FloatArray): List<DiceBoundingBox> {
         val diceBoundingBoxes = mutableListOf<DiceBoundingBox>()
 
@@ -187,23 +176,17 @@ class DiceDetector(
         return diceBoundingBoxes
     }
 
-    /**
-     * Interface for handling detection results.
-     */
     interface DetectorListener {
         fun onEmptyDetect() // No objects detected
         fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) // Objects detected
     }
 
-    /**
-     * Companion object for constants.
-     */
     companion object {
         private const val THREAD_COUNT = 4 // Number of threads for CPU inference
         private const val INPUT_MEAN = 0f // Mean for input normalization
         private const val INPUT_STD_DEV = 255f // Standard deviation for normalization
         private val INPUT_DATA_TYPE = DataType.FLOAT32 // Input tensor data type
         private val OUTPUT_DATA_TYPE = DataType.FLOAT32 // Output tensor data type
-        private const val CONFIDENCE_THRESHOLD = 0.8F // Minimum confidence score
+        private const val CONFIDENCE_THRESHOLD = 0.7F // Minimum confidence score
     }
 }
