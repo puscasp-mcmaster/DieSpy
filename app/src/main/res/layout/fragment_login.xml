@@ -2,81 +2,92 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.login.LoginFragment">
+    android:background="@color/dark_background"
+    android:padding="24dp">
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
-        android:padding="24dp"
-        android:background="@android:color/white"
+        android:gravity="center_horizontal"
+        android:layout_marginHorizontal="40dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginHorizontal="40dp">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/loginTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Login"
-            android:textSize="24sp"
+            android:text="Welcome back"
+            android:textSize="30sp"
             android:textStyle="bold"
-            android:layout_gravity="center"
-            android:layout_marginBottom="16dp"/>
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Log in to continue"
+            android:textColor="@color/light_gray"
+            android:textSize="18sp"
+            android:layout_marginBottom="24dp" />
 
         <TextView
             android:id="@+id/loginErrorMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#F00303"
+            android:textColor="@color/red"
             android:visibility="gone"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="12dp" />
 
         <EditText
             android:id="@+id/loginUsernameInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Username"
+            android:hint="Username"
+            android:textColorHint="@color/light_gray"
             android:inputType="text"
-            android:padding="12dp"
-            android:background="@android:drawable/editbox_background"
-            android:layout_marginBottom="10dp"/>
+            android:background="@drawable/edit_text_bg"
+            android:padding="14dp"
+            android:textColor="@color/white"
+            android:layout_marginBottom="12dp"/>
 
         <EditText
             android:id="@+id/loginPwInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Password"
+            android:hint="Password"
+            android:textColorHint="@color/light_gray"
             android:inputType="textPassword"
-            android:padding="12dp"
-            android:background="@android:drawable/editbox_background"
-            android:layout_marginBottom="16dp"/>
+            android:background="@drawable/edit_text_bg"
+            android:padding="14dp"
+            android:textColor="@color/white"
+            android:layout_marginBottom="20dp"/>
 
         <Button
             android:id="@+id/toHomeScreenButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Login"
-            android:backgroundTint="#6200EE"
-            android:textColor="#FFFFFF"
-            android:padding="12dp"
-            android:layout_marginBottom="12dp"/>
+            android:textAllCaps="false"
+            android:backgroundTint="@color/primary_accent"
+            android:textColor="@color/white"
+            android:layout_marginBottom="12dp"
+            android:padding="14dp" />
 
         <Button
             android:id="@+id/toCreateAccountButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Create Account"
-            android:backgroundTint="#6200EE"
-            android:textColor="#FFFFFF"
-            android:padding="12dp"/>
+            android:textAllCaps="false"
+            android:backgroundTint="@color/gray"
+            android:textColor="@color/white"
+            android:padding="14dp"/>
 
     </LinearLayout>
 

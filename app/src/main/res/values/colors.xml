@@ -8,11 +8,18 @@
     <color name="primary">#00FFFFFF</color>
     <color name="button_default_color">#FF6200EE</color>
     <color name="button_pressed_color">#FF3700B3</color>
-
+co
     <color name="text_white">#EEEEEE</color>
     <color name="text_black">#1a1a1a</color>
+    <color name="text_grey">#666666</color>
 
-    <color name="nav_active">#6200EE</color>
+    <color name="dark_background">#1A1A1A</color>
+    <color name="primary_accent">#007AFF</color>
+    <color name="secondary_accent">#FF3B30</color>
+    <color name="light_gray">#B0B0B0</color>
+    <color name="gray">#3A3A3C</color>
+
+    <color name="nav_active">#007AFF</color>
     <color name="nav_inactive">#666666</color>
 
 
