@@ -92,6 +92,32 @@ class FireStoreManager {
     }
 
     /**
+     * Fetch a Firestore document by its document ID.
+     * parameters:
+     *   - collection: The Firestore collection name.
+     *   - documentId: The document ID to retrieve.
+     * returns: A Map of the document fields, or null if not found.
+     */
+    suspend fun getDocumentById(collection: String, documentId: String): Map<String, Any>? {
+        return try {
+            val documentSnapshot = db.collection(collection)
+                .document(documentId)
+                .get()
+                .await()
+
+            if (documentSnapshot.exists()) {
+                documentSnapshot.data
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
+    /**
      * Checks Firestore if a document exists where a field matches a given value.
      * parameters:
      *   - collection: The Firestore collection name as a string.

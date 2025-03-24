@@ -42,6 +42,7 @@ class MembersFragment : Fragment() {
         }
 
         lifecycleScope.launch {
+            // Load members
             val memberUsernames = fireStoreManager.getUsernamesForParty(partyId)
 
             if (memberUsernames.isEmpty()) {
@@ -54,6 +55,15 @@ class MembersFragment : Fragment() {
                 val adapter = MembersAdapter(memberUsernames)
                 binding.membersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
                 binding.membersRecyclerView.adapter = adapter
+            }
+
+            // Load and show party code
+            val partySnapshot = fireStoreManager.getDocumentById("Parties", partyId)
+            val partyCode = partySnapshot?.get("joinPw") as? String
+
+            if (!partyCode.isNullOrEmpty()) {
+                binding.partyCodeText.text = "Party Code: $partyCode"
+                binding.partyCodeText.visibility = View.VISIBLE
             }
         }
 
@@ -68,7 +78,7 @@ class MembersFragment : Fragment() {
 
                     if (partyId != null && userId != null) {
                         lifecycleScope.launch {
-                            val success = FireStoreManager().updateDocument("Parties", partyId, mapOf(
+                            val success = fireStoreManager.updateDocument("Parties", partyId, mapOf(
                                 "userIds" to com.google.firebase.firestore.FieldValue.arrayRemove(userId)
                             ))
 
@@ -93,7 +103,6 @@ class MembersFragment : Fragment() {
                     ?.setTextColor(resources.getColor(R.color.black, null))
             }
             dialog.show()
-
         }
     }
 
