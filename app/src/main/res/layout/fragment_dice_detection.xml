@@ -1,148 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/dark_background"
     tools:context=".ui.dice_detection.DiceDetectionFragment">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/preview_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/freezeButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_chainStyle="packed">
 
-        <androidx.constraintlayout.motion.widget.MotionLayout
-            android:id="@+id/constraintLayout"
+        <androidx.camera.view.PreviewView
+            android:id="@+id/view_finder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.diespy.app.ui.dice_detection.BoundingBoxOverlay
+            android:id="@+id/overlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/black"
-            app:layoutDescription="@xml/fragment_dice_detection_xml_constraintlayout_scene">
+            android:translationZ="5dp" />
 
-            <ImageView
-                android:id="@+id/logo_image"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:background="#2E353D"
-                android:scaleType="fitCenter"
-                android:src="@drawable/diespy"
-                app:layout_constraintBottom_toTopOf="@+id/guideline13"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+    </FrameLayout>
 
-            <androidx.camera.view.PreviewView
-                android:id="@+id/view_finder"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                app:layout_constraintDimensionRatio="3:3"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/logo_image"
-                app:scaleType="fillStart" />
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/freezeButton"
+        android:layout_width="364dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/chat_bubble_background"
+        android:text="Capture"
+        android:textSize="20dp"
+        android:textColor="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/preview_container" />
 
-            <com.diespy.app.ui.dice_detection.BoundingBoxOverlay
-                android:id="@+id/overlay"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:translationZ="5dp"
-                app:layout_constraintDimensionRatio="3:4"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/logo_image" />
-
-            <!--            &lt;!&ndash; Guidelines for layout partitioning &ndash;&gt;-->
-            <!--            <androidx.constraintlayout.widget.Guideline-->
-            <!--                android:id="@+id/guideline10"-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:orientation="vertical"-->
-            <!--                app:layout_constraintGuide_percent="0.33" />-->
-
-            <!--            <androidx.constraintlayout.widget.Guideline-->
-            <!--                android:id="@+id/guideline20"-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:orientation="vertical"-->
-            <!--                app:layout_constraintGuide_percent="0.67" />-->
-
-            <!--            &lt;!&ndash; Stats TextViews &ndash;&gt;-->
-            <!--            <TextView-->
-            <!--                android:id="@+id/stats_calc"-->
-            <!--                android:layout_width="0dp"-->
-            <!--                android:layout_height="0dp"-->
-            <!--                android:background="#80000000"-->
-            <!--                android:ellipsize="none"-->
-            <!--                android:justificationMode="inter_word"-->
-            <!--                android:padding="16dp"-->
-            <!--                android:singleLine="false"-->
-            <!--                android:text=""-->
-            <!--                android:textColor="@android:color/white"-->
-            <!--                android:textSize="14sp"-->
-            <!--                app:layout_constraintBottom_toBottomOf="parent"-->
-            <!--                app:layout_constraintEnd_toStartOf="@+id/stats_faces"-->
-            <!--                app:layout_constraintStart_toStartOf="parent"-->
-            <!--                app:layout_constraintTop_toBottomOf="@+id/view_finder" />-->
-
-            <!--            <TextView-->
-            <!--                android:id="@+id/stats_faces"-->
-            <!--                android:layout_width="0dp"-->
-            <!--                android:layout_height="0dp"-->
-            <!--                android:background="#80000000"-->
-            <!--                android:ellipsize="none"-->
-            <!--                android:justificationMode="inter_word"-->
-            <!--                android:padding="16dp"-->
-            <!--                android:singleLine="false"-->
-            <!--                android:text=""-->
-            <!--                android:textColor="@android:color/white"-->
-            <!--                android:textSize="14sp"-->
-            <!--                app:layout_constraintBottom_toBottomOf="parent"-->
-            <!--                app:layout_constraintEnd_toEndOf="@+id/guideline20"-->
-            <!--                app:layout_constraintStart_toStartOf="@+id/guideline10"-->
-            <!--                app:layout_constraintTop_toBottomOf="@+id/view_finder" />-->
-
-            <!--            &lt;!&ndash; Mode TextView &ndash;&gt;-->
-            <!--            <TextView-->
-            <!--                android:id="@+id/modeTextView"-->
-            <!--                android:layout_width="0dp"-->
-            <!--                android:layout_height="0dp"-->
-            <!--                android:background="#80000000"-->
-            <!--                android:ellipsize="none"-->
-            <!--                android:justificationMode="inter_word"-->
-            <!--                android:padding="16dp"-->
-            <!--                android:singleLine="false"-->
-            <!--                android:textSize="14sp"-->
-            <!--                android:textColor="@android:color/white"-->
-            <!--                app:layout_constraintBottom_toBottomOf="parent"-->
-            <!--                app:layout_constraintEnd_toEndOf="parent"-->
-            <!--                app:layout_constraintHorizontal_bias="0.0"-->
-            <!--                app:layout_constraintStart_toStartOf="@+id/guideline20"-->
-            <!--                app:layout_constraintTop_toBottomOf="@+id/view_finder"-->
-            <!--                app:layout_constraintVertical_bias="0.0" />-->
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/freezeButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Capture"
-                android:background="@drawable/button_selector"
-                app:layout_constraintBottom_toBottomOf="@+id/overlay"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                android:textColor="#FFFFFF"
-                app:layout_constraintTop_toBottomOf="@+id/view_finder" />
-
-
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline13"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                app:layout_constraintGuide_percent="0.10"  />
-
-            <!-- Bottom Stats Area -->
-            <!-- (Additional UI elements can be added here if needed) -->
-
-        </androidx.constraintlayout.motion.widget.MotionLayout>
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
