@@ -1,6 +1,8 @@
 package com.diespy.app.ui.chat
 
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -124,9 +126,19 @@ class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapte
     }
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
-        //capitalizes first letter of the Username.
         val message = messages[position]
-        holder.messageText.text = "${(message.username).replaceFirstChar { char ->char.titlecase()}}: ${message.timestamp}\n${message.msg}"
+        // Create a header containing username and timestamp
+        val header = "${message.username.replaceFirstChar { it.titlecase() }}: ${message.timestamp}\n"
+        val fullText = header + message.msg
+
+        // Create a SpannableString and apply bold style to the header portion.
+        val spannable = SpannableString(fullText)
+        spannable.setSpan(
+            android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+            0, header.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        holder.messageText.text = spannable
     }
 
     override fun getItemCount(): Int = messages.size

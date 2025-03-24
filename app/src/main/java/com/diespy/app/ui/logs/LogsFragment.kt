@@ -2,6 +2,8 @@ package com.diespy.app.ui.logs
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -110,6 +112,8 @@ class LogAdapter(
             for (face in 1..6) {
                 totalSum += face * (countsMap[face] ?: 0)
             }
+            val header = "${log.username.replaceFirstChar { it.titlecase() }} rolled: $totalSum\n"
+
             // Reassemble the formatted log string as:
             // "1: <count>      4: <count>"
             // "2: <count>      5: <count>"
@@ -118,7 +122,16 @@ class LogAdapter(
                     "2: ${countsMap[2] ?: 0}      5: ${countsMap[5] ?: 0}\n" +
                     "3: ${countsMap[3] ?: 0}      6: ${countsMap[6] ?: 0}"
             // Set the logText to display the username, computed total, and the formatted log.
-            logText.text = "${log.username.replaceFirstChar { it.titlecase() }} rolled: $totalSum\n$formattedLog"
+            val fullText = header + formattedLog
+
+            // Create a SpannableString from the full text and make the header bold.
+            val spannable = SpannableString(fullText)
+            spannable.setSpan(
+                android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                0, header.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            logText.text = spannable
 
             // Edit button logic remains unchanged.
             editButton.setOnClickListener {
@@ -184,9 +197,9 @@ class LogAdapter(
                 setupCounter(face4Minus, face4Plus, face4CountText)
                 setupCounter(face5Minus, face5Plus, face5CountText)
                 setupCounter(face6Minus, face6Plus, face6CountText)
-
+                val customTitle = LayoutInflater.from(context).inflate(R.layout.custom_dialog_title, null)
                 val dialog = AlertDialog.Builder(context)
-                    .setTitle("Edit Dice Quantities")
+                    .setCustomTitle(customTitle)
                     .setView(dialogView)
                     .setPositiveButton("Save") { _, _ ->
                         // Reassemble the new log string in the desired two-column format.
@@ -203,7 +216,7 @@ class LogAdapter(
                         dialogInterface.dismiss()
                     }
                     .create()
-                dialog.window?.setBackgroundDrawableResource(android.R.color.white)
+                dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
                 dialog.show()
 
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE)

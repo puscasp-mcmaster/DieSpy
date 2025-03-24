@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Light grey background -->
+    <solid android:color="@color/gray" />
+    <!-- Blue border using your primary accent color -->
+    <stroke android:width="2dp" android:color="@color/primary_accent" />
+    <corners android:radius="16dp" />
+    <padding
+        android:left="8dp"
+        android:top="8dp"
+        android:right="8dp"
+        android:bottom="8dp" />
+</shape>

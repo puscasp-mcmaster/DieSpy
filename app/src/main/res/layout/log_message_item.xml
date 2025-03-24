@@ -11,7 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
-        android:background="@drawable/log_background"
+        android:background="@drawable/chat_bubble_background"
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.156"
@@ -28,7 +28,7 @@
             android:layout_centerVertical="true"
             android:layout_marginEnd="8dp"
             android:layout_toStartOf="@+id/buttonsLayout"
-            android:textColor="#000000"
+            android:textColor="@color/text_white"
             android:textSize="16sp" />
 
         <!-- Buttons container on the right, vertically centered -->
@@ -47,6 +47,7 @@
                 android:text="Edit"
                 android:textColor="#FFFFFF"
                 android:background="@drawable/button_selector"
+                android:textSize="12sp"
                 android:layout_marginBottom="1dp" />
 
             <androidx.appcompat.widget.AppCompatButton
@@ -56,6 +57,7 @@
                 android:text="Delete"
                 android:textColor="#FFFFFF"
                 android:background="@drawable/button_selector"
+                android:textSize="12sp"
                 android:layout_marginTop="1dp" />
 
 
