@@ -20,7 +20,7 @@ co
     <color name="gray">#3A3A3C</color>
 
     <color name="nav_active">#007AFF</color>
-    <color name="nav_inactive">#666666</color>
+    <color name="nav_inactive">#FFFFFF</color>
 
 
 </resources>

@@ -1,7 +1,23 @@
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@android:color/white" />
-    <corners android:topLeftRadius="24dp" android:topRightRadius="24dp" />
-    <padding android:bottom="4dp" />
-    <size android:height="96dp" />
-</shape>
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+<!-- Background color -->
+<item>
+    <shape android:shape="rectangle">
+        <solid android:color="@color/dark_background"/>
+        <size android:height="72dp" />
+    </shape>
+</item>
+
+<!-- Top shadow gradient -->
+<item android:top="0dp">
+    <shape android:shape="rectangle">
+        <gradient
+            android:startColor="@android:color/transparent"
+            android:endColor="#33000000"
+            android:angle="270"/>
+        <size android:height="4dp"/>
+    </shape>
+</item>
+
+</layer-list>
