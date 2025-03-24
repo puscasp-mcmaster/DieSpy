@@ -5,6 +5,7 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import android.widget.ImageButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -40,42 +41,63 @@ class MainActivity : AppCompatActivity() {
     private fun setupCustomBottomNav() {
         val navController = (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController
 
-        findViewById<View>(R.id.nav_members).setOnClickListener {
+        val navMembers = findViewById<ImageButton>(R.id.nav_members)
+        val navLogs = findViewById<ImageButton>(R.id.nav_logs)
+        val navParty = findViewById<ImageButton>(R.id.nav_party)
+        val navChat = findViewById<ImageButton>(R.id.nav_chat)
+
+        val allIcons = listOf(navMembers, navLogs, navParty, navChat)
+
+        fun highlightBottomIcon(active: ImageButton) {
+            allIcons.forEach {
+                it.setColorFilter(ContextCompat.getColor(this, R.color.nav_inactive))
+            }
+            active.setColorFilter(ContextCompat.getColor(this, R.color.nav_active))
+        }
+
+        navMembers.setOnClickListener {
             if (navController.currentDestination?.id != R.id.membersFragment) {
                 navController.navigate(R.id.membersFragment)
             }
         }
 
-        findViewById<View>(R.id.nav_party).setOnClickListener {
-            if (navController.currentDestination?.id != R.id.partyFragment) {
-                navController.navigate(R.id.partyFragment)
-            }
-        }
-
-        findViewById<View>(R.id.nav_chat).setOnClickListener {
-            if (navController.currentDestination?.id != R.id.chatFragment) {
-                navController.navigate(R.id.chatFragment)
-            }
-        }
-
-        findViewById<View>(R.id.nav_logs).setOnClickListener {
+        navLogs.setOnClickListener {
             if (navController.currentDestination?.id != R.id.logsFragment) {
                 navController.navigate(R.id.logsFragment)
             }
         }
 
+        navParty.setOnClickListener {
+            if (navController.currentDestination?.id != R.id.partyFragment) {
+                navController.navigate(R.id.partyFragment)
+            }
+        }
+
+        navChat.setOnClickListener {
+            if (navController.currentDestination?.id != R.id.chatFragment) {
+                navController.navigate(R.id.chatFragment)
+            }
+        }
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val shouldShowBottomNav = destination.id in setOf(
-                R.id.partyFragment,
-                R.id.chatFragment,
-                R.id.membersFragment,
-                R.id.logsFragment,
-                R.id.rollsFragment,
-                R.id.diceDetectionFragment
-            )
-            findViewById<View>(R.id.customBottomNav).visibility = if (shouldShowBottomNav) View.VISIBLE else View.GONE
+            val currentPartyId = SharedPrefManager.getCurrentParty(this)
+            val shouldShow = destination.id in setOf(
+                R.id.partyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment, R.id.rollsFragment, R.id.diceDetectionFragment
+            ) && currentPartyId != null
+            findViewById<View>(R.id.customBottomNav).visibility = if (shouldShow) View.VISIBLE else View.GONE
+
+            when (destination.id) {
+                R.id.membersFragment -> highlightBottomIcon(navMembers)
+                R.id.logsFragment -> highlightBottomIcon(navLogs)
+                R.id.partyFragment -> highlightBottomIcon(navParty)
+                R.id.chatFragment -> highlightBottomIcon(navChat)
+                else -> allIcons.forEach {
+                    it.setColorFilter(ContextCompat.getColor(this, R.color.nav_inactive))
+                }
+            }
         }
     }
+
 
     private fun setupCustomTopNav() {
         val navController = (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController
@@ -85,7 +107,9 @@ class MainActivity : AppCompatActivity() {
         val navCamera = findViewById<View>(R.id.nav_camera)
         val customTopNav = findViewById<View>(R.id.customTopNav)
 
-        val backButton = navBack as? android.widget.ImageButton
+        val backButton = navBack as? ImageButton
+        val settingsButton = navSettings as? ImageButton
+        val cameraButton = navCamera as? ImageButton
 
         navSettings.setOnClickListener {
             if (navController.currentDestination?.id != R.id.settingsFragment) {
@@ -99,32 +123,28 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        fun setEnabled(view: View, enabled: Boolean) {
+            view.isEnabled = enabled
+            view.alpha = if (enabled) 1f else 0.3f
+        }
+
+        fun highlightTopIcon(active: ImageButton?) {
+            listOf(backButton, settingsButton, cameraButton).forEach {
+                it?.setColorFilter(ContextCompat.getColor(this, R.color.nav_inactive))
+            }
+            active?.setColorFilter(ContextCompat.getColor(this, R.color.nav_active))
+        }
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val showTopNav = destination.id in setOf(
-                R.id.partyFragment,
-                R.id.homeFragment,
-                R.id.createAccountFragment,
-                R.id.joinPartyFragment,
-                R.id.createPartyFragment,
-                R.id.chatFragment,
-                R.id.membersFragment,
-                R.id.logsFragment,
-                R.id.loginFragment,
-                R.id.settingsFragment,
-                R.id.profileFragment,
-                R.id.rollsFragment,
-                R.id.changePasswordFragment,
-                R.id.diceDetectionFragment
+                R.id.partyFragment, R.id.homeFragment, R.id.createAccountFragment, R.id.joinPartyFragment,
+                R.id.createPartyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment,
+                R.id.loginFragment, R.id.settingsFragment, R.id.profileFragment, R.id.rollsFragment,
+                R.id.changePasswordFragment, R.id.diceDetectionFragment
             )
             customTopNav.visibility = if (showTopNav) View.VISIBLE else View.GONE
 
-            // Back/Home icon logic
-            if (destination.id in setOf(
-                    R.id.partyFragment,
-                    R.id.chatFragment,
-                    R.id.logsFragment,
-                    R.id.membersFragment
-                )) {
+            if (destination.id in setOf(R.id.partyFragment, R.id.chatFragment, R.id.logsFragment, R.id.membersFragment)) {
                 backButton?.setImageResource(R.drawable.icon_home)
                 navBack.setOnClickListener {
                     if (navController.currentDestination?.id != R.id.homeFragment) {
@@ -135,45 +155,58 @@ class MainActivity : AppCompatActivity() {
                 backButton?.setImageResource(R.drawable.icon_arrow_left)
                 navBack.setOnClickListener {
                     if (navController.currentDestination?.id == R.id.diceDetectionFragment) {
-                        navController.navigate(R.id.partyFragment)
+                        val userId = SharedPrefManager.getLoggedInUserId(this)
+                        val partyId = SharedPrefManager.getCurrentParty(this)
+
+                        when {
+                            userId == null -> navController.navigate(R.id.loginFragment)
+                            partyId == null -> navController.navigate(R.id.homeFragment)
+                            else -> navController.navigate(R.id.partyFragment)
+                        }
                     } else {
                         onBackPressedDispatcher.onBackPressed()
                     }
                 }
             }
 
-            // Icon visibility rules
+            // Enable/disable icons
             when (destination.id) {
-                R.id.createAccountFragment,
-                R.id.settingsFragment,
-                R.id.profileFragment,
-                R.id.diceDetectionFragment,
-                R.id.changePasswordFragment,
-                R.id.rollsFragment -> {
-                    navBack.visibility = View.VISIBLE
-                    navSettings.visibility = View.GONE
-                    navCamera.visibility = View.GONE
+                R.id.createAccountFragment, R.id.settingsFragment, R.id.profileFragment,
+                R.id.diceDetectionFragment, R.id.changePasswordFragment, R.id.rollsFragment -> {
+                    setEnabled(navBack, true)
+                    setEnabled(navSettings, false)
+                    setEnabled(navCamera, false)
                 }
                 R.id.loginFragment -> {
-                    navBack.visibility = View.GONE
-                    navSettings.visibility = View.GONE
-                    navCamera.visibility = View.VISIBLE
+                    setEnabled(navBack, false)
+                    setEnabled(navSettings, false)
+                    setEnabled(navCamera, true)
                 }
                 R.id.homeFragment -> {
-                    navBack.visibility = View.GONE
-                    navSettings.visibility = View.VISIBLE
-                    navCamera.visibility = View.VISIBLE
+                    setEnabled(navBack, false)
+                    setEnabled(navSettings, true)
+                    setEnabled(navCamera, true)
+                }
+                R.id.createPartyFragment, R.id.joinPartyFragment -> {
+                    setEnabled(navBack, true)
+                    setEnabled(navSettings, true)
+                    setEnabled(navCamera, false)
                 }
                 else -> {
-                    navBack.visibility = View.VISIBLE
-                    navSettings.visibility = View.VISIBLE
-                    navCamera.visibility = View.VISIBLE
+                    setEnabled(navBack, true)
+                    setEnabled(navSettings, true)
+                    setEnabled(navCamera, true)
                 }
+            }
+
+            // Highlight active icon
+            when (destination.id) {
+                R.id.settingsFragment -> highlightTopIcon(settingsButton)
+                R.id.diceDetectionFragment -> highlightTopIcon(cameraButton)
+                else -> highlightTopIcon(null)
             }
         }
     }
-
-
 
     private fun applySystemBarInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->
