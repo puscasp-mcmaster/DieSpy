@@ -22,8 +22,23 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
+/*
+------------------------------------------------
+THIS IS NOT THE FRONTFACING CLASS! FOR THAT SEE PublicNetworkManager.kt!!!!
+THIS IS THE BACKEND NETWORK MANAGER CODE!
 
-class NetworkManager(private val context: Context) {
+
+two distinct steps: 1) connection to a device via wifip2p to obtain local ip,
+2) tcp connection to local ip to send data.
+
+ALWAYS USE initAsHost(), initAsClient(), sendHostMessage(), sendClientMessage() and getMessage()!
+
+
+-PP
+
+
+ */
+class NetworkManager(private val context: Context) {/*
     private val wifiP2pManager: WifiP2pManager? = context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager?
     private val channel: WifiP2pManager.Channel? = wifiP2pManager?.initialize(context, Looper.getMainLooper(), null)
     private var peerReceiver: BroadcastReceiver? = null
@@ -58,7 +73,8 @@ class NetworkManager(private val context: Context) {
         })
     }
 
-    private fun discoverServices(callback: (List<WifiP2pDevice>) -> Unit) {
+    //MAKE PRIVATE LATER
+    public fun discoverServices(callback: (List<WifiP2pDevice>) -> Unit) {
         discoveryCallback = callback
 
         val serviceListener = WifiP2pManager.DnsSdServiceResponseListener { instanceName, _, srcDevice ->
@@ -100,7 +116,7 @@ class NetworkManager(private val context: Context) {
     }
 
     private fun startServer() {
-        Thread {
+      //  Thread {
             try {
                 serverSocket = ServerSocket(8988)
                 Log.d("NetworkManager", "Server started. Waiting for connections...")
@@ -111,14 +127,14 @@ class NetworkManager(private val context: Context) {
                     Log.d("NetworkManager", "Client connected: ${clientSocket.inetAddress.hostAddress}")
 
                     // Start a thread for each client
-                    Thread {
+                  //  Thread {
                         handleClientMessages(clientSocket)
-                    }.start()
+                 //   }.start()
                 }
             } catch (e: Exception) {
                 Log.e("NetworkManager", "Server error: ${e}")
             }
-        }.start()
+     //   }.start()
     }
 
     private fun handleClientMessages(clientSocket: Socket) {
@@ -150,7 +166,7 @@ class NetworkManager(private val context: Context) {
     }
 
     private fun openClientSocket(hostAddress: String) {
-        Thread {
+     //   Thread {
             try {
                 val socket = Socket(hostAddress, 8988)
                 val inputStream = socket.getInputStream()
@@ -176,9 +192,8 @@ class NetworkManager(private val context: Context) {
             } catch (e: Exception) {
                 Log.e("NetworkManager", "Error sending/receiving message: ${e}")
             }
-        }.start()
+       // }.start()
     }
-
 
     private fun unregisterReceiver() {
         peerReceiver?.let {
@@ -187,12 +202,13 @@ class NetworkManager(private val context: Context) {
         }
     }
 
+    //PUBLIC BELOW HERE
     public fun sendHostMessage(message: String) {
         if (serverSocket != null && !serverSocket!!.isClosed) {
             Log.d("NetworkManager", "Sending message to all connected clients: $message")
             Log.d("NetworkManager", connectedClients.toString())
             for (client in connectedClients) {
-                Thread {
+            //    Thread {
                 Log.d(
                     "NetworkManager",
                     "Sending message to client: ${client}. Socket status: ${(client.toString())}"
@@ -214,13 +230,16 @@ class NetworkManager(private val context: Context) {
                         "Error sending message to client ${client}: Exception '${e}'"
                     )
                 }
-            }.start()
+         //   }.start()
         }
         } else {
             Log.e("NetworkManager", "Server socket is not open. Cannot send message.")
         }
     }
 
+    public fun sendClientMessage(message: String) {
+
+    }
     public fun initAsClient() {
         //discoverServices {  }
         //openClientSocket()
@@ -232,5 +251,5 @@ class NetworkManager(private val context: Context) {
     public fun getMessage(): String? {
         return latestMessage
     }
-
+*/
 }

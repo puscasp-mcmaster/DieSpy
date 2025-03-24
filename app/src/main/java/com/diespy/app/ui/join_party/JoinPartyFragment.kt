@@ -1,6 +1,7 @@
 package com.diespy.app.ui.join_party
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,9 +9,11 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentJoinPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
+//import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,7 +34,7 @@ class JoinPartyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+      //  var nm = PublicNetworkManager.getInstance(requireContext())
         binding.joinPartyButton.setOnClickListener {
             val inputPassword = binding.partyPasswordInput.text.toString().trim()
 
@@ -44,6 +47,49 @@ class JoinPartyFragment : Fragment() {
                 joinPartyWithPassword(inputPassword)
             }
         }
+
+        /*lifecycleScope.launch {
+            val networkManager = NetworkManager(requireContext())
+
+            networkManager.discoverServices { devices ->
+                if (devices.isEmpty()) {
+                    binding.joinPartyRecycleView.visibility = View.GONE
+                } else {
+                    binding.joinPartyRecycleView.visibility = View.VISIBLE
+
+                    val adapter = JoinPartyAdapter(devices) { selectedDevice ->
+                        Log.d("NetworkManager", "Selected device: ${selectedDevice.deviceName}")
+                        networkManager.connectToDevice(selectedDevice)
+                    }
+                    binding.joinPartyRecycleView.layoutManager = LinearLayoutManager(requireContext())
+                    binding.joinPartyRecycleView.adapter = adapter
+                }
+            }
+        }*/
+
+
+        binding.joinPartyConnectButton.setOnClickListener {
+        /*    nm.discoverServices { devices ->
+                if (devices.isNotEmpty()) {
+                    val deviceListString = devices.joinToString(separator = "\n") { device ->
+                        device.deviceName
+                    }
+                    requireActivity().runOnUiThread {
+                        binding.joinPartyListHeader.text = deviceListString
+                    }
+                } else {
+                    requireActivity().runOnUiThread {
+                        binding.joinPartyListHeader.text = "No devices found."
+                    }
+                }
+            }
+            //Try to join selected wifip2p lobby*/
+        }
+        binding.joinPartyHostButton.setOnClickListener {
+           // nm.initAsHost()
+        }
+
+
     }
 
     private suspend fun joinPartyWithPassword(password: String) {
