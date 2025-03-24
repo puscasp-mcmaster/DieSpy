@@ -7,6 +7,7 @@ import com.diespy.app.ml.metadata.MetaData
 import com.diespy.app.ml.metadata.MetaData.extractClassNamesFromLabelFile
 import com.diespy.app.ml.metadata.MetaData.extractClassNamesFromMetadata
 import com.diespy.app.ml.models.DiceBoundingBox
+import com.google.common.primitives.Ints.min
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
@@ -124,7 +125,15 @@ class DiceDetector(
 
         var inferenceTime = SystemClock.uptimeMillis()
 
-        val resizedImage = Bitmap.createScaledBitmap(image, inputWidth, inputHeight, false)
+        //val resizedImage = Bitmap.createScaledBitmap(image, inputWidth, inputHeight, false)
+        val h = image.getHeight()
+        val w = image.getWidth()
+        val limit = min(h, w)
+        //val x = (w - limit)/2
+        //val y = (h - limit)/2
+        val croppedImage = Bitmap.createBitmap(image, 0, 0, limit, limit)
+        val resizedImage = Bitmap.createScaledBitmap(croppedImage, inputWidth, inputHeight, true)
+
         val tensorImage = TensorImage(INPUT_DATA_TYPE)
         tensorImage.load(resizedImage)
         val processedImage = imageProcessor.process(tensorImage)
