@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentJoinPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
-//import com.diespy.app.managers.network.PublicNetworkManager
+import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,8 +34,9 @@ class JoinPartyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-      //  var nm = PublicNetworkManager.getInstance(requireContext())
+        var nm = PublicNetworkManager.getInstance(requireContext())
         binding.joinPartyButton.setOnClickListener {
+
             val inputPassword = binding.partyPasswordInput.text.toString().trim()
 
             if (inputPassword.isEmpty()) {
@@ -69,15 +70,19 @@ class JoinPartyFragment : Fragment() {
 
 
         binding.joinPartyConnectButton.setOnClickListener {
-        /*    nm.discoverServices { devices ->
+            Log.d("JoinParty", "Searching for avaliable devices.")
+            nm.discoverServices { devices ->
+                Log.d("NJoinParty", "Devices in callback: ${devices.size}")
                 if (devices.isNotEmpty()) {
                     val deviceListString = devices.joinToString(separator = "\n") { device ->
                         device.deviceName
                     }
+                    Log.d("JoinParty", "Devicestring: ${deviceListString}")
                     requireActivity().runOnUiThread {
                         binding.joinPartyListHeader.text = deviceListString
                     }
                 } else {
+                    Log.e("JoinParty", "No devices found!")
                     requireActivity().runOnUiThread {
                         binding.joinPartyListHeader.text = "No devices found."
                     }
@@ -86,7 +91,7 @@ class JoinPartyFragment : Fragment() {
             //Try to join selected wifip2p lobby*/
         }
         binding.joinPartyHostButton.setOnClickListener {
-           // nm.initAsHost()
+            nm.initAsHost()
         }
 
 

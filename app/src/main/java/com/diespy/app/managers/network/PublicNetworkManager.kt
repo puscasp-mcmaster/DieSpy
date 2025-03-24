@@ -12,12 +12,12 @@ i.e, NetworkManagerObject.getInstance(context).initAsHost()
 -PP
  */
 object PublicNetworkManager {
-/*@Volatile
-prate var instance: NetworkManager? = null
+@Volatile
+private var instance: NetworkManager? = null
 
 fun getInstance(context: Context): NetworkManager {
     return instance ?: synchronized(this) {
         instance ?: NetworkManager(context.applicationContext).also { instance = it }
     }
-}*/
+}
 }
