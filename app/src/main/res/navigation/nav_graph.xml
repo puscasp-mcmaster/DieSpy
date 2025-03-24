@@ -113,6 +113,7 @@
         tools:layout="@layout/fragment_profile">
         <action android:id="@+id/action_profile_to_changePassword" app:destination="@id/changePasswordFragment"/>
         <action android:id="@+id/action_profile_to_login" app:destination="@id/loginFragment"/>
+        <action android:id="@+id/action_profile_to_settings" app:destination="@id/settingsFragment"/>
     </fragment>
 
     <!-- Change Password -->

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="60dp"
     android:orientation="horizontal"
-    android:background="@color/white"
+    android:background="@drawable/nav_background"
     android:gravity="center_vertical"
     android:elevation="8dp"
     android:paddingHorizontal="12dp">
@@ -44,24 +44,24 @@
             android:scaleType="centerInside"
             android:padding="16dp"
             android:contentDescription="Camera"
-            app:tint="@color/black" />
+            app:tint="@color/white" />
     </FrameLayout>
 
-    <!-- Settings Button (Right) -->
+    <!-- Profile Button (Right) -->
     <FrameLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1.2">
 
         <ImageButton
-            android:id="@+id/nav_settings"
+            android:id="@+id/nav_profile"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/icon_settings"
+            android:src="@drawable/icon_profile"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="centerInside"
             android:padding="16dp"
-            android:contentDescription="Settings"
+            android:contentDescription="Profile"
             app:tint="@color/black" />
     </FrameLayout>
 

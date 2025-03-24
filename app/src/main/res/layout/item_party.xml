@@ -1,22 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="40dp"
-    card_view:cardElevation="1dp"
     android:layout_marginBottom="12dp"
-    card_view:cardCornerRadius="0dp"
-    android:paddingTop="20dp"
-    android:paddingBottom="20dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp">
+    card_view:cardElevation="0dp"
+    card_view:cardCornerRadius="8dp"
+    android:background="@color/gray">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/partyName"
@@ -26,7 +22,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="Party Name"
-            android:textColor="#000000"
+            android:textColor="@color/text_grey"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -36,7 +32,7 @@
             android:layout_height="20dp"
             android:layout_marginStart="12dp"
             android:src="@drawable/icon_members"
-            card_view:tint="#666666" />
+            card_view:tint="@color/text_grey" />
 
         <TextView
             android:id="@+id/memberCount"
@@ -44,8 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="0"
-            android:textColor="#666666"
+            android:textColor="@color/text_grey"
             android:textSize="16sp" />
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>

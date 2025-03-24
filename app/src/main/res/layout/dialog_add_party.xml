@@ -1,0 +1,39 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@color/dark_background"
+    android:gravity="center_horizontal"
+    android:elevation="8dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Party"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_white"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/createPartyButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Party"
+        android:textAllCaps="false"
+        android:backgroundTint="@color/primary_accent"
+        android:textColor="@color/white"
+        android:padding="14dp"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/joinPartyButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Join Party"
+        android:textAllCaps="false"
+        android:backgroundTint="@color/primary_accent"
+        android:textColor="@color/white"
+        android:padding="14dp" />
+</LinearLayout>

@@ -40,6 +40,36 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private val frameDiceBuffer = mutableListOf<List<Int>>()
     private var lastDetectionTime: Long = System.currentTimeMillis()
 
+
+    // TODO Christian check lines 45 - 68. Is logic for hiding android native nav bar
+    // I dont have it on my phone so check that it works properly
+    override fun onResume() {
+        super.onResume()
+        hideSystemUI()
+    }
+
+    private fun hideSystemUI() {
+        activity?.window?.decorView?.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        showSystemUI()
+    }
+
+    private fun showSystemUI() {
+        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+    }
+
+    // End of hide nav bar logic
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
