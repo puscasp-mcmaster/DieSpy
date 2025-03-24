@@ -2,16 +2,19 @@ package com.diespy.app.managers.chat
 
 import android.content.Context
 import com.diespy.app.managers.firestore.FireStoreManager
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.type.Date
 import kotlinx.coroutines.tasks.await
 import java.io.File
 
 data class ChatMessage(
     val username: String = "",
     val msg: String = "",
-    val timestamp: String = ""
+    val timeStamp: Timestamp = Timestamp.now()
 )
+
 
 class ChatManager(private val context: Context) {
     private val db = FirebaseFirestore.getInstance() // Firestore instance

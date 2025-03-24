@@ -47,6 +47,7 @@
                 android:layout_marginBottom="1dp"
                 android:background="@drawable/button_selector"
                 android:text="Edit"
+                android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp" />
 
@@ -57,6 +58,7 @@
                 android:layout_marginTop="1dp"
                 android:background="@drawable/button_selector"
                 android:text="Delete"
+                android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp" />
 
