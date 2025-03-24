@@ -24,9 +24,6 @@ class PartyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toDiceDetectionScreenButton.setOnClickListener {
-            findNavController().navigate(R.id.action_party_to_diceDetection)
-        }
     }
 
     override fun onDestroyView() {

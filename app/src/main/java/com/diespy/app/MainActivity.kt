@@ -98,22 +98,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun setupCustomTopNav() {
         val navController = (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController
 
         val navBack = findViewById<View>(R.id.nav_back)
-        val navSettings = findViewById<View>(R.id.nav_settings)
+        val navProfile = findViewById<View>(R.id.nav_profile)
         val navCamera = findViewById<View>(R.id.nav_camera)
         val customTopNav = findViewById<View>(R.id.customTopNav)
 
         val backButton = navBack as? ImageButton
-        val settingsButton = navSettings as? ImageButton
+        val profileButton = navProfile as? ImageButton
         val cameraButton = navCamera as? ImageButton
 
-        navSettings.setOnClickListener {
-            if (navController.currentDestination?.id != R.id.settingsFragment) {
-                navController.navigate(R.id.settingsFragment)
+        navProfile.setOnClickListener {
+            if (navController.currentDestination?.id != R.id.profileFragment) {
+                navController.navigate(R.id.profileFragment)
             }
         }
 
@@ -129,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         fun highlightTopIcon(active: ImageButton?) {
-            listOf(backButton, settingsButton, cameraButton).forEach {
+            listOf(backButton, profileButton, cameraButton).forEach {
                 it?.setColorFilter(ContextCompat.getColor(this, R.color.nav_inactive))
             }
             active?.setColorFilter(ContextCompat.getColor(this, R.color.nav_active))
@@ -174,34 +173,34 @@ class MainActivity : AppCompatActivity() {
                 R.id.createAccountFragment, R.id.settingsFragment, R.id.profileFragment,
                 R.id.diceDetectionFragment, R.id.changePasswordFragment, R.id.rollsFragment -> {
                     setEnabled(navBack, true)
-                    setEnabled(navSettings, false)
+                    setEnabled(navProfile, false)
                     setEnabled(navCamera, false)
                 }
                 R.id.loginFragment -> {
                     setEnabled(navBack, false)
-                    setEnabled(navSettings, false)
+                    setEnabled(navProfile, false)
                     setEnabled(navCamera, true)
                 }
                 R.id.homeFragment -> {
                     setEnabled(navBack, false)
-                    setEnabled(navSettings, true)
+                    setEnabled(navProfile, true)
                     setEnabled(navCamera, true)
                 }
                 R.id.createPartyFragment, R.id.joinPartyFragment -> {
                     setEnabled(navBack, true)
-                    setEnabled(navSettings, true)
+                    setEnabled(navProfile, true)
                     setEnabled(navCamera, false)
                 }
                 else -> {
                     setEnabled(navBack, true)
-                    setEnabled(navSettings, true)
+                    setEnabled(navProfile, true)
                     setEnabled(navCamera, true)
                 }
             }
 
             // Highlight active icon
             when (destination.id) {
-                R.id.settingsFragment -> highlightTopIcon(settingsButton)
+                R.id.profileFragment -> highlightTopIcon(profileButton)
                 R.id.diceDetectionFragment -> highlightTopIcon(cameraButton)
                 else -> highlightTopIcon(null)
             }

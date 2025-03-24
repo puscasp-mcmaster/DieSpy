@@ -4,7 +4,8 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     card_view:cardElevation="1dp"
-    card_view:cardCornerRadius="8dp">
+    card_view:cardCornerRadius="10dp"
+    card_view:cardBackgroundColor="@color/gray">
 
     <TextView
         android:id="@+id/memberName"
@@ -12,6 +13,5 @@
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:textSize="16sp"
-        android:textColor="#000000"
-        android:background="@android:color/white" />
+        android:textColor="@color/text_white" />
 </androidx.cardview.widget.CardView>
