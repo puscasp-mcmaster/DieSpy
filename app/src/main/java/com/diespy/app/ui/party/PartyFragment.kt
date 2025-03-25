@@ -38,7 +38,7 @@ class PartyFragment : Fragment() {
         // Retrieve the last roll using LogManager and update the previous roll section using regex
         val logManager = LogManager(requireContext())
         lifecycleScope.launch {
-            val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
+            val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
             val logs = logManager.loadLogs(currentParty)
             if (logs.isNotEmpty()) {
                 val lastLog = logs.last()

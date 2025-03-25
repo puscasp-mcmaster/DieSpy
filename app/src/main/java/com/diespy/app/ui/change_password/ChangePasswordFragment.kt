@@ -1,6 +1,7 @@
 package com.diespy.app.ui.change_password
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +31,45 @@ class ChangePasswordFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        var isPwVisible1 = false
+        var isPwVisible2 = false
+
+        binding.passwordToggle1.setOnClickListener {
+            val typeface = binding.newPwInput1.typeface
+            val selection = binding.newPwInput1.selectionEnd
+
+            isPwVisible1 = !isPwVisible1
+
+            binding.newPwInput1.inputType = if (isPwVisible1)
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            else
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+            binding.newPwInput1.typeface = typeface
+            binding.newPwInput1.setSelection(selection)
+
+            val icon = if (isPwVisible1) R.drawable.icon_eye_on else R.drawable.icon_eye_off
+            binding.passwordToggle1.setImageResource(icon)
+        }
+
+        binding.passwordToggle2.setOnClickListener {
+            val typeface = binding.newPwInput2.typeface
+            val selection = binding.newPwInput2.selectionEnd
+
+            isPwVisible2 = !isPwVisible2
+
+            binding.newPwInput2.inputType = if (isPwVisible2)
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            else
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+            binding.newPwInput2.typeface = typeface
+            binding.newPwInput2.setSelection(selection)
+
+            val icon = if (isPwVisible2) R.drawable.icon_eye_on else R.drawable.icon_eye_off
+            binding.passwordToggle2.setImageResource(icon)
+        }
 
         binding.changePasswordButton.setOnClickListener {
             handleChangePassword()

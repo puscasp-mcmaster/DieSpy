@@ -56,17 +56,34 @@
             android:textColor="@color/white"
             android:layout_marginBottom="12dp"/>
 
-        <EditText
-            android:id="@+id/loginPwInput"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
-            android:textColorHint="@color/light_gray"
-            android:inputType="textPassword"
-            android:background="@drawable/edit_text_bg"
-            android:padding="14dp"
-            android:textColor="@color/white"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp">
+
+            <EditText
+                android:id="@+id/loginPwInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:textColorHint="@color/light_gray"
+                android:textColor="@color/white"
+                android:background="@drawable/edit_text_bg"
+                android:padding="14dp"
+                android:paddingEnd="48dp" />
+
+            <ImageView
+                android:id="@+id/passwordToggle"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/icon_eye_off"
+                android:contentDescription="Toggle Password Visibility"
+                app:tint="@color/light_gray" />
+        </FrameLayout>
+
 
         <Button
             android:id="@+id/toHomeScreenButton"

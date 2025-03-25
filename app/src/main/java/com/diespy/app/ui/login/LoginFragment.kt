@@ -1,6 +1,7 @@
 package com.diespy.app.ui.login
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +36,28 @@ class LoginFragment : Fragment() {
             findNavController().navigate(R.id.action_login_to_home)
             return
         }
+
+        var isPasswordVisible = false
+
+        binding.passwordToggle.setOnClickListener {
+            val selection = binding.loginPwInput.selectionEnd
+            val typeface = binding.loginPwInput.typeface  // Save the current font
+
+            isPasswordVisible = !isPasswordVisible
+
+            binding.loginPwInput.inputType = if (isPasswordVisible) {
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            } else {
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            }
+
+            binding.loginPwInput.typeface = typeface  // Restore the font
+            binding.loginPwInput.setSelection(selection)
+
+            val icon = if (isPasswordVisible) R.drawable.icon_eye_on else R.drawable.icon_eye_off
+            binding.passwordToggle.setImageResource(icon)
+        }
+
 
         binding.toHomeScreenButton.setOnClickListener {
             handleLogin()
