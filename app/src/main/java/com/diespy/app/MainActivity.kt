@@ -2,6 +2,7 @@ package com.diespy.app
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -147,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                 backButton?.setImageResource(R.drawable.icon_home)
                 navBack.setOnClickListener {
                     if (navController.currentDestination?.id != R.id.homeFragment) {
-                        navController.navigate(R.id.homeFragment)
+                        showLeavePartyConfirmation(navController)
                     }
                 }
             } else {
@@ -206,6 +207,27 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun showLeavePartyConfirmation(navController: androidx.navigation.NavController) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_leave_party, null)
+
+        val alertDialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<Button>(R.id.cancelButton).setOnClickListener {
+            alertDialog.dismiss()
+        }
+
+        dialogView.findViewById<Button>(R.id.homeButton).setOnClickListener {
+            SharedPrefManager.clearCurrentPartyData(this)
+            alertDialog.dismiss()
+            navController.navigate(R.id.homeFragment)
+        }
+        alertDialog.window?.setDimAmount(0.8f) // 0 = no dim, 1 = full black
+        alertDialog.show()
+    }
+
 
     private fun applySystemBarInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->

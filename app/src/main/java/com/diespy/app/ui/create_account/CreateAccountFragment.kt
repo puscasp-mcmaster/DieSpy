@@ -1,6 +1,7 @@
 package com.diespy.app.ui.create_account
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,6 +33,46 @@ class CreateAccountFragment : Fragment() {
         binding.createAccountButton.setOnClickListener {
             handleAccountCreation()
         }
+
+        var isPwVisible1 = false
+        var isPwVisible2 = false
+
+        binding.passwordToggle1.setOnClickListener {
+            val typeface = binding.createAccountPwInput1.typeface
+            val selection = binding.createAccountPwInput1.selectionEnd
+
+            isPwVisible1 = !isPwVisible1
+
+            binding.createAccountPwInput1.inputType = if (isPwVisible1)
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            else
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+            binding.createAccountPwInput1.typeface = typeface
+            binding.createAccountPwInput1.setSelection(selection)
+
+            val icon = if (isPwVisible1) R.drawable.icon_eye_on else R.drawable.icon_eye_off
+            binding.passwordToggle1.setImageResource(icon)
+        }
+
+        binding.passwordToggle2.setOnClickListener {
+            val typeface = binding.createAccountPwInput2.typeface
+            val selection = binding.createAccountPwInput2.selectionEnd
+
+            isPwVisible2 = !isPwVisible2
+
+            binding.createAccountPwInput2.inputType = if (isPwVisible2)
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            else
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+            binding.createAccountPwInput2.typeface = typeface
+            binding.createAccountPwInput2.setSelection(selection)
+
+            val icon = if (isPwVisible2) R.drawable.icon_eye_on else R.drawable.icon_eye_off
+            binding.passwordToggle2.setImageResource(icon)
+        }
+
     }
 
     private fun handleAccountCreation() {
