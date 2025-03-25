@@ -3,6 +3,7 @@ package com.diespy.app.ui.chat
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,7 +44,7 @@ class ChatFragment : Fragment() {
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
 
         chatManager = ChatManager(requireContext())
-        chatAdapter = ChatAdapter(emptyList()) // Start with an empty list
+        chatAdapter = ChatAdapter(requireContext(), emptyList()) // Start with an empty list
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
         }
@@ -107,37 +108,44 @@ class ChatFragment : Fragment() {
 }
 
 
-//prints chat messages on screen
-class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.chat_message_item, parent, false)
-        return ChatViewHolder(view).apply {
-            itemView.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
+class ChatAdapter(private val context: Context, private var messages: List<ChatMessage>) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
+    companion object {
+        private const val VIEW_TYPE_LEFT = 0
+        private const val VIEW_TYPE_RIGHT = 1
     }
 
-    class ChatViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val messageText: TextView = view.findViewById(R.id.messageText)
+    override fun getItemViewType(position: Int): Int {
+        val message = messages[position]
+        val currentUsername = SharedPrefManager.getCurrentUsername(context)
+        return if (message.username == currentUsername) VIEW_TYPE_RIGHT else VIEW_TYPE_LEFT
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
+        val layoutId = if (viewType == VIEW_TYPE_RIGHT) {
+            R.layout.chat_message_right
+        } else {
+            R.layout.chat_message_left
+        }
+        val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
+        return ChatViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         val message = messages[position]
-        // If using Date directly:
+
+        // Format the header (username + timestamp) and message
         val date = message.timeStamp?.toDate() ?: Date()
         val formattedTime = SimpleDateFormat("yyyy-MM-dd HH:mm").format(date)
         val header = "${message.username.replaceFirstChar { it.titlecase() }}: $formattedTime\n"
         val fullText = header + message.msg
 
-        val spannable = SpannableString(fullText)
-        spannable.setSpan(
-            android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-            0, header.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
+        val spannable = SpannableString(fullText).apply {
+            setSpan(
+                android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                0, header.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
         holder.messageText.text = spannable
     }
 
@@ -147,7 +155,12 @@ class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapte
         messages = newMessages
         notifyDataSetChanged()
     }
+
+    class ChatViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val messageText: TextView = view.findViewById(R.id.messageText)
+    }
 }
+
 
 private inline fun String.replaceFirstChar(transform: (Char) -> CharSequence): String {
     return if (isNotEmpty())

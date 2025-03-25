@@ -17,35 +17,63 @@
             android:text="Party Name Here"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp" />
 
-        <!-- Turn Information -->
-        <TextView
-            android:id="@+id/currentTurnTextView"
-            android:layout_width="wrap_content"
+        <!-- Turn Information and End Turn button in one row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="It is ___ Turn!"
-            android:textSize="18sp"
-            android:textColor="@color/text_white"
-            android:layout_marginBottom="8dp"/>
-        <TextView
-            android:id="@+id/nextTurnTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="____'s turn is next!"
-            android:textSize="18sp"
-            android:textColor="@color/text_white"
-            android:layout_marginBottom="20dp"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
 
-        <!-- Previous Roll Section -->
+            <!-- Turn Info container -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/currentTurnTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="It is ___ Turn!"
+                    android:textSize="18sp"
+                    android:textColor="@color/text_white"
+                    android:layout_marginBottom="8dp" />
+                <TextView
+                    android:id="@+id/nextTurnTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="____'s turn is next!"
+                    android:textSize="18sp"
+                    android:textColor="@color/text_white" />
+            </LinearLayout>
+
+            <!-- End Turn Button -->
+            <Button
+                android:id="@+id/endTurnButton"
+                android:layout_width="100dp"
+                android:layout_height="60dp"
+                android:background="@drawable/square_button_ripple"
+                android:text="End Turn"
+                android:textColor="@color/text_white"
+                android:textSize="14sp"
+                android:clickable="true"
+                android:gravity="center" />
+
+
+        </LinearLayout>
+
         <!-- Previous Roll Section -->
         <LinearLayout
             android:id="@+id/previousRollContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/chat_bubble_background"
+            android:background="@drawable/dialog_background"
             android:padding="16dp"
+            android:layout_marginTop="10dp"
             android:layout_marginBottom="20dp">
 
             <TextView
@@ -54,18 +82,17 @@
                 android:layout_height="wrap_content"
                 android:text="Previous Roll"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp" />
 
             <TextView
                 android:id="@+id/rollUserNameTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="User:"
-                android:textSize="16sp"
-                android:layout_marginBottom="8dp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
-            <!-- Dice Details: Each dice value is its own TextView -->
             <LinearLayout
                 android:id="@+id/diceDetailContainer"
                 android:layout_width="match_parent"
@@ -128,24 +155,13 @@
             </LinearLayout>
         </LinearLayout>
 
-
-        <!-- End Turn Button -->
-        <Button
-            android:id="@+id/endTurnButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="End Turn"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/text_white"/>
-
-        <!-- Simulate Roll Button -->
         <Button
             android:id="@+id/simulateRollButton"
+            android:layout_marginTop="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Simulate Roll"
             android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/text_white"/>
+            android:text="Simulate Roll"
+            android:textColor="@color/text_white" />
     </LinearLayout>
 </FrameLayout>

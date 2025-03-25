@@ -6,9 +6,9 @@
     <color name="red">#F44336</color>
 
     <color name="primary">#00FFFFFF</color>
-    <color name="button_default_color">#FF6200EE</color>
-    <color name="button_pressed_color">#FF3700B3</color>
-co
+    <color name="button_default_color">#007AFF</color>
+    <color name="button_pressed_color">#66B2FF</color>
+
     <color name="text_white">#EEEEEE</color>
     <color name="text_black">#1a1a1a</color>
     <color name="text_grey">#666666</color>

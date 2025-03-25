@@ -34,12 +34,12 @@
 
     </FrameLayout>
 
-    <androidx.appcompat.widget.AppCompatButton
+    <Button
         android:id="@+id/freezeButton"
         android:layout_width="364dp"
         android:layout_height="56dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/chat_bubble_background"
+        android:background="@drawable/square_button_ripple"
         android:text="Capture"
         android:textColor="#FFFFFF"
         android:textSize="20dp"
@@ -50,12 +50,12 @@
         app:layout_constraintTop_toBottomOf="@id/preview_container"
         app:layout_constraintVertical_bias="0.089" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <Button
         android:id="@+id/showRollButton"
         android:layout_width="273dp"
         android:layout_height="50dp"
         android:layout_marginTop="20dp"
-        android:background="@drawable/chat_bubble_background"
+        android:background="@drawable/square_button_ripple"
         android:text="Show Last Roll"
         android:textColor="#FFFFFF"
         android:textSize="18dp"
