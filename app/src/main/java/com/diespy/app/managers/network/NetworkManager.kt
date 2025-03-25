@@ -1,25 +1,16 @@
 import android.Manifest
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.wifi.p2p.*
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.home.PartyItem
-import java.io.BufferedReader
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.OutputStream
 import java.io.PrintWriter
 import java.net.ServerSocket
 import java.net.Socket
@@ -383,7 +374,7 @@ class NetworkManager(private val context: Context) {
 
     public fun initAsHost(context: Context) {
         val partyName : String = SharedPrefManager.getCurrentPartyName(context) ?: "Unnamed Party"
-        val partyId :String = SharedPrefManager.getCurrentParty(context) ?: "N/A"
+        val partyId :String = SharedPrefManager.getCurrentPartyId(context) ?: "N/A"
         advertiseService(partyName, partyId)
         startServer()
     }

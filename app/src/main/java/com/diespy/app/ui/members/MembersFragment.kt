@@ -32,7 +32,7 @@ class MembersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val partyId = SharedPrefManager.getCurrentParty(requireContext())
+        val partyId = SharedPrefManager.getCurrentPartyId(requireContext())
         if (partyId == null) {
             binding.membersErrorText.text = "No party selected."
             binding.membersErrorText.visibility = View.VISIBLE
@@ -74,26 +74,22 @@ class MembersFragment : Fragment() {
                 .setCancelable(false)
                 .setPositiveButton("Yes") { _, _ ->
                     val context = requireContext()
-                    val partyId = SharedPrefManager.getCurrentParty(context)
-                    val userId = SharedPrefManager.getLoggedInUserId(context)
+                    val partyId = SharedPrefManager.getCurrentPartyId(context)
+                    val userId = SharedPrefManager.getCurrentUserId(context)
 
                     if (partyId != null && userId != null) {
                         lifecycleScope.launch {
-                            val success = fireStoreManager.updateDocument("Parties", partyId, mapOf(
-                                "userIds" to com.google.firebase.firestore.FieldValue.arrayRemove(userId)
-                            ))
+                            val success = fireStoreManager.leavePartyAndDeleteIfEmpty(partyId, userId)
 
                             if (success) {
-                                SharedPrefManager.clearCurrentParty(context)
+                                SharedPrefManager.clearCurrentPartyData(context)
                                 findNavController().navigate(R.id.action_members_to_home)
                             } else {
-                                binding.membersErrorText.text = "Failed to leave party. Try again."
-                                binding.membersErrorText.visibility = View.VISIBLE
+                                showError("Failed to leave party. Try again.")
                             }
                         }
                     } else {
-                        binding.membersErrorText.text = "Missing party or user info."
-                        binding.membersErrorText.visibility = View.VISIBLE
+                        showError("Missing party or user info.")
                     }
                 }
                 .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
@@ -105,8 +101,15 @@ class MembersFragment : Fragment() {
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
                     ?.setTextColor(resources.getColor(R.color.black, null))
             }
+
             dialog.show()
         }
+
+    }
+
+    private fun showError(message: String) {
+        binding.membersErrorText.text = message
+        binding.membersErrorText.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {

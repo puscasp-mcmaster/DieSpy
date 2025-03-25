@@ -52,7 +52,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun handleDeleteAccount() {
-        val username = SharedPrefManager.getUsername(requireContext())
+        val username = SharedPrefManager.getCurrentUsername(requireContext())
         if (username == null) {
             showError("Username not found.")
             return
@@ -66,17 +66,31 @@ class SettingsFragment : Fragment() {
                 return@launch
             }
 
+            val userId = SharedPrefManager.getCurrentUserId(requireContext())
+            if (userId == null) {
+                showError("User ID not found.")
+                return@launch
+            }
+
+            // First remove user from all parties and clean up empty ones
+            val cleaned = fireStoreManager.removeUserFromAllParties(userId)
+
+            if (!cleaned) {
+                showError("Failed to remove user from parties.")
+                return@launch
+            }
+
+            // Then delete user
             val deleteSuccess = fireStoreManager.deleteDocument("Users", userDocumentId)
             if (deleteSuccess) {
-                SharedPrefManager.clearUserData(requireContext())
+                SharedPrefManager.clearCurrentUserData(requireContext())
                 findNavController().navigate(R.id.action_settings_to_login)
             } else {
                 showError("Failed to delete account. Try again.")
             }
         }
-
-        //TODO add deltion from parties
     }
+
 
     private fun showError(message: String) {
         binding.settingsErrorMessage.text = message

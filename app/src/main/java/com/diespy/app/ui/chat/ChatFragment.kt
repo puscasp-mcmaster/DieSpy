@@ -18,7 +18,6 @@ import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.lifecycle.lifecycleScope
-import com.diespy.app.MainActivity
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -41,7 +40,7 @@ class ChatFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
+        val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
 
         chatManager = ChatManager(requireContext())
         chatAdapter = ChatAdapter(emptyList()) // Start with an empty list
@@ -60,7 +59,7 @@ class ChatFragment : Fragment() {
         binding.sendButton.setOnClickListener {
             val timeStamp = Date()
             //Tries to grab username, if there is not one, it defaults to User
-            val username = (SharedPrefManager.getUsername(requireContext()))?: "User"
+            val username = (SharedPrefManager.getCurrentUsername(requireContext()))?: "User"
             val message = binding.messageInput.text.toString()
             if (message.isNotBlank()) {
                 lifecycleScope.launch {

@@ -30,7 +30,7 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Retrieve logged in information and move to home screen if already logged in
-        val savedUserId = SharedPrefManager.getLoggedInUserId(requireContext())
+        val savedUserId = SharedPrefManager.getCurrentUserId(requireContext())
         if (!savedUserId.isNullOrEmpty()) {
             findNavController().navigate(R.id.action_login_to_home)
             return
@@ -62,8 +62,8 @@ class LoginFragment : Fragment() {
                 val userDocumentId = fireStoreManager.getDocumentIdByField("Users", "username", username)
 
                 if (userDocumentId != null) {
-                    SharedPrefManager.saveUsername(requireContext(), username)
-                    SharedPrefManager.saveLoggedInUserId(requireContext(), userDocumentId)
+                    SharedPrefManager.saveCurrentUsername(requireContext(), username)
+                    SharedPrefManager.saveCurrentUserId(requireContext(), userDocumentId)
 
                     binding.loginErrorMessage.visibility = View.GONE
                     findNavController().navigate(R.id.action_login_to_home)

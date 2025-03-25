@@ -49,7 +49,7 @@ class ChangePasswordFragment : Fragment() {
 
         lifecycleScope.launch {
             //Grab username
-            val username = (SharedPrefManager.getUsername(requireContext()))?: ""
+            val username = (SharedPrefManager.getCurrentUsername(requireContext()))?: ""
             if (username == ""){
                 showError("Username error. Try again.")
                 return@launch

@@ -58,8 +58,8 @@ class CreateAccountFragment : Fragment() {
                 val userDocumentId = fireStoreManager.getDocumentIdByField("Users", "username", username)
 
                 if (userDocumentId != null) {
-                    SharedPrefManager.saveUsername(requireContext(), username)
-                    SharedPrefManager.saveLoggedInUserId(requireContext(), userDocumentId)
+                    SharedPrefManager.saveCurrentUsername(requireContext(), username)
+                    SharedPrefManager.saveCurrentUserId(requireContext(), userDocumentId)
                 }
 
                 clearFields()
