@@ -263,16 +263,30 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
     //Popup
     private fun reformatLogString(logString: String): String {
-        // Split the log string into lines; expects at least 6 lines like "1: <count>"
-        val lines = logString.split("\n")
-        return if (lines.size >= 6) {
-            "   ${lines[0]}      ${lines[3]}\n" +
-                    "   ${lines[1]}      ${lines[4]}\n" +
-                    "   ${lines[2]}      ${lines[5]}"
-        } else {
-            logString
+        // Use regex to extract all dice counts (keys 1–12).
+        val regex = Regex("""(\d+)s?:\s*(\d+)""")
+        val countsMap = mutableMapOf<Int, Int>()
+        regex.findAll(logString).forEach { result ->
+            val (faceStr, countStr) = result.destructured
+            countsMap[faceStr.toInt()] = countStr.toInt()
         }
+        // For each dice face 1-6, compute the combined count (face + face+6).
+        val dice1 = (countsMap[1] ?: 0) + (countsMap[7] ?: 0)
+        val dice2 = (countsMap[2] ?: 0) + (countsMap[8] ?: 0)
+        val dice3 = (countsMap[3] ?: 0) + (countsMap[9] ?: 0)
+        val dice4 = (countsMap[4] ?: 0) + (countsMap[10] ?: 0)
+        val dice5 = (countsMap[5] ?: 0) + (countsMap[11] ?: 0)
+        val dice6 = (countsMap[6] ?: 0) + (countsMap[12] ?: 0)
+        // Compute total sum weighted by dice face.
+        val totalSum = 1 * dice1 + 2 * dice2 + 3 * dice3 + 4 * dice4 + 5 * dice5 + 6 * dice6
+        // Format the breakdown in two columns.
+        val breakdown = "       1: $dice1      4: $dice4\n" +
+                "       2: $dice2      5: $dice5\n" +
+                "       3: $dice3      6: $dice6"
+        // Include the total at the top.
+        return "$totalSum\n$breakdown"
     }
+
 
     private fun showRollDialog() {
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
@@ -281,27 +295,54 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             if (logs.isNotEmpty()) {
                 val lastLog = logs.last()
                 val username = lastLog.username
-                val formattedLog = reformatLogString(lastLog.log)
                 withContext(Dispatchers.Main) {
-                    // Inflate the custom last roll dialog layout (which now has an Edit button)
                     val inflater = LayoutInflater.from(requireContext())
                     val dialogView = inflater.inflate(R.layout.dialog_last_roll, null)
+
                     val titleView = dialogView.findViewById<TextView>(R.id.dialogTitle)
-                    val messageView = dialogView.findViewById<TextView>(R.id.dialogMessage)
+                    val totalText = dialogView.findViewById<TextView>(R.id.totalText)
+                    val row1_left = dialogView.findViewById<TextView>(R.id.row1_left)
+                    val row1_right = dialogView.findViewById<TextView>(R.id.row1_right)
+                    val row2_left = dialogView.findViewById<TextView>(R.id.row2_left)
+                    val row2_right = dialogView.findViewById<TextView>(R.id.row2_right)
+                    val row3_left = dialogView.findViewById<TextView>(R.id.row3_left)
+                    val row3_right = dialogView.findViewById<TextView>(R.id.row3_right)
                     val dismissButton = dialogView.findViewById<Button>(R.id.dismissButton)
                     val editButton = dialogView.findViewById<Button>(R.id.editButton)
 
-                    // Set title and message using the last log data
+                    // Parse the log string using regex (keys 1–12)
+                    val regex = Regex("""(\d+)s?:\s*(\d+)""")
+                    val countsMap = mutableMapOf<Int, Int>()
+                    regex.findAll(lastLog.log).forEach { result ->
+                        val (faceStr, countStr) = result.destructured
+                        countsMap[faceStr.toInt()] = countStr.toInt()
+                    }
+                    // Combine counts: for each dice face (1–6), add the count from key n and key n+6.
+                    val dice1 = (countsMap[1] ?: 0) + (countsMap[7] ?: 0)
+                    val dice2 = (countsMap[2] ?: 0) + (countsMap[8] ?: 0)
+                    val dice3 = (countsMap[3] ?: 0) + (countsMap[9] ?: 0)
+                    val dice4 = (countsMap[4] ?: 0) + (countsMap[10] ?: 0)
+                    val dice5 = (countsMap[5] ?: 0) + (countsMap[11] ?: 0)
+                    val dice6 = (countsMap[6] ?: 0) + (countsMap[12] ?: 0)
+                    // Compute the weighted total.
+                    val totalSum = 1 * dice1 + 2 * dice2 + 3 * dice3 + 4 * dice4 + 5 * dice5 + 6 * dice6
+
+                    // Set the text in the layout.
+                    totalText.text = "Total: $totalSum"
+                    row1_left.text = "1: $dice1"
+                    row1_right.text = "4: $dice4"
+                    row2_left.text = "2: $dice2"
+                    row2_right.text = "5: $dice5"
+                    row3_left.text = "3: $dice3"
+                    row3_right.text = "6: $dice6"
+
                     titleView.text = "Last Dice Roll"
-                    messageView.text = "${username.replaceFirstChar { it.titlecase() }} Rolled:\n$formattedLog"
 
                     val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
                         .setView(dialogView)
                         .create()
 
                     dismissButton.setOnClickListener { dialog.dismiss() }
-
-                    // When Edit is pressed, dismiss the current dialog and open the edit dialog.
                     editButton.setOnClickListener {
                         dialog.dismiss()
                         openEditRollDialog(lastLog)

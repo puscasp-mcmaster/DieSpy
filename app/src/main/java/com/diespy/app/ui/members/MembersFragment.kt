@@ -42,7 +42,7 @@ class MembersFragment : Fragment() {
         }
 
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             // Load members
             val memberUsernames = fireStoreManager.getUsernamesForParty(partyId)
 

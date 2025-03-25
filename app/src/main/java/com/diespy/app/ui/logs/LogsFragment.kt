@@ -1,6 +1,7 @@
 package com.diespy.app.ui.logs
 
 import android.app.AlertDialog
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
@@ -13,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentLogsBinding
 import com.diespy.app.managers.logs.LogManager
@@ -44,7 +46,7 @@ class LogsFragment : Fragment() {
             stackFromEnd = true
         }
         binding.recyclerView.adapter = logAdapter
-
+        binding.recyclerView.addItemDecoration(LogAdapter.SpaceItemDecoration(16))
         loadLogs()
 
     }
@@ -71,7 +73,7 @@ class LogAdapter(
     private var logs: List<LogMessage>,
     private val logManager: LogManager,
     private val refreshCallback: () -> Unit
-) : androidx.recyclerview.widget.RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
+) : RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.log_message_item, parent, false)
@@ -91,7 +93,15 @@ class LogAdapter(
         notifyDataSetChanged()
     }
 
-    class LogViewHolder(view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
+    class SpaceItemDecoration(private val verticalSpaceHeight: Int) : RecyclerView.ItemDecoration() {
+        override fun getItemOffsets(
+            outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
+        ) {
+            outRect.bottom = verticalSpaceHeight
+        }
+    }
+
+    class LogViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val logText: TextView = view.findViewById(R.id.logText)
         private val editButton: Button = view.findViewById(R.id.editButton)
         private val deleteButton: Button = view.findViewById(R.id.deleteButton)

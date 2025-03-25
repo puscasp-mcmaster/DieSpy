@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.diespy.app.databinding.FragmentPartyBinding
 import com.diespy.app.managers.logs.LogManager
+import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import kotlinx.coroutines.launch
 
@@ -16,6 +17,10 @@ class PartyFragment : Fragment() {
 
     private var _binding: FragmentPartyBinding? = null
     private val binding get() = _binding!!
+
+    // List to hold party members and an index for the current turn.
+    private var partyMembers: List<String> = emptyList()
+    private var currentTurnIndex: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -27,22 +32,35 @@ class PartyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Load party name from SharedPrefManager
+        // Load party name from SharedPrefManager.
         val partyName = SharedPrefManager.getCurrentPartyName(requireContext()) ?: "Party Name"
         binding.partyNameTextView.text = partyName
 
-        // Set turn information with default text
-        binding.currentTurnTextView.text = "It is Player 1's Turn!"
-        binding.nextTurnTextView.text = "Player 2's turn is next!"
+        // Load party members from FireStore.
+        val partyId = SharedPrefManager.getCurrentPartyId(requireContext())
+        if (partyId != null) {
+            val fireStoreManager = FireStoreManager()
+            lifecycleScope.launch {
+                partyMembers = fireStoreManager.getUsernamesForParty(partyId)
+                // If only one member, duplicate it so current and next show the same.
+                if (partyMembers.size == 1) {
+                    partyMembers = listOf(partyMembers[0], partyMembers[0])
+                }
+                updateTurnUI()
+            }
+        } else {
+            binding.currentTurnTextView.text = "No party selected"
+            binding.nextTurnTextView.text = ""
+        }
 
-        // Retrieve the last roll using LogManager and update the previous roll section using regex
+        // Retrieve the last roll using LogManager (unchanged).
         val logManager = LogManager(requireContext())
-        lifecycleScope.launch {
-            val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
-            val logs = logManager.loadLogs(currentParty)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val currentPartyId = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
+            val logs = logManager.loadLogs(currentPartyId)
             if (logs.isNotEmpty()) {
                 val lastLog = logs.last()
-                binding.rollUserNameTextView.text = "${lastLog.username} rolled:"
+                binding.rollUserNameTextView.text = "${lastLog.username.replaceFirstChar { it.titlecase() }} rolled:"
 
                 // Use regex to extract dice counts; expects log format like "1s: 0", "2s: 3", etc.
                 val regex = Regex("""(\d+)s?:\s*(\d+)""")
@@ -51,8 +69,6 @@ class PartyFragment : Fragment() {
                     val (faceStr, countStr) = result.destructured
                     countsMap[faceStr.toInt()] = countStr.toInt()
                 }
-
-                // Populate each dice detail TextView
                 binding.diceDetail1.text = "1: ${countsMap[1] ?: 0}"
                 binding.diceDetail2.text = "2: ${countsMap[2] ?: 0}"
                 binding.diceDetail3.text = "3: ${countsMap[3] ?: 0}"
@@ -70,14 +86,34 @@ class PartyFragment : Fragment() {
             }
         }
 
-        // End Turn Button listener
+        // End Turn Button cycles through party members.
         binding.endTurnButton.setOnClickListener {
-            Toast.makeText(requireContext(), "End Turn functionality not implemented yet", Toast.LENGTH_SHORT).show()
+            if (partyMembers.size > 1) {
+                currentTurnIndex = (currentTurnIndex + 1) % partyMembers.size
+                updateTurnUI()
+            } else {
+                Toast.makeText(requireContext(), "Only one member in party", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        // Simulate Roll Button listener
+        // Simulate Roll Button remains unchanged.
         binding.simulateRollButton.setOnClickListener {
             Toast.makeText(requireContext(), "Simulate Roll functionality not implemented yet", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Updates the current and next turn TextViews based on the partyMembers list and currentTurnIndex.
+    private fun updateTurnUI() {
+        if (partyMembers.isEmpty()) {
+            binding.currentTurnTextView.text = "No members available"
+            binding.nextTurnTextView.text = ""
+        } else if (partyMembers.size == 1) {
+            binding.currentTurnTextView.text = "It is ${partyMembers[0].replaceFirstChar { it.titlecase() }}'s Turn!"
+            binding.nextTurnTextView.text = "${partyMembers[0].replaceFirstChar { it.titlecase() }}'s turn is next!"
+        } else {
+            binding.currentTurnTextView.text = "It is ${partyMembers[currentTurnIndex].replaceFirstChar { it.titlecase() }}'s Turn!"
+            val nextIndex = (currentTurnIndex + 1) % partyMembers.size
+            binding.nextTurnTextView.text = "${partyMembers[nextIndex].replaceFirstChar { it.titlecase() }}'s turn is next!"
         }
     }
 

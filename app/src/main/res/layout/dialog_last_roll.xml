@@ -1,66 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="300dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@color/gray"
-    android:gravity="center_horizontal"
-    android:elevation="8dp">
+    android:gravity="center_horizontal">
 
     <TextView
         android:id="@+id/dialogTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Last Dice Roll"
-        android:textSize="18sp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:gravity="center"
         android:textStyle="bold"
-        android:textColor="@color/text_white"
-        android:layout_marginBottom="16dp" />
+        android:textSize="24sp"
+        android:layout_marginBottom="16dp"/>
 
-    <TextView
-        android:id="@+id/dialogMessage"
-        android:layout_width="wrap_content"
+    <!-- Container for the breakdown -->
+    <LinearLayout
+        android:id="@+id/breakdownContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Your roll details will appear here"
-        android:textSize="16sp"
-        android:textColor="@color/text_white"
-        android:layout_marginBottom="16dp" />
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-    <!-- Buttons container -->
+        <!-- Total row -->
+        <TextView
+            android:id="@+id/totalText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total: "
+            android:textStyle="bold"
+            android:textSize="22dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:gravity="center"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Row 1: Dice 1 and 4 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/row1_left"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="20dp"
+                android:text="1: "
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/row1_right"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="20dp"
+
+                android:text="4: "
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Row 2: Dice 2 and 5 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="4dp">
+            <TextView
+                android:id="@+id/row2_left"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="20dp"
+
+                android:text="2: "
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/row2_right"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="20dp"
+
+                android:text="5: "
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Row 3: Dice 3 and 6 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="4dp">
+            <TextView
+                android:id="@+id/row3_left"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="20dp"
+
+                android:text="3: "
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/row3_right"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="20dp"
+                android:text="6: "
+                android:gravity="center"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Buttons row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center">
-
+        android:gravity="center"
+        android:layout_marginTop="16dp">
         <Button
             android:id="@+id/editButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Edit"
-            android:textAllCaps="false"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"
-            android:padding="14dp"
-            android:layout_marginRight="10dp"
-            />
-
+            android:text="Edit"/>
         <Button
             android:id="@+id/dismissButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="Dismiss"
-            android:textAllCaps="false"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"
-            android:padding="14dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="10dp"
-            />
+            android:layout_marginStart="16dp"/>
     </LinearLayout>
-
 </LinearLayout>
