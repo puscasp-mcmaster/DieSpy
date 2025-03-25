@@ -46,7 +46,7 @@ class SettingsFragment : Fragment() {
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
                     ?.setTextColor(resources.getColor(R.color.black, null))
             }
-
+            dialog.window?.setDimAmount(0.8f) // 0 = no dim, 1 = full black
             dialog.show()
         }
     }
