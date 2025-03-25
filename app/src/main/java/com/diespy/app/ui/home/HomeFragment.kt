@@ -31,6 +31,8 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        SharedPrefManager.clearCurrentPartyData(requireContext())
+
         binding.addPartyButton.setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_add_party, null)
             val dialog = AlertDialog.Builder(requireContext())
@@ -51,7 +53,7 @@ class HomeFragment : Fragment() {
         }
 
 
-        val userId = SharedPrefManager.getLoggedInUserId(requireContext())
+        val userId = SharedPrefManager.getCurrentUserId(requireContext())
         if (userId == null) {
             showError("User not logged in.")
             binding.partyRecyclerView.visibility = View.GONE
@@ -69,7 +71,7 @@ class HomeFragment : Fragment() {
                 binding.partyRecyclerView.visibility = View.VISIBLE
 
                 val adapter = PartyAdapter(partyItems) { party ->
-                    SharedPrefManager.saveCurrentParty(requireContext(), party.id)
+                    SharedPrefManager.saveCurrentPartyId(requireContext(), party.id)
                     SharedPrefManager.saveCurrentPartyName(requireContext(),party.name)
                     findNavController().navigate(R.id.action_home_to_party)
                 }

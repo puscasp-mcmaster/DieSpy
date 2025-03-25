@@ -32,7 +32,7 @@ class MembersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val partyId = SharedPrefManager.getCurrentParty(requireContext())
+        val partyId = SharedPrefManager.getCurrentPartyId(requireContext())
         if (partyId == null) {
             binding.membersErrorText.text = "No party selected."
             binding.membersErrorText.visibility = View.VISIBLE
@@ -74,15 +74,15 @@ class MembersFragment : Fragment() {
                 .setCancelable(false)
                 .setPositiveButton("Yes") { _, _ ->
                     val context = requireContext()
-                    val partyId = SharedPrefManager.getCurrentParty(context)
-                    val userId = SharedPrefManager.getLoggedInUserId(context)
+                    val partyId = SharedPrefManager.getCurrentPartyId(context)
+                    val userId = SharedPrefManager.getCurrentUserId(context)
 
                     if (partyId != null && userId != null) {
                         lifecycleScope.launch {
                             val success = fireStoreManager.leavePartyAndDeleteIfEmpty(partyId, userId)
 
                             if (success) {
-                                SharedPrefManager.clearCurrentParty(context)
+                                SharedPrefManager.clearCurrentPartyData(context)
                                 findNavController().navigate(R.id.action_members_to_home)
                             } else {
                                 showError("Failed to leave party. Try again.")

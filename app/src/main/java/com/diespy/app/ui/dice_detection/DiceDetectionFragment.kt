@@ -196,8 +196,8 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         binding.freezeButton.text = "Unfreeze"
 
         //Add to logs when freezing
-        val username = SharedPrefManager.getUsername(requireContext()) ?: "User"
-        val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
+        val username = SharedPrefManager.getCurrentUsername(requireContext()) ?: "User"
+        val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
         val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
         logManager.saveLog(username, breakdown, timestamp, currentParty)
 
@@ -267,7 +267,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     }
 
     private fun showRollDialog() {
-        val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
+        val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
         lifecycleScope.launch {
             val logs = logManager.loadLogs(currentParty)
             if (logs.isNotEmpty()) {
@@ -383,7 +383,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                 val newLog = "1: ${face1CountText.text}      4: ${face4CountText.text}\n" +
                         "2: ${face2CountText.text}      5: ${face5CountText.text}\n" +
                         "3: ${face3CountText.text}      6: ${face6CountText.text}"
-                val currentParty = SharedPrefManager.getCurrentParty(context) ?: ""
+                val currentParty = SharedPrefManager.getCurrentPartyId(context) ?: ""
                 lifecycleScope.launch {
                     logManager.updateLog(currentParty, lastLog.id, newLog)
                     // Optionally refresh your logs or UI here.

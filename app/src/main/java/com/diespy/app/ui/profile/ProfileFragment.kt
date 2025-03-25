@@ -37,7 +37,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun handleLogout() {
-        SharedPrefManager.clearUserData(requireContext()) // Clears stored login info
+        SharedPrefManager.clearCurrentUserData(requireContext()) // Clears stored login info
         findNavController().navigate(R.id.action_profile_to_login) // Redirects to Login
     }
 

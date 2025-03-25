@@ -50,7 +50,7 @@ class LogsFragment : Fragment() {
     }
 
     private fun loadLogs() {
-        val currentParty = SharedPrefManager.getCurrentParty(requireContext()) ?: ""
+        val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
         lifecycleScope.launch {
             val logs = logManager.loadLogs(currentParty)
             logAdapter.updateLogs(logs)
@@ -197,7 +197,7 @@ class LogAdapter(
                         val newLog = "1s: ${face1CountText.text}      4s: ${face4CountText.text}\n" +
                                 "2s: ${face2CountText.text}      5s: ${face5CountText.text}\n" +
                                 "3s: ${face3CountText.text}      6s: ${face6CountText.text}"
-                        val currentParty = SharedPrefManager.getCurrentParty(context) ?: ""
+                        val currentParty = SharedPrefManager.getCurrentPartyId(context) ?: ""
                         (context as? androidx.fragment.app.FragmentActivity)?.lifecycleScope?.launch {
                             logManager.updateLog(currentParty, log.id, newLog)
                             refreshCallback()
@@ -222,7 +222,7 @@ class LogAdapter(
                     .setMessage("Are you sure you want to delete this roll?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { _, _ ->
-                        val currentParty = SharedPrefManager.getCurrentParty(context) ?: ""
+                        val currentParty = SharedPrefManager.getCurrentPartyId(context) ?: ""
                         (context as? androidx.fragment.app.FragmentActivity)?.lifecycleScope?.launch {
                             logManager.deleteLog(currentParty, log.id)
                             refreshCallback()

@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         setStatusBarColor(R.color.primary)
-        SharedPrefManager.clearCurrentParty(this)
+        SharedPrefManager.clearCurrentPartyData(this)
         applySystemBarInsets()
         FirebaseApp.initializeApp(this)
 
@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val currentPartyId = SharedPrefManager.getCurrentParty(this)
+            val currentPartyId = SharedPrefManager.getCurrentPartyId(this)
             val shouldShow = destination.id in setOf(
                 R.id.partyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment, R.id.rollsFragment, R.id.diceDetectionFragment
             ) && currentPartyId != null
@@ -154,8 +154,8 @@ class MainActivity : AppCompatActivity() {
                 backButton?.setImageResource(R.drawable.icon_arrow_left)
                 navBack.setOnClickListener {
                     if (navController.currentDestination?.id == R.id.diceDetectionFragment) {
-                        val userId = SharedPrefManager.getLoggedInUserId(this)
-                        val partyId = SharedPrefManager.getCurrentParty(this)
+                        val userId = SharedPrefManager.getCurrentUserId(this)
+                        val partyId = SharedPrefManager.getCurrentPartyId(this)
 
                         when {
                             userId == null -> navController.navigate(R.id.loginFragment)

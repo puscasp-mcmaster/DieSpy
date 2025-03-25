@@ -31,13 +31,14 @@ class CreatePartyFragment : Fragment() {
         binding.createPartyButton.setOnClickListener {
             clearError()
             val partyName = binding.partyNameInput.text.toString().trim()
-            val userId = SharedPrefManager.getLoggedInUserId(requireContext()) ?: ""
+            val userId = SharedPrefManager.getCurrentUserId(requireContext()) ?: ""
 
             if (partyName.isNotEmpty()) {
                 lifecycleScope.launch {
                     val success = partyManager.createParty(partyName, userId)
                     if (success != null) {
-                        SharedPrefManager.saveCurrentParty(requireContext(), success)
+                        SharedPrefManager.saveCurrentPartyId(requireContext(), success)
+                        SharedPrefManager.saveCurrentPartyName(requireContext(), partyName)
                         binding.partyNameInput.text.clear()
                         Toast.makeText(requireContext(), "Party Created!", Toast.LENGTH_SHORT).show()
 

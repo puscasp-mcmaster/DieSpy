@@ -16,7 +16,6 @@ import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.home.PartyAdapter
-import com.diespy.app.ui.home.PartyItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,7 +43,7 @@ class JoinPartyFragment : Fragment() {
             val partyItems = nm.discoveredDeviceMap.values.toList()
 
             val adapter = PartyAdapter(partyItems) { party ->
-                SharedPrefManager.saveCurrentParty(requireContext(), party.id)
+                SharedPrefManager.saveCurrentPartyId(requireContext(), party.id)
                 SharedPrefManager.saveCurrentPartyName(requireContext(),party.name)
                 nm.openClientSocket(party)
 
@@ -107,7 +106,7 @@ class JoinPartyFragment : Fragment() {
             return
         }
 
-        val userId = SharedPrefManager.getLoggedInUserId(context)
+        val userId = SharedPrefManager.getCurrentUserId(context)
         if (userId == null) {
             withContext(Dispatchers.Main) {
                 showError("User not found.")
@@ -118,6 +117,7 @@ class JoinPartyFragment : Fragment() {
         // Get party data
         val partyData = firestoreManager.queryDocument("Parties", "joinPw", password)
         val userIds = partyData?.get("userIds") as? List<*>
+        val partyName = partyData?.get("name") as? String
 
         if (userIds != null && userIds.contains(userId)) {
             withContext(Dispatchers.Main) {
@@ -133,7 +133,13 @@ class JoinPartyFragment : Fragment() {
 
         withContext(Dispatchers.Main) {
             if (success) {
-                SharedPrefManager.saveCurrentParty(context, partyId)
+                SharedPrefManager.saveCurrentPartyId(context, partyId)
+                if (partyName != null) {
+                    SharedPrefManager.saveCurrentPartyName(context, partyName)
+                } else {
+                    showError("Party name not found. Something went wrong.")
+                    return@withContext
+                }
                 Toast.makeText(context, "Party joined!", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_joinParty_to_party)
             } else {

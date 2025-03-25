@@ -7,66 +7,96 @@ object SharedPrefManager {
     private const val PREF_NAME = "UserPrefs"
 
     // Define Keys
-    private const val KEY_LOGGED_IN_USER_ID = "loggedInUserId"
-    private const val KEY_USERNAME = "username"
-    private const val KEY_PARTY = "party"
-    private const val PARTY_NAME = "partyName"
+    private const val KEY_CURRENT_USER_ID = "currentUserId"
+    private const val KEY_CURRENT_USERNAME = "currentUsername"
+    private const val KEY_CURRENT_PARTY_ID = "currentPartyId"
+    private const val KEY_CURRENT_PARTY_NAME = "currentPartyName"
 
     // Get SharedPreferences Instance
     private fun getPreferences(context: Context) =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
 
+    // ---------- USER --------------------------------------------------------------
+
     // Save Logged-in User ID
-    fun saveLoggedInUserId(context: Context, userId: String) {
-        getPreferences(context).edit().putString(KEY_LOGGED_IN_USER_ID, userId).apply()
+    fun saveCurrentUserId(context: Context, userId: String) {
+        getPreferences(context).edit().putString(KEY_CURRENT_USER_ID, userId).apply()
     }
 
     // Retrieve Logged-in User ID
-    fun getLoggedInUserId(context: Context): String? {
-        return getPreferences(context).getString(KEY_LOGGED_IN_USER_ID, null)
+    fun getCurrentUserId(context: Context): String? {
+        return getPreferences(context).getString(KEY_CURRENT_USER_ID, null)
     }
 
-    // Save Username
-    fun saveUsername(context: Context, username: String) {
-        getPreferences(context).edit().putString(KEY_USERNAME, username).apply()
+    // Clear Logged-in User ID
+    private fun clearCurrentUserId(context: Context) {
+        getPreferences(context).edit().remove(KEY_CURRENT_USER_ID).apply()
     }
 
-    // Retrieve Username
-    fun getUsername(context: Context): String? {
-        return getPreferences(context).getString(KEY_USERNAME, null)
+    // Save Logged-in Username
+    fun saveCurrentUsername(context: Context, username: String) {
+        getPreferences(context).edit().putString(KEY_CURRENT_USERNAME, username).apply()
     }
 
-    // Save Party
-    fun saveCurrentParty(context: Context, party: String) {
-        getPreferences(context).edit().putString(KEY_PARTY, party).apply()
+    // Retrieve Logged-in Username
+    fun getCurrentUsername(context: Context): String? {
+        return getPreferences(context).getString(KEY_CURRENT_USERNAME, null)
     }
 
-    // Retrieve Party
-    fun getCurrentParty(context: Context): String? {
-        return getPreferences(context).getString(KEY_PARTY, null)
+    // Clear Logged-in Username
+    private fun clearCurrentUsername(context: Context) {
+        getPreferences(context).edit().remove(KEY_CURRENT_USERNAME).apply()
     }
 
-    fun clearCurrentParty(context: Context) {
-        getPreferences(context).edit().remove(KEY_PARTY).apply()
+    // Clear all Logged-In User Data
+    fun clearCurrentUserData(context: Context) {
+        clearCurrentUserId(context)
+        clearCurrentUsername(context)
     }
 
+    //----- PARTY --------------------------------------------------------------------
 
-    // Save Party Name
+    // Save Current Party ID
+    fun saveCurrentPartyId(context: Context, party: String) {
+        getPreferences(context).edit().putString(KEY_CURRENT_PARTY_ID, party).apply()
+    }
+
+    // Retrieve Current Party ID
+    fun getCurrentPartyId(context: Context): String? {
+        return getPreferences(context).getString(KEY_CURRENT_PARTY_ID, null)
+    }
+
+    // Clear Current Party ID
+    private fun clearCurrentPartyId(context: Context) {
+        getPreferences(context).edit().remove(KEY_CURRENT_PARTY_ID).apply()
+    }
+
+    // Save Current Party Name
     fun saveCurrentPartyName(context: Context, party: String) {
-        getPreferences(context).edit().putString(PARTY_NAME, party).apply()
+        getPreferences(context).edit().putString(KEY_CURRENT_PARTY_NAME, party).apply()
     }
 
-    // Retrieve Party Name
+    // Retrieve Current Party Name
     fun getCurrentPartyName(context: Context): String? {
-        return getPreferences(context).getString(PARTY_NAME, null)
+        return getPreferences(context).getString(KEY_CURRENT_PARTY_NAME, null)
     }
 
-    fun clearCurrentPartyName(context: Context) {
-        getPreferences(context).edit().remove(PARTY_NAME).apply()
+    // Clear Current Party Name
+    private fun clearCurrentPartyName(context: Context) {
+        getPreferences(context).edit().remove(KEY_CURRENT_PARTY_NAME).apply()
     }
-    // Clear All User Data (Logout)
-    fun clearUserData(context: Context) {
+
+    // Clear All Current Party Data
+    fun clearCurrentPartyData(context: Context) {
+        clearCurrentPartyId(context)
+        clearCurrentPartyName(context)
+    }
+
+    //----- ALL DATA ----------------------------------------------------------------
+
+    // Clear All Data
+    fun clearAllData(context: Context) {
         getPreferences(context).edit().clear().apply()
     }
 }
