@@ -40,7 +40,7 @@ class PartyFragment : Fragment() {
         val partyId = SharedPrefManager.getCurrentPartyId(requireContext())
         if (partyId != null) {
             val fireStoreManager = FireStoreManager()
-            lifecycleScope.launch {
+            viewLifecycleOwner.lifecycleScope.launch {
                 partyMembers = fireStoreManager.getUsernamesForParty(partyId)
                 // If only one member, duplicate it so current and next show the same.
                 if (partyMembers.size == 1) {
