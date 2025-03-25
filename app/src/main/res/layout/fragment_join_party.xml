@@ -42,25 +42,52 @@
             android:id="@+id/partyPasswordInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@android:drawable/editbox_background"
             android:hint="Enter Party Password"
             android:inputType="text"
             android:textColorHint="@color/light_gray"
             android:textColor="@color/white"
-            android:background="@drawable/edit_text_bg"
-            android:padding="14dp"
-            android:layout_marginBottom="20dp"/>
+            android:padding="14dp"/>
 
         <Button
             android:id="@+id/joinPartyButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Join Party"
-            android:textAllCaps="false"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:padding="14dp"
-            android:layout_marginBottom="12dp"/>
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/joinPartyListHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Or, Select a local party from below:"
+            android:textSize="24sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/joinPartyRecycleView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical" />
+
+        <Button
+            android:id="@+id/joinPartyConnectButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#6200EE"
+            android:padding="12dp"
+            android:text="RETRY PEER SEARCH - TEMP"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/joinPartyHostButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#6200EE"
+            android:padding="12dp"
+            android:text="HOST - TEMP"
+            android:textColor="#FFFFFF" />
+
 
     </LinearLayout>
 

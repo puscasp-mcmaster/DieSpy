@@ -7,12 +7,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.diespy.app.R
+import com.diespy.app.managers.party.Party
 
-data class PartyItem(val id: String, val name: String, val userCount: Int)
+data class PartyItem(val id: String, val name: String, val userCount: Int, val ipAddress : String? = null, val port : String? = null)
 
 class PartyAdapter(
     private val parties: List<PartyItem>,
-    private val onItemClick: (partyId: String) -> Unit
+    private val onItemClick: (party: PartyItem) -> Unit
 ) : RecyclerView.Adapter<PartyAdapter.PartyViewHolder>() {
 
     class PartyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -30,7 +31,7 @@ class PartyAdapter(
         val party = parties[position]
         holder.partyName.text = party.name
         holder.memberCount.text = "${party.userCount}"
-        holder.itemView.setOnClickListener { onItemClick(party.id) }
+        holder.itemView.setOnClickListener { onItemClick(party) }
     }
 
     override fun getItemCount(): Int = parties.size
