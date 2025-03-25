@@ -122,7 +122,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                     while (frameDiceBuffer.size < 5 && System.currentTimeMillis() - startTime < 5000) {
                         delay(50)
                     }
-                    binding.showRollButton.visibility = View.VISIBLE
+                    if (currentParty!="") binding.showRollButton.visibility = View.VISIBLE
                     if (frameDiceBuffer.size < 5) {
                         showToast("No dice detected, please try again")
                         capturing = false
@@ -225,7 +225,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         frameDiceBuffer.clear()
         capturing = false
         binding.freezeButton.text = "Capture"
-        binding.freezeButton.isEnabled = true  // ensure button is enabled
+        binding.freezeButton.isEnabled = true
     }
 
 
@@ -462,24 +462,42 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                 val row2_right = dialogView.findViewById<TextView>(R.id.row2_right)
                 val row3_left = dialogView.findViewById<TextView>(R.id.row3_left)
                 val row3_right = dialogView.findViewById<TextView>(R.id.row3_right)
-                row1_left.visibility = View.GONE
-                row1_right.visibility = View.GONE
-                row2_left.visibility = View.GONE
-                row2_right.visibility = View.GONE
-                row3_left.visibility = View.GONE
-                row3_right.visibility = View.GONE
+
+                // Parse the log string using regex (keys 1–12)
+                val regex = Regex("""(\d+)s?:\s*(\d+)""")
+                val countsMap = mutableMapOf<Int, Int>()
+                regex.findAll(breakdown).forEach { result ->
+                    val (faceStr, countStr) = result.destructured
+                    countsMap[faceStr.toInt()] = countStr.toInt()
+                }
+                // Combine counts: for each dice face (1–6), add the count from key n and key n+6.
+                val dice1 = (countsMap[1] ?: 0) + (countsMap[7] ?: 0)
+                val dice2 = (countsMap[2] ?: 0) + (countsMap[8] ?: 0)
+                val dice3 = (countsMap[3] ?: 0) + (countsMap[9] ?: 0)
+                val dice4 = (countsMap[4] ?: 0) + (countsMap[10] ?: 0)
+                val dice5 = (countsMap[5] ?: 0) + (countsMap[11] ?: 0)
+                val dice6 = (countsMap[6] ?: 0) + (countsMap[12] ?: 0)
+                // Compute the weighted total.
+                val totalSum = 1 * dice1 + 2 * dice2 + 3 * dice3 + 4 * dice4 + 5 * dice5 + 6 * dice6
+
+                // Set the text in the layout.
+                totalText.text = "Total: $totalSum"
+                row1_left.text = "1: $dice1"
+                row1_right.text = "4: $dice4"
+                row2_left.text = "2: $dice2"
+                row2_right.text = "5: $dice5"
+                row3_left.text = "3: $dice3"
+                row3_right.text = "6: $dice6"
 
                 val dismissButton = dialogView.findViewById<Button>(R.id.dismissButton)
-                dismissButton.setOnClickListener {
-                    (it.context as? androidx.appcompat.app.AlertDialog)?.dismiss()
-                }
 
                 val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
                     .setView(dialogView)
                     .create()
 
-                dialog.setOnDismissListener {
+                dismissButton.setOnClickListener {
                     unfreezeCamera()
+                    dialog.dismiss()
                 }
                 dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
                 dialog.window?.setDimAmount(0.8f)
@@ -492,7 +510,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private fun showToast(message: String) {
         currentToast?.cancel()
         if (!isAdded) return
-            val toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG)
+        val toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG)
         toast.show()
         currentToast = toast
     }
