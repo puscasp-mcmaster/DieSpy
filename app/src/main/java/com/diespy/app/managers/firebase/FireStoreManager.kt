@@ -231,6 +231,71 @@ class FireStoreManager {
         }
     }
 
+    /**
+     * Removes a user from all parties they are a part of.
+     * If the user is the last one in a party, the party will be deleted.
+     * parameters:
+     *   - userId: The document id for current user
+     * returns: true if successful, false if not
+     */
+    suspend fun removeUserFromAllParties(userId: String): Boolean {
+        return try {
+            val partySnapshot = FirebaseFirestore.getInstance()
+                .collection("Parties")
+                .whereArrayContains("userIds", userId)
+                .get()
+                .await()
+
+            for (doc in partySnapshot.documents) {
+                val userIds = doc.get("userIds") as? MutableList<*> ?: continue
+                val updatedUserIds = userIds.filter { it != userId }
+
+                if (updatedUserIds.isEmpty()) {
+                    db.collection("Parties").document(doc.id).delete().await()
+                } else {
+                    db.collection("Parties").document(doc.id)
+                        .update("userIds", updatedUserIds)
+                        .await()
+                }
+            }
+
+            true // return true if everything went well
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false // return false if something failed
+        }
+    }
+
+    /**
+     * Removes the user from a specific party.
+     * If that user was the last member, the party is deleted.
+     * parameters:
+     *   - partyId: The document id for current party
+     *   - userId: The document id for current user
+     * returns: true if successful, false if not
+
+     */
+    suspend fun leavePartyAndDeleteIfEmpty(partyId: String, userId: String): Boolean {
+        return try {
+            val partySnapshot = db.collection("Parties").document(partyId).get().await()
+            val userIds = partySnapshot.get("userIds") as? List<*> ?: return false
+
+            if (userIds.size == 1 && userIds.contains(userId)) {
+                // Delete the whole party
+                db.collection("Parties").document(partyId).delete().await()
+            } else {
+                // Remove just the user
+                db.collection("Parties").document(partyId)
+                    .update("userIds", com.google.firebase.firestore.FieldValue.arrayRemove(userId))
+                    .await()
+            }
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 
 
 

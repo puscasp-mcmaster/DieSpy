@@ -79,21 +79,17 @@ class MembersFragment : Fragment() {
 
                     if (partyId != null && userId != null) {
                         lifecycleScope.launch {
-                            val success = fireStoreManager.updateDocument("Parties", partyId, mapOf(
-                                "userIds" to com.google.firebase.firestore.FieldValue.arrayRemove(userId)
-                            ))
+                            val success = fireStoreManager.leavePartyAndDeleteIfEmpty(partyId, userId)
 
                             if (success) {
                                 SharedPrefManager.clearCurrentParty(context)
                                 findNavController().navigate(R.id.action_members_to_home)
                             } else {
-                                binding.membersErrorText.text = "Failed to leave party. Try again."
-                                binding.membersErrorText.visibility = View.VISIBLE
+                                showError("Failed to leave party. Try again.")
                             }
                         }
                     } else {
-                        binding.membersErrorText.text = "Missing party or user info."
-                        binding.membersErrorText.visibility = View.VISIBLE
+                        showError("Missing party or user info.")
                     }
                 }
                 .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
@@ -105,8 +101,15 @@ class MembersFragment : Fragment() {
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
                     ?.setTextColor(resources.getColor(R.color.black, null))
             }
+
             dialog.show()
         }
+
+    }
+
+    private fun showError(message: String) {
+        binding.membersErrorText.text = message
+        binding.membersErrorText.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {
