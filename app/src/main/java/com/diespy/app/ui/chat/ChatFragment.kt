@@ -58,13 +58,13 @@ class ChatFragment : Fragment() {
 
         //Send message button
         binding.sendButton.setOnClickListener {
-            val timeStamp: String = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
+            val timeStamp = Date()
             //Tries to grab username, if there is not one, it defaults to User
             val username = (SharedPrefManager.getUsername(requireContext()))?: "User"
             val message = binding.messageInput.text.toString()
             if (message.isNotBlank()) {
                 lifecycleScope.launch {
-                    chatManager.saveMessage(username, message, timeStamp, currentParty)
+                    chatManager.saveMessage(username, message, timeStamp.toString(), currentParty)
 
                     // Reload messages after sending
                     val updatedMessages = chatManager.loadMessages(currentParty)
@@ -127,11 +127,12 @@ class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapte
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         val message = messages[position]
-        // Create a header containing username and timestamp
-        val header = "${message.username.replaceFirstChar { it.titlecase() }}: ${message.timestamp}\n"
+        // If using Date directly:
+        val date = message.timeStamp?.toDate() ?: Date()
+        val formattedTime = SimpleDateFormat("yyyy-MM-dd HH:mm").format(date)
+        val header = "${message.username.replaceFirstChar { it.titlecase() }}: $formattedTime\n"
         val fullText = header + message.msg
 
-        // Create a SpannableString and apply bold style to the header portion.
         val spannable = SpannableString(fullText)
         spannable.setSpan(
             android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
@@ -140,6 +141,7 @@ class ChatAdapter(private var messages: List<ChatMessage>) : RecyclerView.Adapte
         )
         holder.messageText.text = spannable
     }
+
     override fun getItemCount(): Int = messages.size
 
     fun updateMessages(newMessages: List<ChatMessage>) {

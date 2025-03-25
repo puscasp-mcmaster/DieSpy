@@ -50,7 +50,7 @@ class LoginFragment : Fragment() {
         val password = binding.loginPwInput.text.toString().trim()
 
         if (username.isBlank() || password.isBlank()) {
-            showError("Username and password cannot be empty")
+            showError("Username and password are empty")
             return
         }
 

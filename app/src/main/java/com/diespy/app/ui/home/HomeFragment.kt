@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -54,7 +53,8 @@ class HomeFragment : Fragment() {
 
         val userId = SharedPrefManager.getLoggedInUserId(requireContext())
         if (userId == null) {
-            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            showError("User not logged in.")
+            binding.partyRecyclerView.visibility = View.GONE
             return
         }
 
@@ -78,6 +78,11 @@ class HomeFragment : Fragment() {
             }
         }
 
+    }
+
+    private fun showError(message: String) {
+        binding.homeErrorMessage.text = message
+        binding.homeErrorMessage.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {

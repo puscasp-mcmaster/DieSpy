@@ -8,9 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -99,25 +97,19 @@ class LogAdapter(
         private val deleteButton: Button = view.findViewById(R.id.deleteButton)
 
         fun bind(log: LogMessage, logManager: LogManager, refreshCallback: () -> Unit) {
-            // Use regex to extract counts.
-            // This regex matches either "1s:" or "1:" followed by optional spaces and a number.
             val regex = Regex("""(\d+)s?:\s*(\d+)""")
             val countsMap = mutableMapOf<Int, Int>()
             regex.findAll(log.log).forEach { result ->
                 val (faceStr, countStr) = result.destructured
                 countsMap[faceStr.toInt()] = countStr.toInt()
             }
-            // Compute the total sum (face * count for faces 1-6).
             var totalSum = 0
             for (face in 1..6) {
                 totalSum += face * (countsMap[face] ?: 0)
             }
             val header = "${log.username.replaceFirstChar { it.titlecase() }} rolled: $totalSum\n"
 
-            // Reassemble the formatted log string as:
-            // "1: <count>      4: <count>"
-            // "2: <count>      5: <count>"
-            // "3: <count>      6: <count>"
+
             val formattedLog = "1: ${countsMap[1] ?: 0}      4: ${countsMap[4] ?: 0}\n" +
                     "2: ${countsMap[2] ?: 0}      5: ${countsMap[5] ?: 0}\n" +
                     "3: ${countsMap[3] ?: 0}      6: ${countsMap[6] ?: 0}"
@@ -133,7 +125,6 @@ class LogAdapter(
             )
             logText.text = spannable
 
-            // Edit button logic remains unchanged.
             editButton.setOnClickListener {
                 val context = itemView.context
                 val inflater = LayoutInflater.from(context)
@@ -249,12 +240,5 @@ class LogAdapter(
                 dialog.show()
             }
         }
-    }
-
-    private inline fun String.replaceFirstChar(transform: (Char) -> CharSequence): String {
-        return if (isNotEmpty())
-            transform(this[0]).toString() + substring(1)
-        else
-            this
     }
 }
