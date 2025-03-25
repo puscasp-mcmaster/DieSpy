@@ -47,7 +47,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private val frameSumsBuffer = mutableListOf<Int>()
     private val frameDiceBuffer = mutableListOf<List<Int>>()
     private var lastDetectionTime: Long = System.currentTimeMillis()
-
+    private var capturing = false
 
 
     override fun onResume() {
@@ -100,37 +100,47 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             if (!isFrozen) {
                 diceDetector?.detect(frame)
             }
+
+        }
+        val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
+        if (currentParty == ""){
+            binding.showRollButton.visibility = View.INVISIBLE
+
         }
         requestCameraPermissions()
 
-        //Freeze/Unfreeze button handling.
         binding.freezeButton.setOnClickListener {
-            if (!isFrozen) {
-                //If there aren't enough frames, wait until we have at least 5.
-                if (frameDiceBuffer.size < 5) {
+            if (!isFrozen && !capturing) {
+                capturing = true
+                binding.freezeButton.isEnabled = false
+
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val startTime = System.currentTimeMillis()
+                    // Wait up to 5000 ms (5 seconds) for at least 5 frames
                     showToast("Capturing dice...")
-                    lifecycleScope.launch {
-                        while (frameDiceBuffer.size < 5) {
-                            delay(30)
-                        }
+                    while (frameDiceBuffer.size < 5 && System.currentTimeMillis() - startTime < 5000) {
+                        delay(50)
+                    }
+                    if (frameDiceBuffer.size < 5) {
+                        showToast("No dice detected, please try again")
+                        capturing = false
+                        binding.freezeButton.isEnabled = true
+                    } else {
                         freezeCameraAndComputeMode()
                     }
-                } else {
-                    freezeCameraAndComputeMode()
                 }
-            } else {
+            } else if (isFrozen) {
                 unfreezeCamera()
             }
         }
-
         binding.showRollButton.setOnClickListener{
-            showRollDialog()
+                showRollDialog()
         }
 
-        lifecycleScope.launch {
-            while (isActive) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive and !isFrozen) {
                 delay(1000)
-                if (!isFrozen && System.currentTimeMillis() - lastDetectionTime > 1000) {
+                if (!isFrozen && System.currentTimeMillis() - lastDetectionTime > 3000) {
                     frameSumsBuffer.clear()
                     frameDiceBuffer.clear()
                 }
@@ -184,24 +194,26 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         }
     }
 
-    //Functions for freezing camera and calculations
     private fun freezeCameraAndComputeMode() {
         isFrozen = true
         cameraManager.stopCamera()
-//        val modeValue = calculateMode(frameSumsBuffer)
-        //count of each die face across the last 10 frames.
-        val breakdown = getModeDiceBreakdown(frameDiceBuffer)
-//        binding.modeTextView.text = "Mode: ${modeValue ?: "N/A"}\n" +
-//                "$breakdown"
+        capturing = false  // capturing is done
         binding.freezeButton.text = "Unfreeze"
+        binding.freezeButton.isEnabled = true  // re-enable button
 
-        //Add to logs when freezing
+        // Compute dice breakdown and save log
+        val breakdown = getModeDiceBreakdown(frameDiceBuffer)
         val username = SharedPrefManager.getCurrentUsername(requireContext()) ?: "User"
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
-        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
-        logManager.saveLog(username, breakdown, timestamp, currentParty)
+        if (currentParty != "") {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
+            logManager.saveLog(username, breakdown, timestamp, currentParty)
+            showRollDialog()
+        } else {
+            showBreakdownDialog(breakdown)
+        }
 
-        showRollDialog()
+
     }
 
     private fun unfreezeCamera() {
@@ -209,9 +221,11 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         cameraManager.startCamera(binding.viewFinder)
         frameSumsBuffer.clear()
         frameDiceBuffer.clear()
-//        binding.modeTextView.text = "Mode: "
+        capturing = false
         binding.freezeButton.text = "Capture"
+        binding.freezeButton.isEnabled = true  // ensure button is enabled
     }
+
 
     //Permissions for camera
     private fun requestCameraPermissions() {
@@ -252,45 +266,9 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                 "3: ${modeCounts[2]}      6: ${modeCounts[5]}"
     }
 
-
-    private fun calculateMode(values: List<Int>): Int? {
-        if (values.isEmpty()) return null
-        return values.groupingBy { it }
-            .eachCount()
-            .maxByOrNull { it.value }
-            ?.key
-    }
-
-    //Popup
-    private fun reformatLogString(logString: String): String {
-        // Use regex to extract all dice counts (keys 1–12).
-        val regex = Regex("""(\d+)s?:\s*(\d+)""")
-        val countsMap = mutableMapOf<Int, Int>()
-        regex.findAll(logString).forEach { result ->
-            val (faceStr, countStr) = result.destructured
-            countsMap[faceStr.toInt()] = countStr.toInt()
-        }
-        // For each dice face 1-6, compute the combined count (face + face+6).
-        val dice1 = (countsMap[1] ?: 0) + (countsMap[7] ?: 0)
-        val dice2 = (countsMap[2] ?: 0) + (countsMap[8] ?: 0)
-        val dice3 = (countsMap[3] ?: 0) + (countsMap[9] ?: 0)
-        val dice4 = (countsMap[4] ?: 0) + (countsMap[10] ?: 0)
-        val dice5 = (countsMap[5] ?: 0) + (countsMap[11] ?: 0)
-        val dice6 = (countsMap[6] ?: 0) + (countsMap[12] ?: 0)
-        // Compute total sum weighted by dice face.
-        val totalSum = 1 * dice1 + 2 * dice2 + 3 * dice3 + 4 * dice4 + 5 * dice5 + 6 * dice6
-        // Format the breakdown in two columns.
-        val breakdown = "       1: $dice1      4: $dice4\n" +
-                "       2: $dice2      5: $dice5\n" +
-                "       3: $dice3      6: $dice6"
-        // Include the total at the top.
-        return "$totalSum\n$breakdown"
-    }
-
-
     private fun showRollDialog() {
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val logs = logManager.loadLogs(currentParty)
             if (logs.isNotEmpty()) {
                 val lastLog = logs.last()
@@ -433,7 +411,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                         "2: ${face2CountText.text}      5: ${face5CountText.text}\n" +
                         "3: ${face3CountText.text}      6: ${face6CountText.text}"
                 val currentParty = SharedPrefManager.getCurrentPartyId(context) ?: ""
-                lifecycleScope.launch {
+                viewLifecycleOwner.lifecycleScope.launch {
                     logManager.updateLog(currentParty, lastLog.id, newLog)
                     // Optionally refresh your logs or UI here.
                 }
@@ -453,9 +431,63 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             .setTextColor(ContextCompat.getColor(context, R.color.red))
     }
 
+    private fun showBreakdownDialog(breakdown: String) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            withContext(Dispatchers.Main) {
+                // Inflate the layout you use for showing logs—here we use the same dialog_last_roll layout
+                // (Alternatively, create a dedicated layout for breakdown-only dialogs)
+                val inflater = LayoutInflater.from(requireContext())
+                val dialogView = inflater.inflate(R.layout.dialog_last_roll, null)
+
+                // Hide the edit button and username text
+                val editButton = dialogView.findViewById<Button>(R.id.editButton)
+                editButton.visibility = View.GONE
+
+                val titleView = dialogView.findViewById<TextView>(R.id.dialogTitle)
+                titleView.text = "Dice Breakdown"
+
+                // Use the totalText TextView to show the breakdown.
+                // (Assuming dialog_last_roll.xml has a totalText field and rows for breakdown)
+                val totalText = dialogView.findViewById<TextView>(R.id.totalText)
+                totalText.text = breakdown
+
+                // Optionally hide the other breakdown rows if you prefer a single text field:
+                val row1_left = dialogView.findViewById<TextView>(R.id.row1_left)
+                val row1_right = dialogView.findViewById<TextView>(R.id.row1_right)
+                val row2_left = dialogView.findViewById<TextView>(R.id.row2_left)
+                val row2_right = dialogView.findViewById<TextView>(R.id.row2_right)
+                val row3_left = dialogView.findViewById<TextView>(R.id.row3_left)
+                val row3_right = dialogView.findViewById<TextView>(R.id.row3_right)
+                row1_left.visibility = View.GONE
+                row1_right.visibility = View.GONE
+                row2_left.visibility = View.GONE
+                row2_right.visibility = View.GONE
+                row3_left.visibility = View.GONE
+                row3_right.visibility = View.GONE
+
+                val dismissButton = dialogView.findViewById<Button>(R.id.dismissButton)
+                dismissButton.setOnClickListener {
+                    (it.context as? androidx.appcompat.app.AlertDialog)?.dismiss()
+                }
+
+                val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setView(dialogView)
+                    .create()
+
+                dialog.setOnDismissListener {
+                    unfreezeCamera()
+                }
+                dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
+                dialog.window?.setDimAmount(0.8f)
+                dialog.show()
+            }
+        }
+    }
+
+
     private fun showToast(message: String) {
         if (!isAdded) return
-        lifecycleScope.launch(Dispatchers.Main) {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
             Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
         }
     }
