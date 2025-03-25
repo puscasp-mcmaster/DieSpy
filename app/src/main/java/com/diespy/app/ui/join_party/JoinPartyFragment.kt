@@ -15,6 +15,8 @@ import com.diespy.app.databinding.FragmentJoinPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.home.PartyAdapter
+import com.diespy.app.ui.home.PartyItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,11 +36,28 @@ class JoinPartyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        var nm = PublicNetworkManager.getInstance(requireContext())
+        val nm = PublicNetworkManager.getInstance(requireContext())
+        viewLifecycleOwner.lifecycleScope.launch {
+            nm.discoverServices {}
+           // Thread.sleep(5000)
+            Log.d("NetworkManager", "Ready to party")
+            val partyItems = nm.discoveredDeviceMap.values.toList()
+
+            val adapter = PartyAdapter(partyItems) { party ->
+                SharedPrefManager.saveCurrentParty(requireContext(), party.id)
+                SharedPrefManager.saveCurrentPartyName(requireContext(),party.name)
+                nm.openClientSocket(party)
+
+                findNavController().navigate(R.id.action_home_to_party)
+            }
+            binding.joinPartyRecycleView.layoutManager = LinearLayoutManager(requireContext())
+            binding.joinPartyRecycleView.adapter = adapter
+
+        }
+
+
         binding.joinPartyButton.setOnClickListener {
-
             val inputPassword = binding.partyPasswordInput.text.toString().trim()
-
             if (inputPassword.isEmpty()) {
                 Toast.makeText(requireContext(), "Please enter a party password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -49,49 +68,15 @@ class JoinPartyFragment : Fragment() {
             }
         }
 
-        /*lifecycleScope.launch {
-            val networkManager = NetworkManager(requireContext())
-
-            networkManager.discoverServices { devices ->
-                if (devices.isEmpty()) {
-                    binding.joinPartyRecycleView.visibility = View.GONE
-                } else {
-                    binding.joinPartyRecycleView.visibility = View.VISIBLE
-
-                    val adapter = JoinPartyAdapter(devices) { selectedDevice ->
-                        Log.d("NetworkManager", "Selected device: ${selectedDevice.deviceName}")
-                        networkManager.connectToDevice(selectedDevice)
-                    }
-                    binding.joinPartyRecycleView.layoutManager = LinearLayoutManager(requireContext())
-                    binding.joinPartyRecycleView.adapter = adapter
-                }
-            }
-        }*/
-
-
+        //reloads search.
         binding.joinPartyConnectButton.setOnClickListener {
-            Log.d("JoinParty", "Searching for avaliable devices.")
-            nm.discoverServices { devices ->
-                Log.d("NJoinParty", "Devices in callback: ${devices.size}")
-                if (devices.isNotEmpty()) {
-                    val deviceListString = devices.joinToString(separator = "\n") { device ->
-                        device.deviceName
-                    }
-                    Log.d("JoinParty", "Devicestring: ${deviceListString}")
-                    requireActivity().runOnUiThread {
-                        binding.joinPartyListHeader.text = deviceListString
-                    }
-                } else {
-                    Log.e("JoinParty", "No devices found!")
-                    requireActivity().runOnUiThread {
-                        binding.joinPartyListHeader.text = "No devices found."
-                    }
-                }
-            }
-            //Try to join selected wifip2p lobby*/
+            nm.discoverServices {}
+            // Thread.sleep(5000)
+            Log.d("NetworkManager", "Ready to party")
+            val partyItems = nm.discoveredDeviceMap.values.toList()
         }
         binding.joinPartyHostButton.setOnClickListener {
-            nm.initAsHost()
+            nm.initAsHost(requireContext())
         }
 
 

@@ -10,10 +10,12 @@ object SharedPrefManager {
     private const val KEY_LOGGED_IN_USER_ID = "loggedInUserId"
     private const val KEY_USERNAME = "username"
     private const val KEY_PARTY = "party"
+    private const val PARTY_NAME = "partyName"
 
     // Get SharedPreferences Instance
     private fun getPreferences(context: Context) =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
 
     // Save Logged-in User ID
     fun saveLoggedInUserId(context: Context, userId: String) {
@@ -47,6 +49,21 @@ object SharedPrefManager {
 
     fun clearCurrentParty(context: Context) {
         getPreferences(context).edit().remove(KEY_PARTY).apply()
+    }
+
+
+    // Save Party Name
+    fun saveCurrentPartyName(context: Context, party: String) {
+        getPreferences(context).edit().putString(PARTY_NAME, party).apply()
+    }
+
+    // Retrieve Party Name
+    fun getCurrentPartyName(context: Context): String? {
+        return getPreferences(context).getString(PARTY_NAME, null)
+    }
+
+    fun clearCurrentPartyName(context: Context) {
+        getPreferences(context).edit().remove(PARTY_NAME).apply()
     }
     // Clear All User Data (Logout)
     fun clearUserData(context: Context) {

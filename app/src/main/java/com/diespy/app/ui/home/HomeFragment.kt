@@ -68,8 +68,9 @@ class HomeFragment : Fragment() {
                 binding.noPartiesFoundText.visibility = View.GONE
                 binding.partyRecyclerView.visibility = View.VISIBLE
 
-                val adapter = PartyAdapter(partyItems) { partyId ->
-                    SharedPrefManager.saveCurrentParty(requireContext(), partyId)
+                val adapter = PartyAdapter(partyItems) { party ->
+                    SharedPrefManager.saveCurrentParty(requireContext(), party.id)
+                    SharedPrefManager.saveCurrentPartyName(requireContext(),party.name)
                     findNavController().navigate(R.id.action_home_to_party)
                 }
                 binding.partyRecyclerView.layoutManager = LinearLayoutManager(requireContext())

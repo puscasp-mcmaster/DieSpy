@@ -14,6 +14,8 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.home.PartyItem
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -23,6 +25,9 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
+import java.net.Inet4Address
+import java.net.NetworkInterface
+
 /*
 ------------------------------------------------
 THIS IS NOT THE FRONTFACING CLASS! FOR THAT SEE PublicNetworkManager.kt!!!!
@@ -46,8 +51,29 @@ class NetworkManager(private val context: Context) {
     private var discoveryCallback: ((List<WifiP2pDevice>) -> Unit)? = null
     private val connectedClients = mutableListOf<Socket>()
     private var serverSocket: ServerSocket? = null
+    private var hostAddress: String? = null
+    val discoveredDeviceMap = mutableMapOf<String, PartyItem>()
+  //  val discoveredDeviceMap = mutableMapOf<String, Triple<String, Int, String>>()
     var latestMessage: String? = null
 
+    private fun getLocalIpAddress(): String? {
+        try {
+            val interfaces = NetworkInterface.getNetworkInterfaces()
+            for (networkInterface in interfaces) {
+                val addresses = networkInterface.inetAddresses
+                for (address in addresses) {
+                    // Skip loopback and IPv6 addresses
+                    if (!address.isLoopbackAddress && address is Inet4Address) {
+                        return address.hostAddress
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("NetworkManager", "Error getting local IP: ${e.message}")
+        }
+        return null
+    }
+/*
     private fun requestPermissionsIfNeeded() {
         val permissions = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -63,22 +89,28 @@ class NetworkManager(private val context: Context) {
             }
         }
     }
+*/
+    private fun advertiseService(groupName: String, groupId: String) {
+            val record = hashMapOf(
+                "service_name" to "DiespyApp",
+                "ip" to getLocalIpAddress(),
+                "port" to "333",
+                "groupName" to groupName,
+                "groupID" to groupId
+            )
+            val serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("DiespyService", "_diespy._tcp", record)
 
-    private fun advertiseService() {
-        val record = hashMapOf("service_name" to "DiespyApp")
-        val serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("DiespyService", "_diespy._tcp", record)
+            //whines about possibly missing permissions, leave for now since it works.
+            wifiP2pManager?.addLocalService(channel, serviceInfo, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    //todo host success
+                }
 
-        //whines about possibly missing permissions, leave for now since it works.
-        wifiP2pManager?.addLocalService(channel, serviceInfo, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                //todo host success
-            }
-
-            override fun onFailure(code: Int) {
-                //todo host fail
-            }
-        })
-    }
+                override fun onFailure(code: Int) {
+                    //todo host fail
+                }
+            })
+        }
 
     //MAKE PRIVATE LATER
     public fun discoverServices(callback: (List<WifiP2pDevice>) -> Unit) {
@@ -97,7 +129,7 @@ class NetworkManager(private val context: Context) {
             Log.d("NetworkManager", "$permission granted: $isGranted")
         }
 
-        //Sets callback
+        //ServiceListener for callbacks
         val serviceListener = WifiP2pManager.DnsSdServiceResponseListener { instanceName, _, srcDevice ->
             Log.d("NetworkManager", "DnsSdServiceResponseListener triggered")
             if (instanceName == "DiespyService") {
@@ -108,6 +140,18 @@ class NetworkManager(private val context: Context) {
             }
         }
 
+        //TextListener to actually read the ip/port/info:
+        val txtRecordListener = WifiP2pManager.DnsSdTxtRecordListener { fullDomainName, txtRecordMap, srcDevice ->
+            Log.d("NetworkManager", "TXT Record received: $txtRecordMap")
+            val hostIp = txtRecordMap["ip"] as String ?: "N/A"
+            val hostPort = txtRecordMap["port"] as String ?: "333"
+            val groupName = txtRecordMap["groupName"] as String ?: "Unnamed Group"
+            val groupId = txtRecordMap["groupName"] as String ?: "N/A"
+            srcDevice.deviceAddress?.let { deviceAddress ->
+                discoveredDeviceMap[deviceAddress] = PartyItem(groupId, groupName, -1, hostIp, hostPort)
+                //discoveredDeviceMap[deviceAddress] = Triple(hostIp, hostPort.toInt(), groupName)
+            }
+        }
 
         wifiP2pManager?.setDnsSdResponseListeners(channel, serviceListener, null)
         Log.d("NetworkManager", "Ready to discover services!")
@@ -135,7 +179,6 @@ class NetworkManager(private val context: Context) {
         })
 
 
-
         //Discover peers, if successful discover services.
         wifiP2pManager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
@@ -143,6 +186,7 @@ class NetworkManager(private val context: Context) {
                 //Starts a handler to search for peers in the background, after 10 loops it forces a callback with the empty list
                 Handler(Looper.getMainLooper()).postDelayed({
                     //Asynchronously requests peers. Internal logic (peerlist ->) runs only upon completion.
+
                 wifiP2pManager?.requestPeers(channel) { peerList ->
                     //service discovery!
                     if (peerList.deviceList.isNotEmpty()) {
@@ -170,12 +214,6 @@ class NetworkManager(private val context: Context) {
             }
         })
     }
-
-
-
-
-
-
 
 
 
@@ -248,7 +286,12 @@ class NetworkManager(private val context: Context) {
         }
     }
 
-    private fun openClientSocket(hostAddress: String) {
+    public fun openClientSocket(partyToJoin: PartyItem) {
+        hostAddress = partyToJoin.ipAddress
+        if (hostAddress == null) {
+            Log.e("NetworkManager", "Device IP not available. Cannot open socket.")
+            return
+        }
         Thread {
             try {
                 val socket = Socket(hostAddress, 8988)
@@ -276,13 +319,6 @@ class NetworkManager(private val context: Context) {
                 Log.e("NetworkManager", "Error sending/receiving message: ${e}")
             }
         }.start()
-    }
-
-    private fun unregisterReceiver() {
-        peerReceiver?.let {
-            context.unregisterReceiver(it)
-            peerReceiver = null
-        }
     }
 
     //PUBLIC BELOW HERE
@@ -321,14 +357,34 @@ class NetworkManager(private val context: Context) {
     }
 
     public fun sendClientMessage(message: String) {
+        Thread {
+            try {
+                Log.d("NetworkManager", "Attempting to send message: $message")
 
+                // Connect to the host’s socket
+                val socket = Socket(hostAddress, 8888) // Port 8888 for simplicity
+                val outputStream = socket.getOutputStream()
+                val writer = PrintWriter(outputStream, true)
+
+                // Send the message
+                writer.println(message)
+                writer.flush()
+
+                Log.d("NetworkManager", "Message sent successfully!")
+
+                // Close resources
+                writer.close()
+                socket.close()
+            } catch (e: Exception) {
+                Log.e("NetworkManager", "Error sending message: ${e.message}")
+            }
+        }.start()
     }
-    public fun initAsClient() {
-        //discoverServices {  }
-        //openClientSocket()
-    }
-    public fun initAsHost() {
-        advertiseService()
+
+    public fun initAsHost(context: Context) {
+        val partyName : String = SharedPrefManager.getCurrentPartyName(context) ?: "Unnamed Party"
+        val partyId :String = SharedPrefManager.getCurrentParty(context) ?: "N/A"
+        advertiseService(partyName, partyId)
         startServer()
     }
     public fun getMessage(): String? {
