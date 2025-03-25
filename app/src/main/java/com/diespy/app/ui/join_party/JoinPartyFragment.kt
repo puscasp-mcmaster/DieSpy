@@ -77,6 +77,19 @@ class JoinPartyFragment : Fragment() {
         }
         binding.joinPartyHostButton.setOnClickListener {
             nm.initAsHost(requireContext())
+            Log.d("NetworkManager", "Host init complete")
+           /* Thread.sleep(100)
+            nm.openClientSocket(null)
+            Log.d("NetworkManager", "ClientSocket init complete")
+            Thread.sleep(100)
+            nm.sendMessageToHost("This is a client message");
+            Log.d("NetworkManager", "Client Message Sent complete")
+            Thread.sleep(100)
+            Log.d("TEST", nm.getMessage())
+            nm.sendMessageToClients("This is a host message")
+            Log.d("NetworkManager", "Host Message Sent complete")
+            Thread.sleep(100)
+            Log.d("TEST", nm.getMessage())*/
         }
 
 

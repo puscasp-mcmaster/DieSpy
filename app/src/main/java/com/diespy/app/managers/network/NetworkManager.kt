@@ -94,7 +94,7 @@ class NetworkManager(private val context: Context) {
             val record = hashMapOf(
                 "service_name" to "DiespyApp",
                 "ip" to getLocalIpAddress(),
-                "port" to "333",
+                "port" to "5675",
                 "groupName" to groupName,
                 "groupID" to groupId
             )
@@ -144,7 +144,7 @@ class NetworkManager(private val context: Context) {
         val txtRecordListener = WifiP2pManager.DnsSdTxtRecordListener { fullDomainName, txtRecordMap, srcDevice ->
             Log.d("NetworkManager", "TXT Record received: $txtRecordMap")
             val hostIp = txtRecordMap["ip"] as String ?: "N/A"
-            val hostPort = txtRecordMap["port"] as String ?: "333"
+            val hostPort = txtRecordMap["port"] as String ?: "5675"
             val groupName = txtRecordMap["groupName"] as String ?: "Unnamed Group"
             val groupId = txtRecordMap["groupName"] as String ?: "N/A"
             srcDevice.deviceAddress?.let { deviceAddress ->
@@ -239,14 +239,13 @@ class NetworkManager(private val context: Context) {
     private fun startServer() {
         Thread {
             try {
-                serverSocket = ServerSocket(8988)
+                serverSocket = ServerSocket(5675)
                 Log.d("NetworkManager", "Server started. Waiting for connections...")
 
                 while (true) {
                     val clientSocket = serverSocket!!.accept()  // Accept client connection
                     connectedClients.add(clientSocket)
                     Log.d("NetworkManager", "Client connected: ${clientSocket.inetAddress.hostAddress}")
-
                     // Start a thread for each client
                     Thread {
                         handleClientMessages(clientSocket)
@@ -287,6 +286,7 @@ class NetworkManager(private val context: Context) {
     }
 
     public fun openClientSocket(partyToJoin: PartyItem) {
+        //hostAddress = "127.0.0.1"
         hostAddress = partyToJoin.ipAddress
         if (hostAddress == null) {
             Log.e("NetworkManager", "Device IP not available. Cannot open socket.")
@@ -294,7 +294,7 @@ class NetworkManager(private val context: Context) {
         }
         Thread {
             try {
-                val socket = Socket(hostAddress, 8988)
+                val socket = Socket(hostAddress, 5675)
                 val inputStream = socket.getInputStream()
                 val outputStream = socket.getOutputStream()
 
@@ -322,7 +322,7 @@ class NetworkManager(private val context: Context) {
     }
 
     //PUBLIC BELOW HERE
-    public fun sendHostMessage(message: String) {
+    public fun sendMessageToClients(message: String) {
         if (serverSocket != null && !serverSocket!!.isClosed) {
             Log.d("NetworkManager", "Sending message to all connected clients: $message")
             Log.d("NetworkManager", connectedClients.toString())
@@ -356,13 +356,13 @@ class NetworkManager(private val context: Context) {
         }
     }
 
-    public fun sendClientMessage(message: String) {
+    public fun sendMessageToHost(message: String) {
         Thread {
             try {
                 Log.d("NetworkManager", "Attempting to send message: $message")
 
                 // Connect to the host’s socket
-                val socket = Socket(hostAddress, 8888) // Port 8888 for simplicity
+                val socket = Socket(hostAddress, 5675)
                 val outputStream = socket.getOutputStream()
                 val writer = PrintWriter(outputStream, true)
 
@@ -387,8 +387,11 @@ class NetworkManager(private val context: Context) {
         advertiseService(partyName, partyId)
         startServer()
     }
-    public fun getMessage(): String? {
-        return latestMessage
+    public fun getMessage(): String {
+        if(latestMessage.isNullOrEmpty())
+            return ""
+        else
+            return latestMessage!!
     }
 
 }
