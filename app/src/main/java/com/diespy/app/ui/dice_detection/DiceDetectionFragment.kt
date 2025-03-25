@@ -238,12 +238,20 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     //Helper functions for mode for last 10 frames
     private fun getModeDiceBreakdown(frames: List<List<Int>>): String {
         if (frames.isEmpty()) return "No frames"
-        return (1..6).joinToString("\n") { face ->
-            val counts = frames.map { frame -> frame.count { it == face } }
-            val modeCount = counts.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 0
-            "$face: $modeCount"
+        // For each dice face 1-6, compute the combined count (face + face+6) per frame,
+        // then determine the most frequent count (the mode) across all frames.
+        val modeCounts = (1..6).map { face ->
+            val counts = frames.map { frame ->
+                frame.count { it == face } + frame.count { it == face + 6 }
+            }
+            counts.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 0
         }
+        // Format the result into two columns.
+        return "1: ${modeCounts[0]}      4: ${modeCounts[3]}\n" +
+                "2: ${modeCounts[1]}      5: ${modeCounts[4]}\n" +
+                "3: ${modeCounts[2]}      6: ${modeCounts[5]}"
     }
+
 
     private fun calculateMode(values: List<Int>): Int? {
         if (values.isEmpty()) return null

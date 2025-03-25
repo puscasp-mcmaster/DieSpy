@@ -46,7 +46,7 @@ class HomeFragment : Fragment() {
                 dialog.dismiss()
                 findNavController().navigate(R.id.action_home_to_joinParty)
             }
-
+            dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
             dialog.show()
         }
 

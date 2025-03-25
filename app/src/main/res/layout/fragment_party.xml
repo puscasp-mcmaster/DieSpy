@@ -6,10 +6,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <!-- Party Name -->
         <TextView
+            android:id="@+id/partyNameTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Party Name Here"
@@ -17,6 +19,133 @@
             android:textStyle="bold"
             android:layout_marginBottom="20dp"/>
 
-    </LinearLayout>
+        <!-- Turn Information -->
+        <TextView
+            android:id="@+id/currentTurnTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="It is ___ Turn!"
+            android:textSize="18sp"
+            android:textColor="@color/text_white"
+            android:layout_marginBottom="8dp"/>
+        <TextView
+            android:id="@+id/nextTurnTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="____'s turn is next!"
+            android:textSize="18sp"
+            android:textColor="@color/text_white"
+            android:layout_marginBottom="20dp"/>
 
+        <!-- Previous Roll Section -->
+        <!-- Previous Roll Section -->
+        <LinearLayout
+            android:id="@+id/previousRollContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/chat_bubble_background"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:id="@+id/previousRollHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Previous Roll"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/rollUserNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User:"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Dice Details: Each dice value is its own TextView -->
+            <LinearLayout
+                android:id="@+id/diceDetailContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/diceDetail1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:text="1:0" />
+
+                <TextView
+                    android:id="@+id/diceDetail2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:text="2:0" />
+
+                <TextView
+                    android:id="@+id/diceDetail3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:text="3:0" />
+
+                <TextView
+                    android:id="@+id/diceDetail4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:text="4:0" />
+
+                <TextView
+                    android:id="@+id/diceDetail5"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:text="5:0" />
+
+                <TextView
+                    android:id="@+id/diceDetail6"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="20sp"
+                    android:text="6:0" />
+            </LinearLayout>
+        </LinearLayout>
+
+
+        <!-- End Turn Button -->
+        <Button
+            android:id="@+id/endTurnButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="End Turn"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/primary_accent"
+            android:textColor="@color/text_white"/>
+
+        <!-- Simulate Roll Button -->
+        <Button
+            android:id="@+id/simulateRollButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simulate Roll"
+            android:backgroundTint="@color/primary_accent"
+            android:textColor="@color/text_white"/>
+    </LinearLayout>
 </FrameLayout>

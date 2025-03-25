@@ -3,7 +3,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@color/dark_background"
+    android:background="@color/gray"
     android:gravity="center_horizontal"
     android:elevation="8dp">
 
