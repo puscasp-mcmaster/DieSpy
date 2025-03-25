@@ -129,9 +129,9 @@ class DiceDetector(
         val h = image.getHeight()
         val w = image.getWidth()
         val limit = min(h, w)
-        //val x = (w - limit)/2
-        //val y = (h - limit)/2
-        val croppedImage = Bitmap.createBitmap(image, 0, 0, limit, limit)
+        val x = (w - limit)/2
+        val y = (h - limit)/2
+        val croppedImage = Bitmap.createBitmap(image, x, y, limit, limit)
         val resizedImage = Bitmap.createScaledBitmap(croppedImage, inputWidth, inputHeight, true)
 
         val tensorImage = TensorImage(INPUT_DATA_TYPE)
