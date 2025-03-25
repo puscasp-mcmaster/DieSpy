@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -218,17 +219,18 @@ class LogAdapter(
                     }
                     .create()
                 dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
+                dialog.window?.setDimAmount(0.8f)
                 dialog.show()
 
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(ContextCompat.getColor(context, R.color.green))
+                    .setTextColor(ContextCompat.getColor(context, R.color.primary_accent))
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    .setTextColor(ContextCompat.getColor(context, R.color.red))
+                    .setTextColor(ContextCompat.getColor(context, R.color.secondary_accent))
             }
 
             deleteButton.setOnClickListener {
                 val context = itemView.context
-                val dialog = MaterialAlertDialogBuilder(context)
+                val dialog = androidx.appcompat.app.AlertDialog.Builder(context)
                     .setMessage("Are you sure you want to delete this roll?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { _, _ ->
@@ -243,11 +245,12 @@ class LogAdapter(
 
                 dialog.setOnShowListener {
                     dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
-                        ?.setTextColor(ContextCompat.getColor(context, R.color.red))
+                        ?.setTextColor(ContextCompat.getColor(context, R.color.primary_accent))
                     dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)
-                        ?.setTextColor(ContextCompat.getColor(context, R.color.black))
+                        ?.setTextColor(ContextCompat.getColor(context, R.color.secondary_accent))
                 }
                 dialog.show()
+                dialog.window?.setDimAmount(0.8f)
             }
         }
     }

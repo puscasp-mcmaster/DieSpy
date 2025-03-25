@@ -48,6 +48,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private val frameDiceBuffer = mutableListOf<List<Int>>()
     private var lastDetectionTime: Long = System.currentTimeMillis()
     private var capturing = false
+    private var currentToast: Toast? = null
 
 
     override fun onResume() {
@@ -113,7 +114,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             if (!isFrozen && !capturing) {
                 capturing = true
                 binding.freezeButton.isEnabled = false
-
+                binding.showRollButton.visibility = View.INVISIBLE
                 viewLifecycleOwner.lifecycleScope.launch {
                     val startTime = System.currentTimeMillis()
                     // Wait up to 5000 ms (5 seconds) for at least 5 frames
@@ -121,6 +122,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                     while (frameDiceBuffer.size < 5 && System.currentTimeMillis() - startTime < 5000) {
                         delay(50)
                     }
+                    binding.showRollButton.visibility = View.VISIBLE
                     if (frameDiceBuffer.size < 5) {
                         showToast("No dice detected, please try again")
                         capturing = false
@@ -267,6 +269,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     }
 
     private fun showRollDialog() {
+        currentToast?.cancel()
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
         viewLifecycleOwner.lifecycleScope.launch {
             val logs = logManager.loadLogs(currentParty)
@@ -326,6 +329,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                         openEditRollDialog(lastLog)
                     }
                     dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
+                    dialog.window?.setDimAmount(0.8f)
                     dialog.show()
                 }
             } else {
@@ -426,9 +430,9 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
         // Optionally, adjust button text colors.
         editDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
-            .setTextColor(ContextCompat.getColor(context, R.color.green))
+            .setTextColor(ContextCompat.getColor(context, R.color.primary_accent))
         editDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)
-            .setTextColor(ContextCompat.getColor(context, R.color.red))
+            .setTextColor(ContextCompat.getColor(context, R.color.secondary_accent))
     }
 
     private fun showBreakdownDialog(breakdown: String) {
@@ -486,10 +490,11 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
 
     private fun showToast(message: String) {
+        currentToast?.cancel()
         if (!isAdded) return
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-        }
+            val toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG)
+        toast.show()
+        currentToast = toast
     }
 
     override fun onDestroy() {
