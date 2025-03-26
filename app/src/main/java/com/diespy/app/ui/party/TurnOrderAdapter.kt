@@ -1,5 +1,6 @@
 package com.diespy.app.ui.party
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,33 +18,20 @@ class TurnOrderAdapter(
     var currentTurnIndex = 0
         private set
 
-
     fun setCurrentTurnIndex(index: Int) {
         currentTurnIndex = index
         notifyDataSetChanged()
     }
 
-    companion object {
-        private const val VIEW_TYPE_ACTIVE = 0
-        private const val VIEW_TYPE_INACTIVE = 1
-    }
-
-    override fun getItemViewType(position: Int): Int {
-        return if (position == currentTurnIndex) VIEW_TYPE_ACTIVE else VIEW_TYPE_INACTIVE
-    }
-
     inner class PlayerViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val usernameText: TextView = view.findViewById(R.id.playerName)
-        val endTurnButton: Button? = view.findViewById(R.id.endTurnButton)
+        val endTurnButton: Button = view.findViewById(R.id.endTurnButton)
+        val container: View = view.findViewById(R.id.playerContainer)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlayerViewHolder {
-        val layoutId = if (viewType == VIEW_TYPE_ACTIVE) {
-            R.layout.party_member_active
-        } else {
-            R.layout.party_member_inactive
-        }
-        val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.party_member_drag_and_drop, parent, false)
         return PlayerViewHolder(view)
     }
 
@@ -51,11 +39,22 @@ class TurnOrderAdapter(
         val name = players[position].replaceFirstChar { it.uppercaseChar() }
         holder.usernameText.text = name
 
-        if (position == currentTurnIndex) {
-            holder.endTurnButton?.visibility = View.VISIBLE
-            holder.endTurnButton?.setOnClickListener { onEndTurnClicked() }
-        } else {
-            holder.endTurnButton?.visibility = View.GONE
+        val isCurrentTurn = position == currentTurnIndex
+
+        // Highlight background based on current turn
+        val ctx = holder.itemView.context
+        val bubbleBackground = if (isCurrentTurn)
+            ContextCompat.getDrawable(ctx, R.drawable.chat_bubble_background) // active
+        else
+            ContextCompat.getDrawable(ctx, R.drawable.chat_bubble_background_gray) // inactive
+
+        holder.usernameText.background = bubbleBackground
+
+
+        // Show/hide end turn button
+        holder.endTurnButton.visibility = if (isCurrentTurn) View.VISIBLE else View.GONE
+        holder.endTurnButton.setOnClickListener {
+            if (isCurrentTurn) onEndTurnClicked()
         }
     }
 
