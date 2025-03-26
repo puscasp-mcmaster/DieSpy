@@ -38,6 +38,23 @@ class PartyManager {
                 }
             }
     }
+    fun subscribeToTurnOrder(
+        party: String,
+        members: List<String>,
+        onUpdate: (currentTurn: String, nextTurn: String) -> Unit
+    ) {
+        db.collection(collection).document(party)
+            .addSnapshotListener { snapshot, error ->
+                if (error == null && snapshot != null && snapshot.exists()) {
+                    val turnIndex = snapshot.getLong("turnIndex")?.toInt() ?: 0
+                    if (members.isNotEmpty()) {
+                        val currentTurn = members[turnIndex % members.size]
+                        val nextTurn = members[(turnIndex + 1) % members.size]
+                        onUpdate(currentTurn, nextTurn)
+                    }
+                }
+            }
+    }
 
     fun subscribeToPartyMembers(
         partyId: String,
