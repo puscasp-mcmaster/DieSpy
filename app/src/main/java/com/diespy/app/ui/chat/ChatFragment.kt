@@ -28,8 +28,6 @@ class ChatFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var chatManager: ChatManager
     private lateinit var chatAdapter: ChatAdapter
-    private val db = FirebaseFirestore.getInstance()
-    private val collection = "Parties"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -79,23 +77,19 @@ class ChatFragment : Fragment() {
             }
         }
 
-        //Real-time listener for Firestore updates
-        db.collection(collection)
-            .document(currentParty)
-            .collection("chat")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshots, error ->
-                if (error == null && snapshots != null) {
-                    val newMessages = snapshots.documents.mapNotNull { it.toObject(ChatMessage::class.java) }
-                    chatAdapter.updateMessages(newMessages)
-
-                    //TODO may not need this maybe have it show a notification icon instead of scroll
-                    // Auto-scroll to the last message when a new one arrives
-//                    binding.recyclerView.post {
-//                        binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
-//                    }
+        chatManager.subscribeToChatMessages(currentParty) { newMessages ->
+            chatAdapter.updateMessages(newMessages)
+            val layoutManager = binding.recyclerView.layoutManager as? LinearLayoutManager
+            if (layoutManager != null) {
+                val lastVisibleItem = layoutManager.findLastCompletelyVisibleItemPosition()
+                //auto-scroll if the user is already at the bottom.
+                if (lastVisibleItem == chatAdapter.itemCount - 1) {
+                    binding.recyclerView.post {
+                        binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                    }
                 }
             }
+        }
     }
 
     override fun onDestroyView() {

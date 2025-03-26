@@ -11,7 +11,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
-import com.diespy.app.managers.party.PartyManager
+import com.diespy.app.managers.create_party.PartyManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.clearError
 import com.diespy.app.ui.utils.showError

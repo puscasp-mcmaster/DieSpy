@@ -296,7 +296,4 @@ class FireStoreManager {
             false
         }
     }
-
-
-
 }

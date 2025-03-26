@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,14 +51,31 @@ class LogsFragment : Fragment() {
             addItemDecoration(LogAdapter.SpaceItemDecoration(16))
         }
 
-        loadLogs()
+        // Real-time log updates with auto-scroll if user is at the bottom.
+        val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: return
+        logManager.subscribeToLogs(currentParty) { newLogs ->
+            _binding?.let { binding ->
+                logAdapter.updateLogs(newLogs)
+                val layoutManager = binding.recyclerView.layoutManager as? LinearLayoutManager
+                if (layoutManager != null) {
+                    val lastVisibleItem = layoutManager.findLastCompletelyVisibleItemPosition()
+                    if (lastVisibleItem == logAdapter.itemCount - 1) {
+                        binding.recyclerView.post {
+                            binding.recyclerView.smoothScrollToPosition(logAdapter.itemCount - 1)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun loadLogs() {
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: return
         lifecycleScope.launch {
             val logs = logManager.loadLogs(currentParty)
-            logAdapter.updateLogs(logs)
+            _binding?.let { binding ->
+                logAdapter.updateLogs(logs)
+            }
         }
     }
 
