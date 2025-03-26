@@ -43,8 +43,8 @@ class JoinPartyFragment : Fragment() {
             nm.discoverServices {}
            // Thread.sleep(5000)
             Log.d("NetworkManager", "Ready to party")
-            var p1 = PartyItem("na", "diceboys", 3)
-            var p2 = PartyItem("na", "DieSpy", 1)
+            var p1 = PartyItem("na", "diceboys", 1)
+            var p2 = PartyItem("na", "DieSpy", 3)
             var p3 = PartyItem("na", "Epic Party ", 4)
             //val partyItems = nm.discoveredDeviceMap.values.toList()
             val partyItems = listOf(p1, p2, p3)
