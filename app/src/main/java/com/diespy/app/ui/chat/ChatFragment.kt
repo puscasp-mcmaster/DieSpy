@@ -78,14 +78,22 @@ class ChatFragment : Fragment() {
         }
 
         chatManager.subscribeToChatMessages(currentParty) { newMessages ->
-            chatAdapter.updateMessages(newMessages)
-            val layoutManager = binding.recyclerView.layoutManager as? LinearLayoutManager
-            if (layoutManager != null) {
-                val lastVisibleItem = layoutManager.findLastCompletelyVisibleItemPosition()
-                //auto-scroll if the user is already at the bottom.
-                if (lastVisibleItem == chatAdapter.itemCount - 1) {
-                    binding.recyclerView.post {
-                        binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+            _binding?.let { binding ->
+                chatAdapter.updateMessages(newMessages)
+                val layoutManager = binding.recyclerView.layoutManager as? LinearLayoutManager
+                layoutManager?.let {
+                    val lastVisibleItem = it.findLastVisibleItemPosition()
+                    // Check if the user is near the bottom (within 2 items)
+                    if (lastVisibleItem >= chatAdapter.itemCount - 3) {
+                        binding.recyclerView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+                            override fun onLayoutChange(
+                                v: View, left: Int, top: Int, right: Int, bottom: Int,
+                                oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
+                            ) {
+                                binding.recyclerView.removeOnLayoutChangeListener(this)
+                                binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                            }
+                        })
                     }
                 }
             }

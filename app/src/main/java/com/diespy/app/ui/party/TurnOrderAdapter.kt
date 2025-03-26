@@ -1,6 +1,5 @@
 package com.diespy.app.ui.party
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,14 +14,28 @@ class TurnOrderAdapter(
     private val onEndTurnClicked: () -> Unit
 ) : RecyclerView.Adapter<TurnOrderAdapter.PlayerViewHolder>() {
 
+    companion object {
+        private const val VIEW_TYPE_ACTIVE = 0
+        private const val VIEW_TYPE_INACTIVE = 1
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (position == 0) VIEW_TYPE_ACTIVE else VIEW_TYPE_INACTIVE
+    }
+
     inner class PlayerViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val usernameText: TextView = view.findViewById(R.id.playerName)
-        val endTurnButton: Button = view.findViewById(R.id.endTurnButton)
+        val endTurnButton: Button? = view.findViewById(R.id.endTurnButton)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlayerViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_turn_order_player, parent, false)
+        val layoutId = if (viewType == VIEW_TYPE_ACTIVE) {
+            R.layout.party_member_active  // Use active layout for position 0
+        } else {
+            R.layout.party_member_inactive  // Use inactive layout for others
+        }
+        val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         return PlayerViewHolder(view)
     }
 
@@ -31,13 +44,12 @@ class TurnOrderAdapter(
         holder.usernameText.text = name
 
         if (position == 0) {
-            // Highlight the current turn holder
-            holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, R.color.primary_accent))
-            holder.endTurnButton.visibility = View.VISIBLE
-            holder.endTurnButton.setOnClickListener { onEndTurnClicked() }
+            // Active turn holder: show button and set its click listener.
+            holder.endTurnButton?.visibility = View.VISIBLE
+            holder.endTurnButton?.setOnClickListener { onEndTurnClicked() }
         } else {
-            holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, R.color.light_gray))
-            holder.endTurnButton.visibility = View.GONE
+            // Inactive party members: ensure the button is hidden.
+            holder.endTurnButton?.visibility = View.GONE
         }
     }
 
