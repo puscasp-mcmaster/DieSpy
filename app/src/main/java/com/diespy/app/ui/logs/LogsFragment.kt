@@ -51,18 +51,24 @@ class LogsFragment : Fragment() {
             addItemDecoration(LogAdapter.SpaceItemDecoration(16))
         }
 
-        // Real-time log updates with auto-scroll if user is at the bottom.
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: return
         logManager.subscribeToLogs(currentParty) { newLogs ->
             _binding?.let { binding ->
                 logAdapter.updateLogs(newLogs)
                 val layoutManager = binding.recyclerView.layoutManager as? LinearLayoutManager
-                if (layoutManager != null) {
-                    val lastVisibleItem = layoutManager.findLastCompletelyVisibleItemPosition()
-                    if (lastVisibleItem == logAdapter.itemCount - 1) {
-                        binding.recyclerView.post {
-                            binding.recyclerView.smoothScrollToPosition(logAdapter.itemCount - 1)
-                        }
+                layoutManager?.let {
+                    val lastVisibleItem = it.findLastVisibleItemPosition()
+                    // Use a threshold; adjust as needed
+                    if (lastVisibleItem >= logAdapter.itemCount - 3) {
+                        binding.recyclerView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+                            override fun onLayoutChange(
+                                v: View, left: Int, top: Int, right: Int, bottom: Int,
+                                oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
+                            ) {
+                                binding.recyclerView.removeOnLayoutChangeListener(this)
+                                binding.recyclerView.smoothScrollToPosition(logAdapter.itemCount - 1)
+                            }
+                        })
                     }
                 }
             }
