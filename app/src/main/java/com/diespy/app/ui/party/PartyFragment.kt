@@ -18,6 +18,7 @@ import com.diespy.app.managers.logs.LogManager
 import com.diespy.app.managers.party.PartyManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.diceParse
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -33,10 +34,10 @@ class PartyFragment : Fragment() {
 
     private var userIds: MutableList<String> = mutableListOf()
     private var usernames: MutableList<String> = mutableListOf()
-
     private lateinit var turnOrderAdapter: TurnOrderAdapter
-
+    private var partyMembersListener: ListenerRegistration? = null
     private var cachedCurrentUserId: String? = null
+    private var turnOrderSubscribed = false
 
 
     override fun onCreateView(
@@ -62,7 +63,8 @@ class PartyFragment : Fragment() {
             _binding?.let { binding ->
                 if (lastLog != null) {
                     val countsMap = diceParse(lastLog.log)
-                    val total = countsMap.withIndex().sumOf { (index, count) -> (index + 1) * count }
+                    val total =
+                        countsMap.withIndex().sumOf { (index, count) -> (index + 1) * count }
 
                     binding.rollUserNameTextView.text =
                         "${lastLog.username.replaceFirstChar { it.titlecase() }} rolled: $total"
@@ -90,34 +92,60 @@ class PartyFragment : Fragment() {
 
         attachDragAndDrop()
 
-        lifecycleScope.launch {
-            val partyData = fireStoreManager.getDocumentById("Parties", partyId)
-            partyData?.get("userIds")?.let { rawList ->
-                @Suppress("UNCHECKED_CAST")
-                userIds = (rawList as List<String>).toMutableList()
-                usernames = mutableListOf()
+//        lifecycleScope.launch {
+//            val partyData = fireStoreManager.getDocumentById("Parties", partyId)
+//            partyData?.get("userIds")?.let { rawList ->
+//                @Suppress("UNCHECKED_CAST")
+//                userIds = (rawList as List<String>).toMutableList()
+//                usernames = mutableListOf()
+//                for (id in userIds) {
+//                    val userData = fireStoreManager.getDocumentById("Users", id)
+//                    val username = userData?.get("username") as? String ?: "Unknown"
+//                    usernames.add(username)
+//                }
+//                turnOrderAdapter.updatePlayers(usernames)
+//
+//                partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
+//                    val currentTurnIndex = userIds.indexOf(currentTurnUserId)
+//                    if (currentTurnIndex != -1) {
+//                        cachedCurrentUserId = userIds.getOrNull(currentTurnIndex)
+//                        turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
+//
+//                    }
+//                }
+//            }
+//        }
+        // After your initial load block (or instead of it, if you prefer to rely on real-time updates):
+        partyMembersListener = partyManager.subscribeToPartyMembers(partyId) { updatedUserIds ->
+            // Update the local userIds list
+            userIds = updatedUserIds.toMutableList()
+
+            // Update usernames from Firestore
+            lifecycleScope.launch {
+                val updatedUsernames = mutableListOf<String>()
                 for (id in userIds) {
                     val userData = fireStoreManager.getDocumentById("Users", id)
                     val username = userData?.get("username") as? String ?: "Unknown"
-                    usernames.add(username)
+                    updatedUsernames.add(username)
                 }
+                usernames = updatedUsernames
                 turnOrderAdapter.updatePlayers(usernames)
 
-                partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
-                    val currentTurnIndex = userIds.indexOf(currentTurnUserId)
-                    if (currentTurnIndex != -1) {
-                        cachedCurrentUserId = userIds.getOrNull(currentTurnIndex)
-                        turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
-
+                // Now, if we haven't yet subscribed to turn order and we have at least one member, subscribe.
+                if (!turnOrderSubscribed && userIds.isNotEmpty()) {
+                    partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
+                        val currentTurnIndex = userIds.indexOf(currentTurnUserId)
+                        if (currentTurnIndex != -1) {
+                            cachedCurrentUserId = userIds[currentTurnIndex]
+                            turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
+                        }
                     }
+                    turnOrderSubscribed = true
                 }
             }
         }
-
-        binding.simulateRollButton.setOnClickListener {
-            findNavController().navigate(R.id.action_party_to_diceSim)
-        }
     }
+
 
     private fun attachDragAndDrop() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
@@ -164,16 +192,9 @@ class PartyFragment : Fragment() {
         }
     }
 
-
-    private fun updateTurnOrderFirestore() {
-        val data = mapOf("userIds" to userIds)
-        lifecycleScope.launch {
-            fireStoreManager.updateDocument("Parties", partyId, data)
-        }
-    }
-
     override fun onDestroyView() {
-        super.onDestroyView()
+        partyMembersListener?.remove()
         _binding = null
+        super.onDestroyView()
     }
 }

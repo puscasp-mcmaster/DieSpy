@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
@@ -88,6 +89,7 @@ class MembersFragment : Fragment() {
         }
 
         dialogView.findViewById<Button>(R.id.yesButton).setOnClickListener {
+            alertDialog.dismiss()
             val context = requireContext()
             val partyId = SharedPrefManager.getCurrentPartyId(context)
             val userId = SharedPrefManager.getCurrentUserId(context)
@@ -99,6 +101,7 @@ class MembersFragment : Fragment() {
                     if (success) {
                         SharedPrefManager.clearCurrentPartyData(context)
                         findNavController().navigate(R.id.action_members_to_home)
+                        Toast.makeText(requireContext(), "You have successfully left the party", Toast.LENGTH_SHORT).show()
                     } else {
                         binding.membersErrorText.showError("Failed to leave party. Try again.")
                     }

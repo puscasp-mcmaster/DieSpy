@@ -10,20 +10,7 @@ import kotlinx.coroutines.tasks.await
 class PartyManager {
     private val db = FirebaseFirestore.getInstance()
     private val collection = "Parties"
-    private val fireStoreManager = FireStoreManager()
 
-    // Retrieves party members from the party document's "members" field.
-    // Ensure your Firestore party document contains a "members" array.
-    suspend fun getPartyMembersForTurn(party: String): List<String> {
-        var members = fireStoreManager.getUsernamesForParty(party)
-        if (members.size == 1) {
-            members = listOf(members[0], members[0])
-        }
-        return members
-    }
-
-    // Subscribes to the logs and returns the latest log via a callback.
-// In PartyManager.kt
     fun subscribeToLatestLog(party: String, onLatestLogUpdate: (LogMessage?) -> Unit) {
         db.collection("Parties")
             .document(party)
