@@ -115,7 +115,7 @@ class PartyFragment : Fragment() {
         }
 
         binding.simulateRollButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Simulate Roll not implemented", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_party_to_diceSim)
         }
     }
 
