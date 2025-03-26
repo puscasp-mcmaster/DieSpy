@@ -12,6 +12,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.home.PartyItem
 import java.io.PrintWriter
@@ -48,32 +49,15 @@ class NetworkManager(private val context: Context) {
     private var hostAddress: String? = null
     val discoveredDeviceMap = mutableMapOf<String, PartyItem>()
     var latestMessage: String? = null
+    private val fireStoreManager = FireStoreManager()
 
-    private fun getLocalIpAddress(): String? {
-        try {
-            val interfaces = NetworkInterface.getNetworkInterfaces()
-            for (networkInterface in interfaces) {
-                val addresses = networkInterface.inetAddresses
-                for (address in addresses) {
-                    // Skip loopback and IPv6 addresses
-                    if (!address.isLoopbackAddress && address is Inet4Address) {
-                        return address.hostAddress
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("NetworkManager", "Error getting local IP: ${e.message}")
-        }
-        return null
-    }
-
-    private fun advertiseService(groupName: String, groupId: String) {
+    //advertise stays
+    private fun advertiseService(groupName: String, groupId: String, groupUserCount: String) {
         val record = hashMapOf(
             "service_name" to "DiespyApp",
-            "ip" to getLocalIpAddress(),
-            "port" to "5675",
             "groupName" to groupName,
-            "groupID" to groupId
+            "groupID" to groupId,
+            "groupUserCount" to groupUserCount
         )
         val serviceInfo =
             WifiP2pDnsSdServiceInfo.newInstance("DiespyService", "_diespy._tcp", record)
@@ -99,7 +83,7 @@ class NetworkManager(private val context: Context) {
                 }
             })
     }
-    //MAKE PRIVATE LATER
+
     public fun discoverServices(callback: (List<WifiP2pDevice>) -> Unit) {
         discoveryCallback = callback
         Log.d("NetworkManager", "Callback is ${if (discoveryCallback != null) "set: ${discoveryCallback}" else "null"}")
@@ -127,15 +111,14 @@ class NetworkManager(private val context: Context) {
             }
         }
 
-        //TextListener to actually read the ip/port/info:
+        //TextListener to actually read the info
         val txtRecordListener = WifiP2pManager.DnsSdTxtRecordListener { fullDomainName, txtRecordMap, srcDevice ->
             Log.d("NetworkManager", "TXT Record received: $txtRecordMap")
-            val hostIp = txtRecordMap["ip"] as String ?: "N/A"
-            val hostPort = txtRecordMap["port"] as String ?: "5675"
             val groupName = txtRecordMap["groupName"] as String ?: "Unnamed Group"
-            val groupId = txtRecordMap["groupName"] as String ?: "N/A"
+            val groupId = txtRecordMap["groupId"] as String ?: "N/A"
+            val groupUserCount =  txtRecordMap["groupUserCount"] as String ?: "N/A"
             srcDevice.deviceAddress?.let { deviceAddress ->
-                discoveredDeviceMap[deviceAddress] = PartyItem(groupId, groupName, -1, hostIp, hostPort)
+                discoveredDeviceMap[deviceAddress] = PartyItem(groupId, groupName, groupUserCount.toInt())
                 //discoveredDeviceMap[deviceAddress] = Triple(hostIp, hostPort.toInt(), groupName)
             }
         }
@@ -227,193 +210,12 @@ class NetworkManager(private val context: Context) {
 
     }
 
-    private fun startServer() {
-        Thread {
-            try {
-                serverSocket = ServerSocket(5675)
-                Log.d("NetworkManager", "Server started. Waiting for connections...")
-
-                while (true) {
-                    val clientSocket = serverSocket!!.accept()  // Accept client connection
-                    connectedClients.add(clientSocket)
-                    Log.d("NetworkManager", "Client connected: ${clientSocket.inetAddress.hostAddress}")
-                    // Start a thread for each client
-                    Thread {
-                        handleClientMessages(clientSocket)
-                    }.start()
-                }
-            } catch (e: Exception) {
-                Log.e("NetworkManager", "Server error: ${e}")
-            }
-        }.start()
-    }
-
-    //listener to automatically handle client messages to host
-    private fun handleClientMessages(clientSocket: Socket) {
-        try {
-            val inputStream = clientSocket.getInputStream()
-            val outputStream = clientSocket.getOutputStream()
-
-            val reader = inputStream.bufferedReader()
-            val writer = outputStream.bufferedWriter()
-
-            while (true) {
-                val messageFromClient = reader.readLine()  // Read from client
-                if (messageFromClient == null) break
-                latestMessage = messageFromClient
-                Log.d("NetworkManager", "Received from client: $messageFromClient")
-
-
-                //parse latest message:
-            /*    val parsedmessage = messageFromClient.split("|")
-
-                when (parsedmessage[0]) {
-                    "Chat" -> {
-
-                    }
-                    "Log" -> {
-
-                    }
-                    "Turn" -> {
-
-                    }
-
-
-
-                }*/
-
-            }
-
-            connectedClients.remove(clientSocket)
-            clientSocket.close()
-        } catch (e: Exception) {
-            Log.e("NetworkManager", "Error handling client: ${e}")
-        }
-    }
-
-    //listener to handles host messages to client
-  /*  private fun handleHostMessages(serverSocket: ServerSocket) {
-     try {
-         val inputStream = serverSocket.getInputStream()
-         val outputStream = serverSocket.getOutputStream()
-
-         val reader = inputStream.bufferedReader()
-         val writer = outputStream.bufferedWriter()
-         while (true) {
-             val messageFromHost = reader.readLine()  // Read from client
-             if (messageFromHost == null) break
-             latestMessage = messageFromHost
-             Log.d("NetworkManager", "Received from client: $messageFromHost")
-
-             //parse latest message:
-
-         }
-
-     } catch (e: Exception) {
-         Log.e("NetworkManager", "Error handling host message: ${e}")
-     }
-    }*/
-    public fun openClientSocket(partyToJoin: PartyItem) {
-        //hostAddress = "127.0.0.1"
-        hostAddress = partyToJoin.ipAddress
-        if (hostAddress == null) {
-            Log.e("NetworkManager", "Device IP not available. Cannot open socket.")
-            return
-        }
-        Thread {
-            try {
-                val socket = Socket(hostAddress, 5675)
-                val inputStream = socket.getInputStream()
-                val outputStream = socket.getOutputStream()
-
-                val reader = inputStream.bufferedReader()
-                val writer = outputStream.bufferedWriter()
-
-                // Send initial message
-                writer.write("Connection Successful")
-                writer.flush()
-                Log.d("NetworkManager", "Connection established at: $hostAddress")
-
-                while (true) {
-                    val responseFromServer = reader.readLine()  // Read response from server
-                    if (responseFromServer == null) break
-                    latestMessage = responseFromServer
-                    Log.d("NetworkManager", "Response from server: $responseFromServer")
-
-                }
-
-                socket.close()
-            } catch (e: Exception) {
-                Log.e("NetworkManager", "Error sending/receiving message: ${e}")
-            }
-        }.start()
-    }
-
-    //PUBLIC BELOW HERE
-    public fun sendMessageToClients(message: String) {
-        if (serverSocket != null && !serverSocket!!.isClosed) {
-            Log.d("NetworkManager", "Sending message to all connected clients: $message")
-            Log.d("NetworkManager", connectedClients.toString())
-            for (client in connectedClients) {
-               Thread {
-                Log.d(
-                    "NetworkManager",
-                    "Sending message to client: ${client}. Socket status: ${(client.toString())}"
-                )
-
-                try {
-                    val outputStream = client.getOutputStream()
-                    Log.d("NetworkManager", "OutputStream initialized: $outputStream")
-                    val writer = BufferedWriter(OutputStreamWriter(outputStream))
-                    Log.d("NetworkManager", "BufferedWriter initialized")
-                    writer.write("$message\n")
-                    Log.d("NetworkManager", "Message written")
-                    Thread.sleep(50)
-                    writer.flush()
-                    Log.d("NetworkManager", "Writer flushed")
-                } catch (e: Exception) {
-                    Log.e(
-                        "NetworkManager",
-                        "Error sending message to client ${client}: Exception '${e}'"
-                    )
-                }
-            }.start()
-        }
-        } else {
-            Log.e("NetworkManager", "Server socket is not open. Cannot send message.")
-        }
-    }
-
-    public fun sendMessageToHost(message: String) {
-        Thread {
-            try {
-                Log.d("NetworkManager", "Attempting to send message: $message")
-
-                // Connect to the host’s socket
-                val socket = Socket(hostAddress, 5675)
-                val outputStream = socket.getOutputStream()
-                val writer = PrintWriter(outputStream, true)
-
-                // Send the message
-                writer.println(message)
-                writer.flush()
-
-                Log.d("NetworkManager", "Message sent successfully!")
-
-                // Close resources
-                writer.close()
-                socket.close()
-            } catch (e: Exception) {
-                Log.e("NetworkManager", "Error sending message: ${e.message}")
-            }
-        }.start()
-    }
-
     public fun initAsHost() {
         val partyName : String = SharedPrefManager.getCurrentPartyName(context) ?: "Unnamed Party"
         val partyId :String = SharedPrefManager.getCurrentPartyId(context) ?: "N/A"
-        advertiseService(partyName, partyId)
-        startServer()
+        val partyUC :String = SharedPrefManager.getCurrentPartyUserCount(context) ?: "N/A"
+        advertiseService(partyName, partyId, partyUC)
+
     }
     public fun getMessage(): String {
         if(latestMessage.isNullOrEmpty())
@@ -422,12 +224,4 @@ class NetworkManager(private val context: Context) {
             return latestMessage!!
     }
 
-
-    public fun createListener() {
-        //if host
-
-
-        //if client
-
-    }
 }

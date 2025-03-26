@@ -43,22 +43,33 @@ class JoinPartyFragment : Fragment() {
             nm.discoverServices {}
            // Thread.sleep(5000)
             Log.d("NetworkManager", "Ready to party")
-            var p1 = PartyItem("testid", "Party 1", 2, "127.0.0.1", "3436")
-            var p2 = PartyItem("testid", "Party 2", 3, "127.0.0.1", "3436")
-            var p3 = PartyItem("testid", "Party 3", 0, "127.0.0.1", "3436")
+            var p1 = PartyItem("cLkDPwOjRwmlXlhIh8s1", "diceboys", 3)
+            var p2 = PartyItem("cLkDPwOjRwmlXlhIh8s1", "2MZeqr", 3)
+            var p3 = PartyItem("testid", "Party 3", 0)
             //val partyItems = nm.discoveredDeviceMap.values.toList()
             val partyItems = listOf(p1, p2, p3)
-//data class PartyItem(val id: String, val name: String, val userCount: Int, val ipAddress : String? = null, val port : String? = null)
-
+        //data class PartyItem(val id: String, val name: String, val userCount: Int, val ipAddress : String? = null, val port : String? = null)
+            var partyName = ""
+            var partyId = ""
             val adapter = PartyAdapter(partyItems) { party ->
-                SharedPrefManager.saveCurrentPartyId(requireContext(), party.id)
-                SharedPrefManager.saveCurrentPartyName(requireContext(),party.name)
-                nm.openClientSocket(party)
+                partyName = party.name
+                partyId = party.id
+                viewLifecycleOwner.lifecycleScope.launch {
+                    if (partyName != "") {
+                        SharedPrefManager.saveCurrentPartyId(requireContext(), partyId)
+                        SharedPrefManager.saveCurrentPartyName(requireContext(),partyName)
+                        SharedPrefManager.saveCurrentPartyUserCount(requireContext(), party.userCount.toString())
+                        joinPartyByField("joinPw", "2MZeqr")
+                        Log.d("LEL","joinPartyByFieldDone")
+                    }
+                }
 
-                findNavController().navigate(R.id.action_home_to_party)
             }
             binding.joinPartyRecycleView.layoutManager = LinearLayoutManager(requireContext())
             binding.joinPartyRecycleView.adapter = adapter
+
+
+
         }
 
         binding.joinPartyButton.setOnClickListener {
@@ -70,7 +81,7 @@ class JoinPartyFragment : Fragment() {
             }
 
             lifecycleScope.launch {
-                joinPartyWithPassword(inputPassword)
+                joinPartyByField("joinPw",inputPassword)
             }
         }
 
@@ -99,10 +110,11 @@ class JoinPartyFragment : Fragment() {
 
     }
 
-    private suspend fun joinPartyWithPassword(password: String) {
+
+    private suspend fun joinPartyByField(field: String, value: String) {
         val context = requireContext()
 
-        val partyId = firestoreManager.getDocumentIdByField("Parties", "joinPw", password)
+        val partyId = firestoreManager.getDocumentIdByField("Parties", field, value)
         if (partyId == null) {
             withContext(Dispatchers.Main) {
                 binding.joinPartyErrorMessage.showError("No party found with that password.")
@@ -119,7 +131,7 @@ class JoinPartyFragment : Fragment() {
         }
 
         // Get party data
-        val partyData = firestoreManager.queryDocument("Parties", "joinPw", password)
+        val partyData = firestoreManager.queryDocument("Parties", field, value)
         val userIds = partyData?.get("userIds") as? List<*>
         val partyName = partyData?.get("name") as? String
 
@@ -152,6 +164,21 @@ class JoinPartyFragment : Fragment() {
             } else {
                 binding.joinPartyErrorMessage.showError("Failed to join the party. Please try again.")
             }
+        }
+    }
+
+
+    private fun showError(message: String) {
+        binding.joinPartyErrorMessage.apply {
+            text = message
+            visibility = View.VISIBLE
+        }
+    }
+
+    private fun clearError() {
+        binding.joinPartyErrorMessage.apply {
+            text = ""
+            visibility = View.GONE
         }
     }
 
