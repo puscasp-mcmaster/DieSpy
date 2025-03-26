@@ -91,7 +91,7 @@ class ChatFragment : Fragment() {
                                 oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
                             ) {
                                 binding.recyclerView.removeOnLayoutChangeListener(this)
-                                binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                                binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount)
                             }
                         })
                     }

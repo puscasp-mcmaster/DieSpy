@@ -66,7 +66,7 @@ class LogsFragment : Fragment() {
                                 oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
                             ) {
                                 binding.recyclerView.removeOnLayoutChangeListener(this)
-                                binding.recyclerView.smoothScrollToPosition(logAdapter.itemCount - 1)
+                                binding.recyclerView.smoothScrollToPosition(logAdapter.itemCount)
                             }
                         })
                     }
