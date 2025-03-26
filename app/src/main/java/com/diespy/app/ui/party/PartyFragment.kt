@@ -170,6 +170,10 @@ class PartyFragment : Fragment() {
                 }
             }
         }
+
+        binding.simulateRollButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_diceSim)
+        }
     }
 
 
