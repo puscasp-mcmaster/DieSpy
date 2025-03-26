@@ -8,6 +8,7 @@
         android:layout_height="match_parent"
         android:padding="16dp">
 
+        <!-- Title and dice count controls remain the same -->
         <TextView
             android:id="@+id/simulationTitle"
             android:text="Dice Simulator"
@@ -17,6 +18,57 @@
             android:textStyle="bold"
             android:textColor="@color/text_white"
             android:layout_marginBottom="20dp" />
+
+        <LinearLayout
+            android:id="@+id/diceCountContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dice to Roll:"
+                android:textColor="@color/text_white"
+                android:textSize="18sp"
+                android:layout_marginEnd="12dp"/>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/decreaseDiceCountButton"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:text="-"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:background="@drawable/circular_button"
+                android:backgroundTint="@null"
+                android:layout_marginEnd="4dp" />
+
+            <EditText
+                android:id="@+id/diceCountEditText"
+                android:layout_width="60dp"
+                android:layout_height="48dp"
+                android:inputType="number"
+                android:text="5"
+                android:textColor="@color/text_white"
+                android:backgroundTint="@color/gray"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/increaseDiceCountButton"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:text="+"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:background="@drawable/circular_button"
+                android:backgroundTint="@null" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/rollButton"
@@ -37,6 +89,7 @@
             android:textColor="@color/text_white"
             android:layout_marginBottom="16dp" />
 
+        <!-- Dice breakdown remains the same -->
         <LinearLayout
             android:id="@+id/diceBreakdownContainer"
             android:orientation="horizontal"
@@ -44,7 +97,6 @@
             android:layout_height="wrap_content"
             android:gravity="center">
 
-            <!-- 6 face breakdowns -->
             <TextView android:id="@+id/face1" style="@style/DiceFaceText"/>
             <TextView android:id="@+id/face2" style="@style/DiceFaceText"/>
             <TextView android:id="@+id/face3" style="@style/DiceFaceText"/>
@@ -52,5 +104,12 @@
             <TextView android:id="@+id/face5" style="@style/DiceFaceText"/>
             <TextView android:id="@+id/face6" style="@style/DiceFaceText"/>
         </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/diceRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginBottom="4dp"/>
     </LinearLayout>
 </FrameLayout>

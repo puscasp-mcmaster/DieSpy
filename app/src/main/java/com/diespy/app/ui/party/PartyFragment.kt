@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.diespy.app.R
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -161,6 +163,7 @@ class PartyFragment : Fragment() {
             partyManager.updateTurnOrder(partyId)
         }
     }
+
 
     private fun updateTurnOrderFirestore() {
         val data = mapOf("userIds" to userIds)

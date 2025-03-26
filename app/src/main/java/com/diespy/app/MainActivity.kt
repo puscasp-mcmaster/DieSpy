@@ -83,7 +83,8 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val currentPartyId = SharedPrefManager.getCurrentPartyId(this)
             val shouldShow = destination.id in setOf(
-                R.id.partyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment, R.id.rollsFragment, R.id.diceDetectionFragment
+                R.id.partyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment,
+                R.id.rollsFragment, R.id.diceDetectionFragment, R.id.simulationFragment
             ) && currentPartyId != null
             findViewById<View>(R.id.customBottomNav).visibility = if (shouldShow) View.VISIBLE else View.GONE
 
@@ -140,7 +141,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.partyFragment, R.id.homeFragment, R.id.createAccountFragment, R.id.joinPartyFragment,
                 R.id.createPartyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment,
                 R.id.loginFragment, R.id.settingsFragment, R.id.profileFragment, R.id.rollsFragment,
-                R.id.changePasswordFragment, R.id.diceDetectionFragment
+                R.id.changePasswordFragment, R.id.diceDetectionFragment, R.id.simulationFragment
             )
             customTopNav.visibility = if (showTopNav) View.VISIBLE else View.GONE
 
