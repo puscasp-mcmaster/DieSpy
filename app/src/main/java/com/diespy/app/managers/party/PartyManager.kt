@@ -3,6 +3,7 @@ package com.diespy.app.managers.party
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogMessage
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
@@ -38,22 +39,25 @@ class PartyManager {
             }
     }
 
-    fun subscribeToTurnOrder(
-        party: String,
-        members: List<String>,
-        onUpdate: (currentTurn: String, nextTurn: String) -> Unit
-    ) {
-        db.collection(collection).document(party)
-            .addSnapshotListener { snapshot, error ->
-                if (error == null && snapshot != null && snapshot.exists()) {
-                    val turnIndex = snapshot.getLong("turnIndex")?.toInt() ?: 0
-                    if (members.isNotEmpty()) {
-                        val currentTurn = members[turnIndex % members.size]
-                        val nextTurn = members[(turnIndex + 1) % members.size]
-                        onUpdate(currentTurn, nextTurn)
-                    }
+    fun subscribeToPartyMembers(
+        partyId: String,
+        onUpdate: (List<String>) -> Unit
+    ): ListenerRegistration {
+        val firestore = FirebaseFirestore.getInstance()
+        val partyDocRef = firestore.collection("Parties").document(partyId)
+        return partyDocRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                // Optionally log or handle error
+                return@addSnapshotListener
+            }
+            snapshot?.let { doc ->
+                doc.get("userIds")?.let { rawList ->
+                    @Suppress("UNCHECKED_CAST")
+                    val updatedUserIds = rawList as List<String>
+                    onUpdate(updatedUserIds)
                 }
             }
+        }
     }
 
     suspend fun updateTurnOrder(party: String) {
