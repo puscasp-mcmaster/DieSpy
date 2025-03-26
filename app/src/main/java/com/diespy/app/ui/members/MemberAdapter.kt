@@ -19,7 +19,7 @@ class MembersAdapter(private val members: List<String>) : RecyclerView.Adapter<M
     }
 
     override fun onBindViewHolder(holder: MemberViewHolder, position: Int) {
-        holder.username.text = members[position]
+        holder.username.text = members[position].replaceFirstChar { it.titlecase() }
     }
 
     override fun getItemCount(): Int = members.size

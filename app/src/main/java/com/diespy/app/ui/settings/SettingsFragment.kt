@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -50,6 +51,7 @@ class SettingsFragment : Fragment() {
         }
 
         dialogView.findViewById<Button>(R.id.yesButton).setOnClickListener {
+            alertDialog.dismiss()
             handleDeleteAccount()
         }
 
@@ -92,6 +94,7 @@ class SettingsFragment : Fragment() {
             if (deleteSuccess) {
                 SharedPrefManager.clearCurrentUserData(requireContext())
                 findNavController().navigate(R.id.action_settings_to_login)
+                Toast.makeText(requireContext(), "You have successfully deleted the account.", Toast.LENGTH_SHORT).show()
             } else {
                 binding.settingsErrorMessage.showError("Failed to delete account. Try again.")
             }
