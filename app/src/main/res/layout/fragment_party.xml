@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/dark_background"
+    tools:context=".ui.party.PartyFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -9,61 +12,26 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Party Name -->
+        <!-- Party Name, Centered -->
         <TextView
             android:id="@+id/partyNameTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Party Name Here"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
-
-        <!-- Turn Information and End Turn button in one row -->
-        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
+            android:text="Party Name"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@color/text_white"
+            android:layout_marginBottom="16dp" />
 
-            <!-- Turn Info container -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/currentTurnTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="It is ___ Turn!"
-                    android:textSize="18sp"
-                    android:textColor="@color/text_white"
-                    android:layout_marginBottom="8dp" />
-                <TextView
-                    android:id="@+id/nextTurnTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="____'s turn is next!"
-                    android:textSize="18sp"
-                    android:textColor="@color/text_white" />
-            </LinearLayout>
-
-            <!-- End Turn Button -->
-            <Button
-                android:id="@+id/endTurnButton"
-                android:layout_width="100dp"
-                android:layout_height="60dp"
-                android:background="@drawable/square_button_ripple"
-                android:text="End Turn"
-                android:textColor="@color/text_white"
-                android:textSize="14sp"
-                android:clickable="true"
-                android:gravity="center" />
-
-
-        </LinearLayout>
+        <!-- Draggable Turn Order List -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:overScrollMode="never"
+            android:layout_marginBottom="20dp" />
 
         <!-- Previous Roll Section -->
         <LinearLayout
@@ -73,7 +41,6 @@
             android:orientation="vertical"
             android:background="@drawable/dialog_background"
             android:padding="16dp"
-            android:layout_marginTop="10dp"
             android:layout_marginBottom="20dp">
 
             <TextView
@@ -106,7 +73,8 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="20sp"
-                    android:text="1:0" />
+                    android:text="1:0"
+                    android:textColor="@color/text_white" />
 
                 <TextView
                     android:id="@+id/diceDetail2"
@@ -115,7 +83,8 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="20sp"
-                    android:text="2:0" />
+                    android:text="2:0"
+                    android:textColor="@color/text_white" />
 
                 <TextView
                     android:id="@+id/diceDetail3"
@@ -124,7 +93,8 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="20sp"
-                    android:text="3:0" />
+                    android:text="3:0"
+                    android:textColor="@color/text_white" />
 
                 <TextView
                     android:id="@+id/diceDetail4"
@@ -133,7 +103,8 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="20sp"
-                    android:text="4:0" />
+                    android:text="4:0"
+                    android:textColor="@color/text_white" />
 
                 <TextView
                     android:id="@+id/diceDetail5"
@@ -142,7 +113,8 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="20sp"
-                    android:text="5:0" />
+                    android:text="5:0"
+                    android:textColor="@color/text_white" />
 
                 <TextView
                     android:id="@+id/diceDetail6"
@@ -151,13 +123,14 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="20sp"
-                    android:text="6:0" />
+                    android:text="6:0"
+                    android:textColor="@color/text_white" />
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Simulate Roll Button -->
         <Button
             android:id="@+id/simulateRollButton"
-            android:layout_marginTop="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/primary_accent"
