@@ -21,17 +21,48 @@ class DiceSimulationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        var diceCount = 10
 
         binding.rollButton.setOnClickListener {
-            val result = simulateDiceRoll()
+            val input = binding.diceCountEditText.text.toString().toIntOrNull()
+            val count = if (input != null && input > 0) input else diceCount
+            diceCount = count
+            val result = simulateDiceRoll(count)
             displayResults(result)
+        }
+
+        binding.decreaseDiceCountButton.setOnClickListener {
+            diceCount = maxOf(1, diceCount - 1)
+            binding.diceCountEditText.setText(diceCount.toString())
+        }
+
+        binding.increaseDiceCountButton.setOnClickListener {
+            diceCount += 1
+            binding.diceCountEditText.setText(diceCount.toString())
+        }
+
+        binding.diceCountEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val input = binding.diceCountEditText.text.toString().toIntOrNull()
+                if (input != null && input > 0) {
+                    diceCount = input
+                } else {
+                    binding.diceCountEditText.setText(diceCount.toString())
+                }
+            }
         }
     }
 
-    private fun simulateDiceRoll(): IntArray {
+    private fun simulateDiceRoll(count: Int): IntArray {
+        val result = IntArray(6)
         val random = java.util.Random()
-        return IntArray(6) { random.nextInt(4) } // 0–3 of each face
+        repeat(count) {
+            val face = random.nextInt(6)
+            result[face] += 1
+        }
+        return result
     }
+
 
     private fun displayResults(rolls: IntArray) {
         val total = rolls.withIndex().sumOf { (i, count) -> (i + 1) * count }

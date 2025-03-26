@@ -60,6 +60,15 @@
         android:label="Party"
         tools:layout="@layout/fragment_party">
         <action android:id="@+id/action_party_to_diceDetection" app:destination="@id/diceDetectionFragment"/>
+        <action android:id="@+id/action_party_to_diceSim" app:destination="@id/simulationFragment"/>
+    </fragment>
+
+    <!-- Simulation Screen -->
+    <fragment
+        android:id="@+id/simulationFragment"
+        android:name="com.diespy.app.ui.dice_simulation.DiceSimulationFragment"
+        android:label="DiceSim"
+        tools:layout="@layout/fragment_dice_simulation">
     </fragment>
 
     <!-- Dice Detection Screen -->

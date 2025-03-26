@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.diespy.app.R
 import com.diespy.app.databinding.FragmentPartyBinding
 import com.diespy.app.managers.logs.LogManager
 import com.diespy.app.managers.party.PartyManager
@@ -100,7 +102,7 @@ class PartyFragment : Fragment() {
 
         // Simulate Roll Button remains unchanged.
         binding.simulateRollButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Simulate Roll functionality not implemented yet", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_party_to_diceSim)
         }
     }
 
