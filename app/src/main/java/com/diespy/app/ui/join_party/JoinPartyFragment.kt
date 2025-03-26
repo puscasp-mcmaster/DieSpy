@@ -43,9 +43,9 @@ class JoinPartyFragment : Fragment() {
             nm.discoverServices {}
            // Thread.sleep(5000)
             Log.d("NetworkManager", "Ready to party")
-            var p1 = PartyItem("cLkDPwOjRwmlXlhIh8s1", "diceboys", 3)
-            var p2 = PartyItem("cLkDPwOjRwmlXlhIh8s1", "2MZeqr", 3)
-            var p3 = PartyItem("testid", "Party 3", 0)
+            var p1 = PartyItem("na", "diceboys", 3)
+            var p2 = PartyItem("na", "DieSpies", 1)
+            var p3 = PartyItem("na", "Epic Party ", 4)
             //val partyItems = nm.discoveredDeviceMap.values.toList()
             val partyItems = listOf(p1, p2, p3)
         //data class PartyItem(val id: String, val name: String, val userCount: Int, val ipAddress : String? = null, val port : String? = null)
@@ -56,10 +56,7 @@ class JoinPartyFragment : Fragment() {
                 partyId = party.id
                 viewLifecycleOwner.lifecycleScope.launch {
                     if (partyName != "") {
-                        SharedPrefManager.saveCurrentPartyId(requireContext(), partyId)
-                        SharedPrefManager.saveCurrentPartyName(requireContext(),partyName)
-                        SharedPrefManager.saveCurrentPartyUserCount(requireContext(), party.userCount.toString())
-                        joinPartyByField("joinPw", "2MZeqr")
+                       joinPartyByField("name", partyName)
                         Log.d("LEL","joinPartyByFieldDone")
                     }
                 }
