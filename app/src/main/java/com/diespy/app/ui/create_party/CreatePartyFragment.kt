@@ -11,7 +11,8 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
-import com.diespy.app.managers.create_party.PartyManager
+import com.diespy.app.managers.network.PublicNetworkManager
+import com.diespy.app.managers.party.PartyManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.clearError
 import com.diespy.app.ui.utils.showError
@@ -39,6 +40,8 @@ class CreatePartyFragment : Fragment() {
                 lifecycleScope.launch {
                     val success = partyManager.createParty(partyName, userId)
                     if (success != null) {
+                        val nm = PublicNetworkManager.getInstance(requireContext())
+                        nm.initAsHost() //initializs serversocket
                         SharedPrefManager.saveCurrentPartyId(requireContext(), success)
                         SharedPrefManager.saveCurrentPartyName(requireContext(), partyName)
                         binding.partyNameInput.text.clear()

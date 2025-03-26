@@ -1,13 +1,16 @@
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.wifi.p2p.*
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.home.PartyItem
@@ -28,7 +31,7 @@ THIS IS THE BACKEND NETWORK MANAGER CODE!
 two distinct steps: 1) connection to a device via wifip2p to obtain local ip,
 2) tcp connection to local ip to send data.
 
-ALWAYS USE initAsHost(), initAsClient(), sendHostMessage(), sendClientMessage() and getMessage()!
+ALWAYS USE  sendHostMessage(), sendClientMessage() and getMessage()!
 
 
 -PP
@@ -44,7 +47,6 @@ class NetworkManager(private val context: Context) {
     private var serverSocket: ServerSocket? = null
     private var hostAddress: String? = null
     val discoveredDeviceMap = mutableMapOf<String, PartyItem>()
-  //  val discoveredDeviceMap = mutableMapOf<String, Triple<String, Int, String>>()
     var latestMessage: String? = null
 
     private fun getLocalIpAddress(): String? {
@@ -64,45 +66,39 @@ class NetworkManager(private val context: Context) {
         }
         return null
     }
-/*
-    private fun requestPermissionsIfNeeded() {
-        val permissions = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
-        }
 
-        val context = this.context.applicationContext
-        if (permissions.any { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }) {
-            if (context is Activity) {
-                ActivityCompat.requestPermissions(context, permissions.toTypedArray(), 1)
-            } else {
-                Log.e("NetworkManager", "Permissions cannot be requested without an Activity context")
-            }
-        }
-    }
-*/
     private fun advertiseService(groupName: String, groupId: String) {
-            val record = hashMapOf(
-                "service_name" to "DiespyApp",
-                "ip" to getLocalIpAddress(),
-                "port" to "5675",
-                "groupName" to groupName,
-                "groupID" to groupId
-            )
-            val serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("DiespyService", "_diespy._tcp", record)
+        val record = hashMapOf(
+            "service_name" to "DiespyApp",
+            "ip" to getLocalIpAddress(),
+            "port" to "5675",
+            "groupName" to groupName,
+            "groupID" to groupId
+        )
+        val serviceInfo =
+            WifiP2pDnsSdServiceInfo.newInstance("DiespyService", "_diespy._tcp", record)
 
-            //whines about possibly missing permissions, leave for now since it works.
-            wifiP2pManager?.addLocalService(channel, serviceInfo, object : WifiP2pManager.ActionListener {
+        //Permission checking code autofilled by android studio
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.NEARBY_WIFI_DEVICES
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {Log.e("NetworkManager", "Permissions not granted for Service Advertising")}
+        wifiP2pManager?.addLocalService(
+            channel,
+            serviceInfo,
+            object : WifiP2pManager.ActionListener {
                 override fun onSuccess() {
-                    //todo host success
+                    Log.d("NetworkManager", "Service advertised successfully.")
                 }
-
                 override fun onFailure(code: Int) {
-                    //todo host fail
+                    Log.e("NetworkManager", "Failed to advertise service: $code")
                 }
             })
-        }
-
+    }
     //MAKE PRIVATE LATER
     public fun discoverServices(callback: (List<WifiP2pDevice>) -> Unit) {
         discoveryCallback = callback
@@ -144,7 +140,7 @@ class NetworkManager(private val context: Context) {
             }
         }
 
-        wifiP2pManager?.setDnsSdResponseListeners(channel, serviceListener, null)
+        wifiP2pManager?.setDnsSdResponseListeners(channel, serviceListener, txtRecordListener)
         Log.d("NetworkManager", "Ready to discover services!")
         Log.d("NetworkManager", "wifiP2pManager is ${if (wifiP2pManager != null) "initialized" else "null"}")
         Log.d("NetworkManager", "channel is ${if (channel != null) "initialized" else "null"}")
@@ -170,61 +166,65 @@ class NetworkManager(private val context: Context) {
         })
 
 
+
         //Discover peers, if successful discover services.
         wifiP2pManager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
                 Log.d("NetworkManager", "Peer discovery started successfully.")
-                //Starts a handler to search for peers in the background, after 10 loops it forces a callback with the empty list
+                // Starts a handler to search for peers in the background, after 10 loops it forces a callback with the empty list
                 Handler(Looper.getMainLooper()).postDelayed({
-                    //Asynchronously requests peers. Internal logic (peerlist ->) runs only upon completion.
-
-                wifiP2pManager?.requestPeers(channel) { peerList ->
-                    //service discovery!
-                    if (peerList.deviceList.isNotEmpty()) {
-                        Log.d("NetworkManager", "Peers discovered: ${peerList.deviceList.size}")
-                        wifiP2pManager?.discoverServices(channel, object : WifiP2pManager.ActionListener {
-                            override fun onSuccess() {
-                                Log.d("NetworkManager", "Service discovery started successfully.")
-                            }
-
-                            override fun onFailure(code: Int) {
-                                Log.e("NetworkManager", "Service discovery failed: $code")
-                            }
-                        })
-                    } else {
-                        //forces return of empty list after 10 seconds of handler not found.
-                        Log.e("NetworkManager", "No peers found.")
-                        discoveryCallback?.invoke(emptyList())
+                    // Asynchronously requests peers. Internal logic (peerlist ->) runs only upon completion.
+                    if (ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.NEARBY_WIFI_DEVICES
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        Log.e("NetworkManager", "Permissions not granted for service discovery.")
+                        return@postDelayed
                     }
-                }
-                }, 10000) // 10 second search period to find devices and services. Most sources say it should take < 5, so double jic.
+
+                    //PEER DISCOVERY:
+                    wifiP2pManager?.requestPeers(channel) { peerList ->
+                        if (peerList.deviceList.isNotEmpty()) {
+                            Log.d("NetworkManager", "Peers discovered: ${peerList.deviceList.size}")
+                            // Add service request before starting service discovery
+                            val serviceRequest = WifiP2pDnsSdServiceRequest.newInstance()
+                            wifiP2pManager?.addServiceRequest(channel, serviceRequest, object : WifiP2pManager.ActionListener {
+                                @SuppressLint("MissingPermission")
+                                override fun onSuccess() {
+                                    Log.d("NetworkManager", "Service request added successfully.")
+                                    // Start service discovery
+                                    wifiP2pManager?.discoverServices(channel, object : WifiP2pManager.ActionListener {
+                                        override fun onSuccess() {
+                                            Log.d("NetworkManager", "Service discovery started successfully.")
+                                        }
+                                        override fun onFailure(code: Int) {
+                                            Log.e("NetworkManager", "Service discovery failed: $code")
+                                        }
+                                    })
+                                }
+
+                                override fun onFailure(code: Int) {
+                                    Log.e("NetworkManager", "Failed to add service request: $code")
+                                }
+                            })
+                        } else {
+                            // Forces return of empty list after 10 seconds of handler not found.
+                            Log.e("NetworkManager", "No peers found.")
+                            discoveryCallback?.invoke(emptyList())
+                        }
+                    }
+                }, 10000) // 10 second search period to find devices and services.
             }
 
             override fun onFailure(code: Int) {
                 Log.e("NetworkManager", "Peer discovery failed: $code")
             }
         })
-    }
 
-
-
-    private fun connectToDevice(device: WifiP2pDevice) {
-        val config = WifiP2pConfig().apply {
-            deviceAddress = device.deviceAddress
-            wps.setup = WpsInfo.PBC
-        }
-
-        wifiP2pManager?.connect(channel, config, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                //on connection setup clientside port and connect
-                Log.d("NetworkManager", "Connection initiated successfully")
-            }
-
-            override fun onFailure(code: Int) {
-                //on failure exit
-                Log.e("NetworkManager", "Connection failed: $code")
-            }
-        })
     }
 
     private fun startServer() {
@@ -248,6 +248,7 @@ class NetworkManager(private val context: Context) {
         }.start()
     }
 
+    //listener to automatically handle client messages to host
     private fun handleClientMessages(clientSocket: Socket) {
         try {
             val inputStream = clientSocket.getInputStream()
@@ -262,11 +263,25 @@ class NetworkManager(private val context: Context) {
                 latestMessage = messageFromClient
                 Log.d("NetworkManager", "Received from client: $messageFromClient")
 
-                // Send a response to the client
-                val response = "Server received: $messageFromClient"
-                writer.write("$response\n")
-                writer.flush()
-                Log.d("NetworkManager", "Response sent to client: $response")
+
+                //parse latest message:
+            /*    val parsedmessage = messageFromClient.split("|")
+
+                when (parsedmessage[0]) {
+                    "Chat" -> {
+
+                    }
+                    "Log" -> {
+
+                    }
+                    "Turn" -> {
+
+                    }
+
+
+
+                }*/
+
             }
 
             connectedClients.remove(clientSocket)
@@ -276,6 +291,28 @@ class NetworkManager(private val context: Context) {
         }
     }
 
+    //listener to handles host messages to client
+  /*  private fun handleHostMessages(serverSocket: ServerSocket) {
+     try {
+         val inputStream = serverSocket.getInputStream()
+         val outputStream = serverSocket.getOutputStream()
+
+         val reader = inputStream.bufferedReader()
+         val writer = outputStream.bufferedWriter()
+         while (true) {
+             val messageFromHost = reader.readLine()  // Read from client
+             if (messageFromHost == null) break
+             latestMessage = messageFromHost
+             Log.d("NetworkManager", "Received from client: $messageFromHost")
+
+             //parse latest message:
+
+         }
+
+     } catch (e: Exception) {
+         Log.e("NetworkManager", "Error handling host message: ${e}")
+     }
+    }*/
     public fun openClientSocket(partyToJoin: PartyItem) {
         //hostAddress = "127.0.0.1"
         hostAddress = partyToJoin.ipAddress
@@ -372,7 +409,7 @@ class NetworkManager(private val context: Context) {
         }.start()
     }
 
-    public fun initAsHost(context: Context) {
+    public fun initAsHost() {
         val partyName : String = SharedPrefManager.getCurrentPartyName(context) ?: "Unnamed Party"
         val partyId :String = SharedPrefManager.getCurrentPartyId(context) ?: "N/A"
         advertiseService(partyName, partyId)
@@ -385,4 +422,12 @@ class NetworkManager(private val context: Context) {
             return latestMessage!!
     }
 
+
+    public fun createListener() {
+        //if host
+
+
+        //if client
+
+    }
 }

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentHomeBinding
 import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.showError
 import kotlinx.coroutines.launch
@@ -84,9 +85,12 @@ class HomeFragment : Fragment() {
                     SharedPrefManager.saveCurrentPartyName(requireContext(), party.name)
 
                     lifecycleScope.launch {
+                        val nm = PublicNetworkManager.getInstance(requireContext())
+                        nm.initAsHost() //initializs serversocket
                         fireStoreManager.preloadPartyData(party.id)
                         findNavController().navigate(R.id.action_home_to_party)
                     }
+                    
                 }
                 binding.partyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
                 binding.partyRecyclerView.adapter = adapter

@@ -18,6 +18,7 @@ import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.showError
 import com.diespy.app.ui.utils.clearError
 import com.diespy.app.ui.home.PartyAdapter
+import com.diespy.app.ui.home.PartyItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,7 +43,12 @@ class JoinPartyFragment : Fragment() {
             nm.discoverServices {}
            // Thread.sleep(5000)
             Log.d("NetworkManager", "Ready to party")
-            val partyItems = nm.discoveredDeviceMap.values.toList()
+            var p1 = PartyItem("testid", "Party 1", 2, "127.0.0.1", "3436")
+            var p2 = PartyItem("testid", "Party 2", 3, "127.0.0.1", "3436")
+            var p3 = PartyItem("testid", "Party 3", 0, "127.0.0.1", "3436")
+            //val partyItems = nm.discoveredDeviceMap.values.toList()
+            val partyItems = listOf(p1, p2, p3)
+//data class PartyItem(val id: String, val name: String, val userCount: Int, val ipAddress : String? = null, val port : String? = null)
 
             val adapter = PartyAdapter(partyItems) { party ->
                 SharedPrefManager.saveCurrentPartyId(requireContext(), party.id)
@@ -75,9 +81,7 @@ class JoinPartyFragment : Fragment() {
             Log.d("NetworkManager", "Ready to party")
             val partyItems = nm.discoveredDeviceMap.values.toList()
         }
-        binding.joinPartyHostButton.setOnClickListener {
-            nm.initAsHost(requireContext())
-            Log.d("NetworkManager", "Host init complete")
+
            /* Thread.sleep(100)
             nm.openClientSocket(null)
             Log.d("NetworkManager", "ClientSocket init complete")
@@ -90,7 +94,9 @@ class JoinPartyFragment : Fragment() {
             Log.d("NetworkManager", "Host Message Sent complete")
             Thread.sleep(100)
             Log.d("TEST", nm.getMessage())*/
-        }
+
+
+
     }
 
     private suspend fun joinPartyWithPassword(password: String) {
