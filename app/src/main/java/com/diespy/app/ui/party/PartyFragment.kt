@@ -15,10 +15,8 @@ import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogManager
 import com.diespy.app.managers.party.PartyManager
 import com.diespy.app.managers.profile.SharedPrefManager
-import com.diespy.app.ui.party.TurnOrderAdapter
 import com.diespy.app.ui.utils.diceParse
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 
 class PartyFragment : Fragment() {
@@ -28,14 +26,16 @@ class PartyFragment : Fragment() {
 
     private val fireStoreManager = FireStoreManager()
     private lateinit var logManager: LogManager
-    private lateinit var partyId: String
     private lateinit var partyManager: PartyManager
-    // List of user IDs and corresponding usernames (in turn order)
+    private lateinit var partyId: String
+
     private var userIds: MutableList<String> = mutableListOf()
     private var usernames: MutableList<String> = mutableListOf()
 
-    // Adapter for the draggable list of players
     private lateinit var turnOrderAdapter: TurnOrderAdapter
+
+    private var cachedCurrentUserId: String? = null
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -56,11 +56,9 @@ class PartyFragment : Fragment() {
         val partyName = SharedPrefManager.getCurrentPartyName(requireContext()) ?: "Party Name"
         binding.partyNameTextView.text = partyName
 
-        // Subscribe to real-time log updates.
         partyManager.subscribeToLatestLog(partyId) { lastLog ->
             _binding?.let { binding ->
                 if (lastLog != null) {
-                    // Compute the roll sum.
                     val countsMap = diceParse(lastLog.log)
                     val total = countsMap.withIndex().sumOf { (index, count) -> (index + 1) * count }
 
@@ -84,14 +82,12 @@ class PartyFragment : Fragment() {
             }
         }
 
-        // Initialize RecyclerView with adapter
         turnOrderAdapter = TurnOrderAdapter(usernames, onEndTurnClicked = { handleEndTurn() })
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = turnOrderAdapter
 
         attachDragAndDrop()
 
-        // Load the party's userIds from Firestore and then fetch corresponding usernames
         lifecycleScope.launch {
             val partyData = fireStoreManager.getDocumentById("Parties", partyId)
             partyData?.get("userIds")?.let { rawList ->
@@ -104,42 +100,18 @@ class PartyFragment : Fragment() {
                     usernames.add(username)
                 }
                 turnOrderAdapter.updatePlayers(usernames)
+
+                partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
+                    val currentTurnIndex = userIds.indexOf(currentTurnUserId)
+                    if (currentTurnIndex != -1) {
+                        cachedCurrentUserId = userIds.getOrNull(currentTurnIndex)
+                        turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
+
+                    }
+                }
             }
         }
 
-// Load previous roll info (with total displayed)
-        lifecycleScope.launch {
-            val logs = logManager.loadLogs(partyId)
-            if (logs.isNotEmpty()) {
-                val lastLog = logs.last()
-
-                // Parse dice counts
-                val countsMap = diceParse(lastLog.log)
-                val total = countsMap.withIndex().sumOf { (index, count) -> (index + 1) * count }
-
-                // Show: "Username rolled: 14"
-                binding.rollUserNameTextView.text =
-                    "${lastLog.username.replaceFirstChar { it.titlecase() }} rolled: $total"
-
-                binding.diceDetail1.text = "1: ${countsMap[0]}"
-                binding.diceDetail2.text = "2: ${countsMap[1]}"
-                binding.diceDetail3.text = "3: ${countsMap[2]}"
-                binding.diceDetail4.text = "4: ${countsMap[3]}"
-                binding.diceDetail5.text = "5: ${countsMap[4]}"
-                binding.diceDetail6.text = "6: ${countsMap[5]}"
-            } else {
-                binding.rollUserNameTextView.text = "No previous roll."
-                binding.diceDetail1.text = ""
-                binding.diceDetail2.text = ""
-                binding.diceDetail3.text = ""
-                binding.diceDetail4.text = ""
-                binding.diceDetail5.text = ""
-                binding.diceDetail6.text = ""
-            }
-        }
-
-
-        // Simulate Roll Button remains unchanged.
         binding.simulateRollButton.setOnClickListener {
             Toast.makeText(requireContext(), "Simulate Roll not implemented", Toast.LENGTH_SHORT).show()
         }
@@ -156,14 +128,28 @@ class PartyFragment : Fragment() {
             ): Boolean {
                 val fromPos = viewHolder.adapterPosition
                 val toPos = target.adapterPosition
-                val movedUsername = usernames.removeAt(fromPos)
-                usernames.add(toPos, movedUsername)
-                val movedUserId = userIds.removeAt(fromPos)
-                userIds.add(toPos, movedUserId)
-                turnOrderAdapter.updatePlayers(usernames)
-                updateTurnOrderFirestore()
+                Collections.swap(usernames, fromPos, toPos)
+                Collections.swap(userIds, fromPos, toPos)
+                turnOrderAdapter.notifyItemMoved(fromPos, toPos)
                 return true
             }
+
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                super.clearView(recyclerView, viewHolder)
+
+                val currentUserId = cachedCurrentUserId ?: return
+                val newTurnIndex = userIds.indexOf(currentUserId)
+
+                val data = mapOf(
+                    "userIds" to userIds,
+                    "turnIndex" to newTurnIndex
+                )
+
+                lifecycleScope.launch {
+                    fireStoreManager.updateDocument("Parties", partyId, data)
+                }
+            }
+
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
         })
@@ -171,14 +157,9 @@ class PartyFragment : Fragment() {
     }
 
     private fun handleEndTurn() {
-        // Rotate the list: move first element to the end.
-        if (userIds.size < 2) return
-        val firstUserId = userIds.removeAt(0)
-        val firstUsername = usernames.removeAt(0)
-        userIds.add(firstUserId)
-        usernames.add(firstUsername)
-        turnOrderAdapter.updatePlayers(usernames)
-        updateTurnOrderFirestore()
+        lifecycleScope.launch {
+            partyManager.updateTurnOrder(partyId)
+        }
     }
 
     private fun updateTurnOrderFirestore() {
