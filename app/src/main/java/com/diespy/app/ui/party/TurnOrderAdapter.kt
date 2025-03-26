@@ -44,9 +44,9 @@ class TurnOrderAdapter(
         // Highlight background based on current turn
         val ctx = holder.itemView.context
         val bubbleBackground = if (isCurrentTurn)
-            ContextCompat.getDrawable(ctx, R.drawable.chat_bubble_background) // active
+            ContextCompat.getDrawable(ctx, R.drawable.member_order_bubble_background) // active
         else
-            ContextCompat.getDrawable(ctx, R.drawable.chat_bubble_background_gray) // inactive
+            ContextCompat.getDrawable(ctx, R.drawable.member_order_bubble_background_gray) // inactive
 
         holder.usernameText.background = bubbleBackground
 
