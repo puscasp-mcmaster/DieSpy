@@ -11,6 +11,7 @@ import com.diespy.app.databinding.FragmentPartyBinding
 import com.diespy.app.managers.logs.LogManager
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.diceParse
 import kotlinx.coroutines.launch
 
 class PartyFragment : Fragment() {
@@ -62,19 +63,13 @@ class PartyFragment : Fragment() {
                 val lastLog = logs.last()
                 binding.rollUserNameTextView.text = "${lastLog.username.replaceFirstChar { it.titlecase() }} rolled:"
 
-                // Use regex to extract dice counts; expects log format like "1s: 0", "2s: 3", etc.
-                val regex = Regex("""(\d+)s?:\s*(\d+)""")
-                val countsMap = mutableMapOf<Int, Int>()
-                regex.findAll(lastLog.log).forEach { result ->
-                    val (faceStr, countStr) = result.destructured
-                    countsMap[faceStr.toInt()] = countStr.toInt()
-                }
-                binding.diceDetail1.text = "1: ${countsMap[1] ?: 0}"
-                binding.diceDetail2.text = "2: ${countsMap[2] ?: 0}"
-                binding.diceDetail3.text = "3: ${countsMap[3] ?: 0}"
-                binding.diceDetail4.text = "4: ${countsMap[4] ?: 0}"
-                binding.diceDetail5.text = "5: ${countsMap[5] ?: 0}"
-                binding.diceDetail6.text = "6: ${countsMap[6] ?: 0}"
+                val countsMap = diceParse(lastLog.log)
+                binding.diceDetail1.text = "1: ${countsMap[0]}"
+                binding.diceDetail2.text = "2: ${countsMap[1]}"
+                binding.diceDetail3.text = "3: ${countsMap[2]}"
+                binding.diceDetail4.text = "4: ${countsMap[3]}"
+                binding.diceDetail5.text = "5: ${countsMap[4]}"
+                binding.diceDetail6.text = "6: ${countsMap[5]}"
             } else {
                 binding.rollUserNameTextView.text = "No previous roll."
                 binding.diceDetail1.text = ""

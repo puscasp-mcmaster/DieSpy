@@ -13,6 +13,8 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
 import com.diespy.app.managers.party.PartyManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.clearError
+import com.diespy.app.ui.utils.showError
 import kotlinx.coroutines.launch
 
 class CreatePartyFragment : Fragment() {
@@ -29,7 +31,7 @@ class CreatePartyFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.createPartyButton.setOnClickListener {
-            clearError()
+            binding.createPartyErrorMessage.clearError()
             val partyName = binding.partyNameInput.text.toString().trim()
             val userId = SharedPrefManager.getCurrentUserId(requireContext()) ?: ""
 
@@ -48,23 +50,13 @@ class CreatePartyFragment : Fragment() {
                                 .build()
                         )
                     } else {
-                        showError("Failed to create party")
+                        binding.createPartyErrorMessage.showError("Failed to create party")
                     }
                 }
             } else {
-                showError("Please enter party name")
+                binding.createPartyErrorMessage.showError("Please enter party name")
             }
         }
-    }
-
-    private fun showError(message: String) {
-        binding.createPartyErrorMessage.text = message
-        binding.createPartyErrorMessage.visibility = View.VISIBLE
-    }
-
-    private fun clearError() {
-        binding.createPartyErrorMessage.text = ""
-        binding.createPartyErrorMessage.visibility = View.GONE
     }
 
     override fun onDestroyView() {

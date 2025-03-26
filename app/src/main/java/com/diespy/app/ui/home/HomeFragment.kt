@@ -14,6 +14,7 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentHomeBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.showError
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -56,11 +57,12 @@ class HomeFragment : Fragment() {
 
         val userId = SharedPrefManager.getCurrentUserId(requireContext())
         if (userId == null) {
-            showError("User not logged in.")
+            binding.homeErrorMessage.showError("User not logged in")
             binding.partyRecyclerView.visibility = View.GONE
             return
         }
 
+        //Show all parties the user is in
         viewLifecycleOwner.lifecycleScope.launch {
             val partyItems = fireStoreManager.getAllPartiesForUser(userId)
 
@@ -81,11 +83,6 @@ class HomeFragment : Fragment() {
             }
         }
 
-    }
-
-    private fun showError(message: String) {
-        binding.homeErrorMessage.text = message
-        binding.homeErrorMessage.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {

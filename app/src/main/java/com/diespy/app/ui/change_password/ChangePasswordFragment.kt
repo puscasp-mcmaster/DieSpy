@@ -13,6 +13,7 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentChangePasswordBinding
 import com.diespy.app.managers.authentication.AuthenticationManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.showError
 import kotlinx.coroutines.launch
 
 class ChangePasswordFragment : Fragment() {
@@ -83,7 +84,7 @@ class ChangePasswordFragment : Fragment() {
 
         val validationError = validateInput(oldPassword, newPassword1, newPassword2)
         if (validationError != null) {
-            showError(validationError)
+            binding.createAccountErrorMessage.showError(validationError)
             return
         }
 
@@ -91,14 +92,14 @@ class ChangePasswordFragment : Fragment() {
             //Grab username
             val username = (SharedPrefManager.getCurrentUsername(requireContext()))?: ""
             if (username == ""){
-                showError("Username error. Try again.")
+                binding.createAccountErrorMessage.showError("Username error. Try again.")
                 return@launch
             }
             //Try to make sure the username and password combo is correct
             val isAuthenticated = authManager.authenticate(username, oldPassword)
 
             if (isAuthenticated != 1) {
-                showError("Wrong old password.")
+                binding.createAccountErrorMessage.showError("Wrong old password.")
                 return@launch
             }
 
@@ -111,7 +112,7 @@ class ChangePasswordFragment : Fragment() {
                 binding.createAccountErrorMessage.text = "" // Clear error message
                 findNavController().navigate(R.id.action_changePassword_to_profile) // Navigate to home screen
             } else {
-                showError("Failed to change password. Try again.")
+                binding.createAccountErrorMessage.showError("Failed to change password. Try again.")
             }
         }
     }
@@ -122,13 +123,6 @@ class ChangePasswordFragment : Fragment() {
             password1 != password2 -> "Passwords do not match"
             password1.length < 6 -> "Password must be at least 6 characters"
             else -> null // No errors
-        }
-    }
-
-    private fun showError(message: String) {
-        binding.createAccountErrorMessage.apply {
-            text = message
-            visibility = View.VISIBLE
         }
     }
 

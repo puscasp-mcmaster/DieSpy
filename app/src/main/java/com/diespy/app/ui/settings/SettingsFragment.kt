@@ -13,6 +13,8 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentSettingsBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.clearError
+import com.diespy.app.ui.utils.showError
 import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
@@ -31,7 +33,7 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.deleteAccountButton.setOnClickListener {
-            clearError()
+            binding.settingsErrorMessage.clearError()
             deleteAccountConfirmation()
         }
     }
@@ -59,7 +61,7 @@ class SettingsFragment : Fragment() {
     private fun handleDeleteAccount() {
         val username = SharedPrefManager.getCurrentUsername(requireContext())
         if (username == null) {
-            showError("Username not found.")
+            binding.settingsErrorMessage.showError("Username not found.")
             return
         }
 
@@ -67,13 +69,13 @@ class SettingsFragment : Fragment() {
             val userDocumentId = fireStoreManager.getDocumentIdByField("Users", "username", username)
 
             if (userDocumentId == null) {
-                showError("User not found.")
+                binding.settingsErrorMessage.showError("User not found.")
                 return@launch
             }
 
             val userId = SharedPrefManager.getCurrentUserId(requireContext())
             if (userId == null) {
-                showError("User ID not found.")
+                binding.settingsErrorMessage.showError("User ID not found.")
                 return@launch
             }
 
@@ -81,7 +83,7 @@ class SettingsFragment : Fragment() {
             val cleaned = fireStoreManager.removeUserFromAllParties(userId)
 
             if (!cleaned) {
-                showError("Failed to remove user from parties.")
+                binding.settingsErrorMessage.showError("Failed to remove user from parties.")
                 return@launch
             }
 
@@ -91,20 +93,9 @@ class SettingsFragment : Fragment() {
                 SharedPrefManager.clearCurrentUserData(requireContext())
                 findNavController().navigate(R.id.action_settings_to_login)
             } else {
-                showError("Failed to delete account. Try again.")
+                binding.settingsErrorMessage.showError("Failed to delete account. Try again.")
             }
         }
-    }
-
-
-    private fun showError(message: String) {
-        binding.settingsErrorMessage.text = message
-        binding.settingsErrorMessage.visibility = View.VISIBLE
-    }
-
-    private fun clearError() {
-        binding.settingsErrorMessage.text = ""
-        binding.settingsErrorMessage.visibility = View.GONE
     }
 
     override fun onDestroyView() {

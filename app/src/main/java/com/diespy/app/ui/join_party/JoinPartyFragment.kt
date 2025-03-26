@@ -15,6 +15,8 @@ import com.diespy.app.databinding.FragmentJoinPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.showError
+import com.diespy.app.ui.utils.clearError
 import com.diespy.app.ui.home.PartyAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,15 +53,13 @@ class JoinPartyFragment : Fragment() {
             }
             binding.joinPartyRecycleView.layoutManager = LinearLayoutManager(requireContext())
             binding.joinPartyRecycleView.adapter = adapter
-
         }
-
 
         binding.joinPartyButton.setOnClickListener {
             val inputPassword = binding.partyPasswordInput.text.toString().trim()
-            clearError()
+            binding.joinPartyErrorMessage.clearError()
             if (inputPassword.isEmpty()) {
-                showError("Please enter a party password.")
+                binding.joinPartyErrorMessage.showError("Please enter a party password.")
                 return@setOnClickListener
             }
 
@@ -91,8 +91,6 @@ class JoinPartyFragment : Fragment() {
             Thread.sleep(100)
             Log.d("TEST", nm.getMessage())*/
         }
-
-
     }
 
     private suspend fun joinPartyWithPassword(password: String) {
@@ -101,7 +99,7 @@ class JoinPartyFragment : Fragment() {
         val partyId = firestoreManager.getDocumentIdByField("Parties", "joinPw", password)
         if (partyId == null) {
             withContext(Dispatchers.Main) {
-                showError("No party found with that password.")
+                binding.joinPartyErrorMessage.showError("No party found with that password.")
             }
             return
         }
@@ -109,7 +107,7 @@ class JoinPartyFragment : Fragment() {
         val userId = SharedPrefManager.getCurrentUserId(context)
         if (userId == null) {
             withContext(Dispatchers.Main) {
-                showError("User not found.")
+                binding.joinPartyErrorMessage.showError("User not found.")
             }
             return
         }
@@ -121,7 +119,7 @@ class JoinPartyFragment : Fragment() {
 
         if (userIds != null && userIds.contains(userId)) {
             withContext(Dispatchers.Main) {
-                showError("You're already in this party!")
+                binding.joinPartyErrorMessage.showError("You're already in this party!")
             }
             return
         }
@@ -137,28 +135,14 @@ class JoinPartyFragment : Fragment() {
                 if (partyName != null) {
                     SharedPrefManager.saveCurrentPartyName(context, partyName)
                 } else {
-                    showError("Party name not found. Something went wrong.")
+                    binding.joinPartyErrorMessage.showError("Party name not found. Something went wrong.")
                     return@withContext
                 }
                 Toast.makeText(context, "Party joined!", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_joinParty_to_party)
             } else {
-                showError("Failed to join the party. Please try again.")
+                binding.joinPartyErrorMessage.showError("Failed to join the party. Please try again.")
             }
-        }
-    }
-
-    private fun showError(message: String) {
-        binding.joinPartyErrorMessage.apply {
-            text = message
-            visibility = View.VISIBLE
-        }
-    }
-
-    private fun clearError() {
-        binding.joinPartyErrorMessage.apply {
-            text = ""
-            visibility = View.GONE
         }
     }
 

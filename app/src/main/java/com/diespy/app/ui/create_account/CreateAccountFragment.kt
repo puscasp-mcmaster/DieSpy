@@ -13,6 +13,7 @@ import com.diespy.app.databinding.FragmentCreateAccountBinding
 import com.diespy.app.managers.authentication.AuthenticationManager
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.showError
 import kotlinx.coroutines.launch
 
 class CreateAccountFragment : Fragment() {
@@ -82,7 +83,7 @@ class CreateAccountFragment : Fragment() {
 
         val validationError = validateInput(username, password1, password2)
         if (validationError != null) {
-            showError(validationError)
+            binding.createAccountErrorMessage.showError(validationError)
             return
         }
 
@@ -90,7 +91,7 @@ class CreateAccountFragment : Fragment() {
             val userExists = authManager.checkUserExists(username)
 
             if (userExists == 1) {
-                showError("Username already exists.")
+                binding.createAccountErrorMessage.showError("Username already exists.")
                 return@launch
             }
 
@@ -107,7 +108,7 @@ class CreateAccountFragment : Fragment() {
                 binding.createAccountErrorMessage.text = "" // Clear error message
                 findNavController().navigate(R.id.action_createAccount_to_home) // Navigate to home screen
             } else {
-                showError("Failed to create account. Try again.")
+                binding.createAccountErrorMessage.showError("Failed to create account. Try again.")
             }
         }
     }
@@ -119,13 +120,6 @@ class CreateAccountFragment : Fragment() {
             password1.length < 6 -> "Password must be at least 6 characters"
             username.length > 12 -> "Username must be 12 characters or smaller"
             else -> null // No errors
-        }
-    }
-
-    private fun showError(message: String) {
-        binding.createAccountErrorMessage.apply {
-            text = message
-            visibility = View.VISIBLE
         }
     }
 

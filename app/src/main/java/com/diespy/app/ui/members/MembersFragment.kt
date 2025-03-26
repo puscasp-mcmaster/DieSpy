@@ -15,6 +15,7 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentMembersBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.showError
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
@@ -45,7 +46,7 @@ class MembersFragment : Fragment() {
 
 
         viewLifecycleOwner.lifecycleScope.launch {
-            // Load members
+            //Load members
             val memberUsernames = fireStoreManager.getUsernamesForParty(partyId)
 
             if (memberUsernames.isEmpty()) {
@@ -60,7 +61,7 @@ class MembersFragment : Fragment() {
                 binding.membersRecyclerView.adapter = adapter
             }
 
-            // Load and show party code
+            //Load and show party code
             val partySnapshot = fireStoreManager.getDocumentById("Parties", partyId)
             val partyCode = partySnapshot?.get("joinPw") as? String
 
@@ -99,22 +100,17 @@ class MembersFragment : Fragment() {
                         SharedPrefManager.clearCurrentPartyData(context)
                         findNavController().navigate(R.id.action_members_to_home)
                     } else {
-                        showError("Failed to leave party. Try again.")
+                        binding.membersErrorText.showError("Failed to leave party. Try again.")
                     }
                 }
             } else {
-                showError("Missing party or user info.")
+                binding.membersErrorText.showError("Missing party or user info.")
             }
         }
 
         alertDialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
         alertDialog.window?.setDimAmount(0.8f)
         alertDialog.show()
-    }
-
-    private fun showError(message: String) {
-        binding.membersErrorText.text = message
-        binding.membersErrorText.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {
