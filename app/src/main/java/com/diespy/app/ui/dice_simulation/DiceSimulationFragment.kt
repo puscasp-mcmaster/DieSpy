@@ -18,7 +18,7 @@ class DiceSimulationFragment : Fragment() {
     private var _binding: FragmentDiceSimulationBinding? = null
     private val binding get() = _binding!!
     private lateinit var diceAdapter: DiceSimulationManager
-    private var diceCount = 10
+    private var diceCount = 4
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
