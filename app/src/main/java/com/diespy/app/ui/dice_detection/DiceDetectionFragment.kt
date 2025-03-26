@@ -1,6 +1,8 @@
 package com.diespy.app.ui.dice_detection
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -28,8 +30,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.diespy.app.managers.logs.LogManager
-import com.diespy.app.managers.logs.LogMessage
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.diceParse
+import com.diespy.app.ui.utils.showEditRollDialog
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -122,7 +125,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                     while (frameDiceBuffer.size < 5 && System.currentTimeMillis() - startTime < 5000) {
                         delay(50)
                     }
-                    binding.showRollButton.visibility = View.VISIBLE
+                    if (currentParty!="") binding.showRollButton.visibility = View.VISIBLE
                     if (frameDiceBuffer.size < 5) {
                         showToast("No dice detected, please try again")
                         capturing = false
@@ -155,13 +158,13 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         if (!isAdded) return // Prevent crash if fragment is not attached
 
         requireActivity().runOnUiThread {
-            diceStatsManager.updateStats(diceBoundingBoxes)
+//            diceStatsManager.updateStats(diceBoundingBoxes)
 //            safeBinding.statsCalc.text = diceStatsManager.getStatSummary()
 //            safeBinding.statsFaces.text = diceStatsManager.getFaceCounts()
-            safeBinding.overlay.apply {
-                setResults(diceBoundingBoxes)
-                invalidate()
-            }
+//            safeBinding.overlay.apply {
+//                setResults(diceBoundingBoxes)
+//                invalidate()
+//            }
 
             //update the buffers if not frozen
             if (!isFrozen) {
@@ -184,7 +187,6 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         }
     }
 
-
     override fun onEmptyDetect() {
         val safeBinding = _binding ?: return
         if (!isAdded) return
@@ -196,6 +198,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun freezeCameraAndComputeMode() {
         isFrozen = true
         cameraManager.stopCamera()
@@ -203,7 +206,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         binding.freezeButton.text = "Unfreeze"
         binding.freezeButton.isEnabled = true  // re-enable button
 
-        // Compute dice breakdown and save log
+        //Compute dice breakdown and save log
         val breakdown = getModeDiceBreakdown(frameDiceBuffer)
         val username = SharedPrefManager.getCurrentUsername(requireContext()) ?: "User"
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
@@ -212,12 +215,16 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             logManager.saveLog(username, breakdown, timestamp, currentParty)
             showRollDialog()
         } else {
-            showBreakdownDialog(breakdown)
+            showDiceBreakdownDialog(
+                inflater = LayoutInflater.from(requireContext()),
+                breakdown = breakdown,
+                editable = false,
+                onDismiss = { unfreezeCamera() }
+            )
         }
-
-
     }
 
+    @SuppressLint("SetTextI18n")
     private fun unfreezeCamera() {
         isFrozen = false
         cameraManager.startCamera(binding.viewFinder)
@@ -225,9 +232,8 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         frameDiceBuffer.clear()
         capturing = false
         binding.freezeButton.text = "Capture"
-        binding.freezeButton.isEnabled = true  // ensure button is enabled
+        binding.freezeButton.isEnabled = true
     }
-
 
     //Permissions for camera
     private fun requestCameraPermissions() {
@@ -268,6 +274,8 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                 "3: ${modeCounts[2]}      6: ${modeCounts[5]}"
     }
 
+    //In a Party roll breakdown
+    @SuppressLint("SetTextI18n")
     private fun showRollDialog() {
         currentToast?.cancel()
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
@@ -275,224 +283,90 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             val logs = logManager.loadLogs(currentParty)
             if (logs.isNotEmpty()) {
                 val lastLog = logs.last()
-                val username = lastLog.username
                 withContext(Dispatchers.Main) {
-                    val inflater = LayoutInflater.from(requireContext())
-                    val dialogView = inflater.inflate(R.layout.dialog_last_roll, null)
-
-                    val titleView = dialogView.findViewById<TextView>(R.id.dialogTitle)
-                    val totalText = dialogView.findViewById<TextView>(R.id.totalText)
-                    val row1_left = dialogView.findViewById<TextView>(R.id.row1_left)
-                    val row1_right = dialogView.findViewById<TextView>(R.id.row1_right)
-                    val row2_left = dialogView.findViewById<TextView>(R.id.row2_left)
-                    val row2_right = dialogView.findViewById<TextView>(R.id.row2_right)
-                    val row3_left = dialogView.findViewById<TextView>(R.id.row3_left)
-                    val row3_right = dialogView.findViewById<TextView>(R.id.row3_right)
-                    val dismissButton = dialogView.findViewById<Button>(R.id.dismissButton)
-                    val editButton = dialogView.findViewById<Button>(R.id.editButton)
-
-                    // Parse the log string using regex (keys 1–12)
-                    val regex = Regex("""(\d+)s?:\s*(\d+)""")
-                    val countsMap = mutableMapOf<Int, Int>()
-                    regex.findAll(lastLog.log).forEach { result ->
-                        val (faceStr, countStr) = result.destructured
-                        countsMap[faceStr.toInt()] = countStr.toInt()
-                    }
-                    // Combine counts: for each dice face (1–6), add the count from key n and key n+6.
-                    val dice1 = (countsMap[1] ?: 0) + (countsMap[7] ?: 0)
-                    val dice2 = (countsMap[2] ?: 0) + (countsMap[8] ?: 0)
-                    val dice3 = (countsMap[3] ?: 0) + (countsMap[9] ?: 0)
-                    val dice4 = (countsMap[4] ?: 0) + (countsMap[10] ?: 0)
-                    val dice5 = (countsMap[5] ?: 0) + (countsMap[11] ?: 0)
-                    val dice6 = (countsMap[6] ?: 0) + (countsMap[12] ?: 0)
-                    // Compute the weighted total.
-                    val totalSum = 1 * dice1 + 2 * dice2 + 3 * dice3 + 4 * dice4 + 5 * dice5 + 6 * dice6
-
-                    // Set the text in the layout.
-                    totalText.text = "Total: $totalSum"
-                    row1_left.text = "1: $dice1"
-                    row1_right.text = "4: $dice4"
-                    row2_left.text = "2: $dice2"
-                    row2_right.text = "5: $dice5"
-                    row3_left.text = "3: $dice3"
-                    row3_right.text = "6: $dice6"
-
-                    titleView.text = "Last Dice Roll"
-
-                    val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                        .setView(dialogView)
-                        .create()
-
-                    dismissButton.setOnClickListener { dialog.dismiss() }
-                    editButton.setOnClickListener {
-                        dialog.dismiss()
-                        openEditRollDialog(lastLog)
-                    }
-                    dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
-                    dialog.window?.setDimAmount(0.8f)
-                    dialog.show()
-                }
-            } else {
-                withContext(Dispatchers.Main) {
-                    showToast("No logs have been captured")
+                    showDiceBreakdownDialog(
+                        inflater = LayoutInflater.from(requireContext()),
+                        breakdown = lastLog.log,
+                        editable = true,
+                        onEditClick = {
+                            showEditRollDialog(
+                                requireContext(),
+                                diceParse(lastLog.log)
+                            ) { updatedRolls ->
+                                val updatedLog =
+                                    "1: ${updatedRolls[0]}      4: ${updatedRolls[3]}\n" +
+                                            "2: ${updatedRolls[1]}      5: ${updatedRolls[4]}\n" +
+                                            "3: ${updatedRolls[2]}      6: ${updatedRolls[5]}"
+                                val currentParty =
+                                    SharedPrefManager.getCurrentPartyId(requireContext())
+                                        ?: return@showEditRollDialog
+                                viewLifecycleOwner.lifecycleScope.launch {
+                                    logManager.updateLog(currentParty, lastLog.id, updatedLog)
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
     }
 
-    private fun openEditRollDialog(lastLog: LogMessage) {
-        val context = requireContext()
-        val inflater = LayoutInflater.from(context)
-        val dialogView = inflater.inflate(R.layout.dialog_edit_log_quantity, null)
+    //Local breakdown
+    private fun showDiceBreakdownDialog(
+        inflater: LayoutInflater,
+        breakdown: String,
+        editable: Boolean = false,
+        onEditClick: (() -> Unit)? = null,
+        onDismiss: (() -> Unit)? = null
+    ) {
+        val dialogView = inflater.inflate(R.layout.dialog_last_roll, null)
 
-        // Parse the existing log string into a map of face -> count.
-        val regex = Regex("""(\d+)s?:\s*(\d+)""")
-        val countsMapEdit = mutableMapOf(1 to 0, 2 to 0, 3 to 0, 4 to 0, 5 to 0, 6 to 0)
-        regex.findAll(lastLog.log).forEach { result ->
-            val (faceStr, countStr) = result.destructured
-            countsMapEdit[faceStr.toInt()] = countStr.toInt()
+        val titleView = dialogView.findViewById<TextView>(R.id.dialogTitle)
+        val totalText = dialogView.findViewById<TextView>(R.id.totalText)
+        val row1left = dialogView.findViewById<TextView>(R.id.row1_left)
+        val row1right = dialogView.findViewById<TextView>(R.id.row1_right)
+        val row2left = dialogView.findViewById<TextView>(R.id.row2_left)
+        val row2right = dialogView.findViewById<TextView>(R.id.row2_right)
+        val row3left = dialogView.findViewById<TextView>(R.id.row3_left)
+        val row3right = dialogView.findViewById<TextView>(R.id.row3_right)
+        val dismissButton = dialogView.findViewById<Button>(R.id.dismissButton)
+        val editButton = dialogView.findViewById<Button>(R.id.editButton)
+
+        val rolls = diceParse(breakdown)
+        val totalSum = rolls.withIndex().sumOf { (i, count) -> (i + 1) * count }
+
+        titleView.text = "Dice Breakdown"
+        totalText.text = "Total: $totalSum"
+        row1left.text = "1: ${rolls[0]}"
+        row1right.text = "4: ${rolls[3]}"
+        row2left.text = "2: ${rolls[1]}"
+        row2right.text = "5: ${rolls[4]}"
+        row3left.text = "3: ${rolls[2]}"
+        row3right.text = "6: ${rolls[5]}"
+
+        editButton.visibility = if (editable) View.VISIBLE else View.GONE
+        editButton.setOnClickListener {
+            onEditClick?.invoke()
         }
 
-        // Retrieve views for each face.
-        val face1CountText = dialogView.findViewById<TextView>(R.id.face1_count)
-        val face1Minus = dialogView.findViewById<Button>(R.id.face1_minus)
-        val face1Plus = dialogView.findViewById<Button>(R.id.face1_plus)
-
-        val face2CountText = dialogView.findViewById<TextView>(R.id.face2_count)
-        val face2Minus = dialogView.findViewById<Button>(R.id.face2_minus)
-        val face2Plus = dialogView.findViewById<Button>(R.id.face2_plus)
-
-        val face3CountText = dialogView.findViewById<TextView>(R.id.face3_count)
-        val face3Minus = dialogView.findViewById<Button>(R.id.face3_minus)
-        val face3Plus = dialogView.findViewById<Button>(R.id.face3_plus)
-
-        val face4CountText = dialogView.findViewById<TextView>(R.id.face4_count)
-        val face4Minus = dialogView.findViewById<Button>(R.id.face4_minus)
-        val face4Plus = dialogView.findViewById<Button>(R.id.face4_plus)
-
-        val face5CountText = dialogView.findViewById<TextView>(R.id.face5_count)
-        val face5Minus = dialogView.findViewById<Button>(R.id.face5_minus)
-        val face5Plus = dialogView.findViewById<Button>(R.id.face5_plus)
-
-        val face6CountText = dialogView.findViewById<TextView>(R.id.face6_count)
-        val face6Minus = dialogView.findViewById<Button>(R.id.face6_minus)
-        val face6Plus = dialogView.findViewById<Button>(R.id.face6_plus)
-
-        // Initialize counts from the parsed map.
-        face1CountText.text = countsMapEdit[1].toString()
-        face2CountText.text = countsMapEdit[2].toString()
-        face3CountText.text = countsMapEdit[3].toString()
-        face4CountText.text = countsMapEdit[4].toString()
-        face5CountText.text = countsMapEdit[5].toString()
-        face6CountText.text = countsMapEdit[6].toString()
-
-        // Helper function to setup counter buttons.
-        fun setupCounter(minusBtn: Button, plusBtn: Button, countText: TextView) {
-            minusBtn.setOnClickListener {
-                val current = countText.text.toString().toIntOrNull() ?: 0
-                if (current > 0) countText.text = (current - 1).toString()
-            }
-            plusBtn.setOnClickListener {
-                val current = countText.text.toString().toIntOrNull() ?: 0
-                countText.text = (current + 1).toString()
-            }
-        }
-        setupCounter(face1Minus, face1Plus, face1CountText)
-        setupCounter(face2Minus, face2Plus, face2CountText)
-        setupCounter(face3Minus, face3Plus, face3CountText)
-        setupCounter(face4Minus, face4Plus, face4CountText)
-        setupCounter(face5Minus, face5Plus, face5CountText)
-        setupCounter(face6Minus, face6Plus, face6CountText)
-
-        val customTitle = inflater.inflate(R.layout.custom_dialog_title, null)
-
-        val editDialog = androidx.appcompat.app.AlertDialog.Builder(context)
-            .setCustomTitle(customTitle)
+        val dialog = AlertDialog.Builder(dialogView.context)
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                // Reassemble the new log string in the desired two-column format.
-                val newLog = "1: ${face1CountText.text}      4: ${face4CountText.text}\n" +
-                        "2: ${face2CountText.text}      5: ${face5CountText.text}\n" +
-                        "3: ${face3CountText.text}      6: ${face6CountText.text}"
-                val currentParty = SharedPrefManager.getCurrentPartyId(context) ?: ""
-                viewLifecycleOwner.lifecycleScope.launch {
-                    logManager.updateLog(currentParty, lastLog.id, newLog)
-                    // Optionally refresh your logs or UI here.
-                }
-            }
-            .setNegativeButton("Cancel") { dialogInterface, _ ->
-                dialogInterface.dismiss()
-            }
             .create()
 
-        editDialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
-        editDialog.show()
-
-        // Optionally, adjust button text colors.
-        editDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
-            .setTextColor(ContextCompat.getColor(context, R.color.primary_accent))
-        editDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)
-            .setTextColor(ContextCompat.getColor(context, R.color.secondary_accent))
-    }
-
-    private fun showBreakdownDialog(breakdown: String) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            withContext(Dispatchers.Main) {
-                // Inflate the layout you use for showing logs—here we use the same dialog_last_roll layout
-                // (Alternatively, create a dedicated layout for breakdown-only dialogs)
-                val inflater = LayoutInflater.from(requireContext())
-                val dialogView = inflater.inflate(R.layout.dialog_last_roll, null)
-
-                // Hide the edit button and username text
-                val editButton = dialogView.findViewById<Button>(R.id.editButton)
-                editButton.visibility = View.GONE
-
-                val titleView = dialogView.findViewById<TextView>(R.id.dialogTitle)
-                titleView.text = "Dice Breakdown"
-
-                // Use the totalText TextView to show the breakdown.
-                // (Assuming dialog_last_roll.xml has a totalText field and rows for breakdown)
-                val totalText = dialogView.findViewById<TextView>(R.id.totalText)
-                totalText.text = breakdown
-
-                // Optionally hide the other breakdown rows if you prefer a single text field:
-                val row1_left = dialogView.findViewById<TextView>(R.id.row1_left)
-                val row1_right = dialogView.findViewById<TextView>(R.id.row1_right)
-                val row2_left = dialogView.findViewById<TextView>(R.id.row2_left)
-                val row2_right = dialogView.findViewById<TextView>(R.id.row2_right)
-                val row3_left = dialogView.findViewById<TextView>(R.id.row3_left)
-                val row3_right = dialogView.findViewById<TextView>(R.id.row3_right)
-                row1_left.visibility = View.GONE
-                row1_right.visibility = View.GONE
-                row2_left.visibility = View.GONE
-                row2_right.visibility = View.GONE
-                row3_left.visibility = View.GONE
-                row3_right.visibility = View.GONE
-
-                val dismissButton = dialogView.findViewById<Button>(R.id.dismissButton)
-                dismissButton.setOnClickListener {
-                    (it.context as? androidx.appcompat.app.AlertDialog)?.dismiss()
-                }
-
-                val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                    .setView(dialogView)
-                    .create()
-
-                dialog.setOnDismissListener {
-                    unfreezeCamera()
-                }
-                dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
-                dialog.window?.setDimAmount(0.8f)
-                dialog.show()
-            }
+        dismissButton.setOnClickListener {
+            onDismiss?.invoke()
+            dialog.dismiss()
         }
-    }
 
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
+        dialog.window?.setDimAmount(0.8f)
+        dialog.show()
+    }
 
     private fun showToast(message: String) {
         currentToast?.cancel()
         if (!isAdded) return
-            val toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG)
+        val toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG)
         toast.show()
         currentToast = toast
     }

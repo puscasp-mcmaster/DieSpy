@@ -14,6 +14,7 @@ import com.diespy.app.managers.authentication.AuthenticationManager
 import kotlinx.coroutines.launch
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.utils.showError
 
 class LoginFragment : Fragment() {
 
@@ -39,9 +40,10 @@ class LoginFragment : Fragment() {
 
         var isPasswordVisible = false
 
+        //Handling password view
         binding.passwordToggle.setOnClickListener {
             val selection = binding.loginPwInput.selectionEnd
-            val typeface = binding.loginPwInput.typeface  // Save the current font
+            val typeface = binding.loginPwInput.typeface
 
             isPasswordVisible = !isPasswordVisible
 
@@ -51,13 +53,12 @@ class LoginFragment : Fragment() {
                 InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             }
 
-            binding.loginPwInput.typeface = typeface  // Restore the font
+            binding.loginPwInput.typeface = typeface
             binding.loginPwInput.setSelection(selection)
 
             val icon = if (isPasswordVisible) R.drawable.icon_eye_on else R.drawable.icon_eye_off
             binding.passwordToggle.setImageResource(icon)
         }
-
 
         binding.toHomeScreenButton.setOnClickListener {
             handleLogin()
@@ -73,7 +74,7 @@ class LoginFragment : Fragment() {
         val password = binding.loginPwInput.text.toString().trim()
 
         if (username.isBlank() || password.isBlank()) {
-            showError("Username and password are empty")
+            binding.loginErrorMessage.showError("Username and password are empty")
             return
         }
 
@@ -91,21 +92,15 @@ class LoginFragment : Fragment() {
                     binding.loginErrorMessage.visibility = View.GONE
                     findNavController().navigate(R.id.action_login_to_home)
                 } else {
-                    showError("Error retrieving user data")
+                    binding.loginErrorMessage.showError("Error retrieving user data")
                 }
             } else {
                 binding.loginPwInput.text.clear()
-                showError("Incorrect login, please try again")
+                binding.loginErrorMessage.showError("Incorrect login, please try again")
             }
         }
     }
 
-    private fun showError(message: String) {
-        binding.loginErrorMessage.apply {
-            text = message
-            visibility = View.VISIBLE
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
