@@ -1,0 +1,56 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/simulationTitle"
+            android:text="Dice Simulator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_white"
+            android:layout_marginBottom="20dp" />
+
+        <Button
+            android:id="@+id/rollButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/primary_accent"
+            android:text="Roll"
+            android:textSize="20sp"
+            android:textColor="@color/text_white"
+            android:layout_marginBottom="20dp" />
+
+        <TextView
+            android:id="@+id/simulationResultText"
+            android:text="Result will appear here"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/text_white"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:id="@+id/diceBreakdownContainer"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+
+            <!-- 6 face breakdowns -->
+            <TextView android:id="@+id/face1" style="@style/DiceFaceText"/>
+            <TextView android:id="@+id/face2" style="@style/DiceFaceText"/>
+            <TextView android:id="@+id/face3" style="@style/DiceFaceText"/>
+            <TextView android:id="@+id/face4" style="@style/DiceFaceText"/>
+            <TextView android:id="@+id/face5" style="@style/DiceFaceText"/>
+            <TextView android:id="@+id/face6" style="@style/DiceFaceText"/>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

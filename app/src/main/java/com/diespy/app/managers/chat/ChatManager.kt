@@ -48,5 +48,20 @@ class ChatManager(private val context: Context) {
             emptyList()
         }
     }
+
+    // In ChatManager.kt
+    fun subscribeToChatMessages(party: String, onMessagesUpdate: (List<ChatMessage>) -> Unit) {
+        db.collection(collection)
+            .document(party)
+            .collection("chat")
+            .orderBy("timestamp", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshots, error ->
+                if (error == null && snapshots != null) {
+                    val newMessages = snapshots.documents.mapNotNull { it.toObject(ChatMessage::class.java) }
+                    onMessagesUpdate(newMessages)
+                }
+            }
+    }
+
 }
 

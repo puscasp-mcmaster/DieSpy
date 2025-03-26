@@ -70,4 +70,22 @@ class LogManager(private val context: Context) {
             .update("log", newLog)
             .await()
     }
+
+    // In LogManager.kt
+    fun subscribeToLogs(party: String, onLogsUpdate: (List<LogMessage>) -> Unit) {
+        db.collection(collection)
+            .document(party)
+            .collection("logs")
+            .orderBy("timestamp", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshots, error ->
+                if (error == null && snapshots != null) {
+                    val newLogs = snapshots.documents.mapNotNull { doc ->
+                        // Convert the document to a LogMessage and update the id
+                        doc.toObject(LogMessage::class.java)?.copy(id = doc.id)
+                    }
+                    onLogsUpdate(newLogs)
+                }
+            }
+    }
+
 }
