@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.appcompat.app.AlertDialog
-import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -13,7 +13,6 @@ import com.diespy.app.R
 import com.diespy.app.databinding.FragmentSettingsBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
@@ -31,32 +30,30 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         binding.deleteAccountButton.setOnClickListener {
             clearError()
-            val dialog = AlertDialog.Builder(requireContext())
-                .setMessage(
-                    HtmlCompat.fromHtml(
-                        "<font color='#FFFFFF'>Are you sure you want to delete this account? " +
-                                "This action is permanent and all of your data will be lost.</font>",
-                        HtmlCompat.FROM_HTML_MODE_LEGACY
-                    )
-                )
-                .setCancelable(false)
-                .setPositiveButton("Yes") { _, _ -> handleDeleteAccount() }
-                .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
-                .create()
-
-            dialog.setOnShowListener {
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                    ?.setTextColor(resources.getColor(R.color.secondary_accent, null))
-                dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    ?.setTextColor(resources.getColor(R.color.primary_accent, null))
-            }
-            dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
-            dialog.window?.setDimAmount(0.8f)
-            dialog.show()
+            deleteAccountConfirmation()
         }
+    }
+
+    private fun deleteAccountConfirmation() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_delete_account, null)
+
+        val alertDialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<Button>(R.id.cancelButton).setOnClickListener {
+            alertDialog.dismiss()
+        }
+
+        dialogView.findViewById<Button>(R.id.yesButton).setOnClickListener {
+            handleDeleteAccount()
+        }
+
+        alertDialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
+        alertDialog.window?.setDimAmount(0.8f) // 0 = no dim, 1 = full black
+        alertDialog.show()
     }
 
     private fun handleDeleteAccount() {

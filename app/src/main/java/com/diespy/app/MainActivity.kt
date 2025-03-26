@@ -209,7 +209,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLeavePartyConfirmation(navController: androidx.navigation.NavController) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_leave_party, null)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_leave_party_screen, null)
 
         val alertDialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setView(dialogView)
@@ -224,6 +224,7 @@ class MainActivity : AppCompatActivity() {
             alertDialog.dismiss()
             navController.navigate(R.id.homeFragment)
         }
+        alertDialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
         alertDialog.window?.setDimAmount(0.8f) // 0 = no dim, 1 = full black
         alertDialog.show()
     }

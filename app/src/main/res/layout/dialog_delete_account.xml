@@ -11,7 +11,7 @@
 android:id="@+id/leavePartyTitle"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
-android:text="Leave Party?"
+android:text="Delete Account?"
 android:textSize="20sp"
 android:textStyle="bold"
 android:textColor="@color/white"
@@ -20,8 +20,8 @@ android:layout_marginBottom="8dp" />
 <TextView
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
-android:text="Are you sure you want to leave the party? You will not be able to re-join
-without the party password."
+android:text="Are you sure you want to delete your account?
+This action is permanent and all of your data will be lost."
 android:textColor="@color/light_gray"
 android:textSize="16sp"
 android:gravity="center"

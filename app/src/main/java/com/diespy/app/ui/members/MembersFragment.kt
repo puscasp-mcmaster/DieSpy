@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
@@ -70,49 +71,45 @@ class MembersFragment : Fragment() {
         }
 
         binding.leavePartyButton.setOnClickListener {
-            val dialog = AlertDialog.Builder(requireContext())
-                .setMessage(
-                    HtmlCompat.fromHtml(
-                        "<font color='#FFFFFF'>Are you sure you want to leave the party?" +
-                                " You will not be able to re-join without the party password.</font>",
-                        HtmlCompat.FROM_HTML_MODE_LEGACY
-                    )
-                )
-                .setCancelable(false)
-                .setPositiveButton("Yes") { _, _ ->
-                    val context = requireContext()
-                    val partyId = SharedPrefManager.getCurrentPartyId(context)
-                    val userId = SharedPrefManager.getCurrentUserId(context)
+            partyLeaveConfirmation()
+        }
+    }
 
-                    if (partyId != null && userId != null) {
-                        lifecycleScope.launch {
-                            val success = fireStoreManager.leavePartyAndDeleteIfEmpty(partyId, userId)
+    private fun partyLeaveConfirmation() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_leave_party, null)
 
-                            if (success) {
-                                SharedPrefManager.clearCurrentPartyData(context)
-                                findNavController().navigate(R.id.action_members_to_home)
-                            } else {
-                                showError("Failed to leave party. Try again.")
-                            }
-                        }
-                    } else {
-                        showError("Missing party or user info.")
-                    }
-                }
-                .setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
-                .create()
+        val alertDialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
 
-            dialog.setOnShowListener {
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                    ?.setTextColor(resources.getColor(R.color.secondary_accent, null))
-                dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    ?.setTextColor(resources.getColor(R.color.primary_accent, null))
-            }
-            dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
-            dialog.window?.setDimAmount(0.8f)
-            dialog.show()
+        dialogView.findViewById<Button>(R.id.cancelButton).setOnClickListener {
+            alertDialog.dismiss()
         }
 
+        dialogView.findViewById<Button>(R.id.yesButton).setOnClickListener {
+            val context = requireContext()
+            val partyId = SharedPrefManager.getCurrentPartyId(context)
+            val userId = SharedPrefManager.getCurrentUserId(context)
+
+            if (partyId != null && userId != null) {
+                lifecycleScope.launch {
+                    val success = fireStoreManager.leavePartyAndDeleteIfEmpty(partyId, userId)
+
+                    if (success) {
+                        SharedPrefManager.clearCurrentPartyData(context)
+                        findNavController().navigate(R.id.action_members_to_home)
+                    } else {
+                        showError("Failed to leave party. Try again.")
+                    }
+                }
+            } else {
+                showError("Missing party or user info.")
+            }
+        }
+
+        alertDialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)
+        alertDialog.window?.setDimAmount(0.8f)
+        alertDialog.show()
     }
 
     private fun showError(message: String) {
