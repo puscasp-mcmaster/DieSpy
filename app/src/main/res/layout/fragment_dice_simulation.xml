@@ -11,14 +11,15 @@
         <!-- Title and dice count controls remain the same -->
         <TextView
             android:id="@+id/simulationTitle"
-            android:text="Dice Simulator"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Dice Simulator"
             android:textSize="24sp"
             android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
             android:textColor="@color/text_white"
-            android:layout_marginBottom="20dp" />
-
+            android:layout_marginBottom="16dp" />
         <TextView
             android:id="@+id/countErrorMessage"
             android:layout_width="wrap_content"
@@ -89,7 +90,17 @@
             android:text="Roll"
             android:textSize="20sp"
             android:textColor="@color/text_white"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="4dp" />
+        <Button
+            android:id="@+id/logRollButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Log Roll"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/primary_accent"
+            android:textColor="@color/text_white"/>
+
 
         <TextView
             android:id="@+id/simulationResultText"

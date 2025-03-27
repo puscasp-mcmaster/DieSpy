@@ -187,7 +187,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         val username = SharedPrefManager.getCurrentUsername(requireContext()) ?: "User"
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
         if (currentParty != "") {
-            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
             logManager.saveLog(username, breakdown, timestamp, currentParty)
             showRollDialog()
         } else {
