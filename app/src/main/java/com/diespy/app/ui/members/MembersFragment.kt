@@ -18,10 +18,12 @@ import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.showError
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 
 class MembersFragment : Fragment() {
-
+    private var membersListener: ListenerRegistration? = null
     private var _binding: FragmentMembersBinding? = null
     private val binding get() = _binding!!
     private val fireStoreManager = FireStoreManager()
@@ -46,34 +48,72 @@ class MembersFragment : Fragment() {
         }
 
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            //Load members
-            val memberUsernames = fireStoreManager.getUsernamesForParty(partyId)
-
-            if (memberUsernames.isEmpty()) {
-                binding.noMembersText.visibility = View.VISIBLE
-                binding.membersRecyclerView.visibility = View.GONE
-            } else {
-                binding.noMembersText.visibility = View.GONE
-                binding.membersRecyclerView.visibility = View.VISIBLE
-
-                val adapter = MembersAdapter(memberUsernames)
-                binding.membersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-                binding.membersRecyclerView.adapter = adapter
-            }
-
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            //Load members
+//            val memberUsernames = fireStoreManager.getUsernamesForParty(partyId)
+//
+//            if (memberUsernames.isEmpty()) {
+//                binding.noMembersText.visibility = View.VISIBLE
+//                binding.membersRecyclerView.visibility = View.GONE
+//            } else {
+//                binding.noMembersText.visibility = View.GONE
+//                binding.membersRecyclerView.visibility = View.VISIBLE
+//
+//                val adapter = MembersAdapter(memberUsernames)
+//                binding.membersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+//                binding.membersRecyclerView.adapter = adapter
+//            }
+//
             //Load and show party code
-            val partySnapshot = fireStoreManager.getDocumentById("Parties", partyId)
-            val partyCode = partySnapshot?.get("joinPw") as? String
+//        }
 
-            if (!partyCode.isNullOrEmpty()) {
-                binding.partyCodeText.text = "Party Code: $partyCode"
-                binding.partyCodeText.visibility = View.VISIBLE
+        membersListener = subscribeToPartyMembers(partyId) { userIds ->
+            lifecycleScope.launch {
+                val partySnapshot = fireStoreManager.getDocumentById("Parties", partyId)
+                val partyCode = partySnapshot?.get("joinPw") as? String
+
+                if (!partyCode.isNullOrEmpty()) {
+                    binding.partyCodeText.text = "Party Code: $partyCode"
+                    binding.partyCodeText.visibility = View.VISIBLE
+                }
+                val memberUsernames = mutableListOf<String>()
+                for (id in userIds) {
+                    val userData = fireStoreManager.getDocumentById("Users", id)
+                    val username = userData?.get("username") as? String ?: "Unknown"
+                    memberUsernames.add(username)
+                }
+
+                if (memberUsernames.isEmpty()) {
+                    binding.noMembersText.visibility = View.VISIBLE
+                    binding.membersRecyclerView.visibility = View.GONE
+                } else {
+                    binding.noMembersText.visibility = View.GONE
+                    binding.membersRecyclerView.visibility = View.VISIBLE
+
+                    val adapter = MembersAdapter(memberUsernames)
+                    binding.membersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+                    binding.membersRecyclerView.adapter = adapter
+                }
             }
         }
 
+
         binding.leavePartyButton.setOnClickListener {
             partyLeaveConfirmation()
+        }
+    }
+
+    private fun subscribeToPartyMembers(
+        partyId: String,
+        onUpdate: (List<String>) -> Unit
+    ): ListenerRegistration {
+        val firestore = FirebaseFirestore.getInstance()
+        val partyDocRef = firestore.collection("Parties").document(partyId)
+        return partyDocRef.addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+
+            val userIds = snapshot?.get("userIds") as? List<String> ?: emptyList()
+            onUpdate(userIds)
         }
     }
 
