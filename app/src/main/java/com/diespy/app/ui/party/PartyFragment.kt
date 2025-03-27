@@ -41,8 +41,6 @@ class PartyFragment : Fragment() {
     private var usernames: MutableList<String> = mutableListOf()
     private lateinit var turnOrderAdapter: TurnOrderAdapter
     private var partyMembersListener: ListenerRegistration? = null
-    private var cachedCurrentUserId: String? = null
-    private var turnOrderSubscribed = false
     private var lastLocalReorderTime: Long = 0L
     private val reorderCooldownMs = 300L // adjust as needed
 
@@ -164,7 +162,7 @@ class PartyFragment : Fragment() {
                     partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
                         val currentTurnIndex = userIds.indexOf(currentTurnUserId)
                         if (currentTurnIndex != -1) {
-                            cachedCurrentUserId = currentTurnUserId
+                            PartyCacheManager.currentUserId = currentTurnUserId
                             PartyCacheManager.turnIndex = currentTurnIndex
                             turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
                         }
@@ -195,7 +193,7 @@ class PartyFragment : Fragment() {
             override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
                 super.clearView(recyclerView, viewHolder)
 
-                val currentUserId = cachedCurrentUserId ?: return
+                val currentUserId = PartyCacheManager.currentUserId ?: return
                 val newTurnIndex = userIds.indexOf(currentUserId)
 
                 val data = mapOf(
