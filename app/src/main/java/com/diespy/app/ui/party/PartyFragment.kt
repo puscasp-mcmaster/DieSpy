@@ -38,6 +38,8 @@ class PartyFragment : Fragment() {
     private var partyMembersListener: ListenerRegistration? = null
     private var cachedCurrentUserId: String? = null
     private var turnOrderSubscribed = false
+    private var lastLocalReorderTime: Long = 0L
+    private val reorderCooldownMs = 300L // adjust as needed
 
 
     override fun onCreateView(
@@ -89,35 +91,14 @@ class PartyFragment : Fragment() {
         turnOrderAdapter = TurnOrderAdapter(usernames, onEndTurnClicked = { handleEndTurn() })
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = turnOrderAdapter
-
         attachDragAndDrop()
 
-//        lifecycleScope.launch {
-//            val partyData = fireStoreManager.getDocumentById("Parties", partyId)
-//            partyData?.get("userIds")?.let { rawList ->
-//                @Suppress("UNCHECKED_CAST")
-//                userIds = (rawList as List<String>).toMutableList()
-//                usernames = mutableListOf()
-//                for (id in userIds) {
-//                    val userData = fireStoreManager.getDocumentById("Users", id)
-//                    val username = userData?.get("username") as? String ?: "Unknown"
-//                    usernames.add(username)
-//                }
-//                turnOrderAdapter.updatePlayers(usernames)
-//
-//                partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
-//                    val currentTurnIndex = userIds.indexOf(currentTurnUserId)
-//                    if (currentTurnIndex != -1) {
-//                        cachedCurrentUserId = userIds.getOrNull(currentTurnIndex)
-//                        turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
-//
-//                    }
-//                }
-//            }
-//        }
         // After your initial load block (or instead of it, if you prefer to rely on real-time updates):
         partyMembersListener = partyManager.subscribeToPartyMembers(partyId) { updatedUserIds ->
-            // Update the local userIds list
+            val now = System.currentTimeMillis()
+            if (now - lastLocalReorderTime < reorderCooldownMs) {
+                return@subscribeToPartyMembers
+            }            // Update the local userIds list
             userIds = updatedUserIds.toMutableList()
 
             // Update usernames from Firestore
@@ -131,21 +112,18 @@ class PartyFragment : Fragment() {
                 usernames = updatedUsernames
                 turnOrderAdapter.updatePlayers(usernames)
 
-                // Now, if we haven't yet subscribed to turn order and we have at least one member, subscribe.
-                if (!turnOrderSubscribed && userIds.isNotEmpty()) {
+                if (userIds.isNotEmpty()) {
                     partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
                         val currentTurnIndex = userIds.indexOf(currentTurnUserId)
                         if (currentTurnIndex != -1) {
-                            cachedCurrentUserId = userIds[currentTurnIndex]
+                            cachedCurrentUserId = currentTurnUserId
                             turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
                         }
                     }
-                    turnOrderSubscribed = true
                 }
             }
         }
     }
-
 
     private fun attachDragAndDrop() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
@@ -177,13 +155,17 @@ class PartyFragment : Fragment() {
 
                 lifecycleScope.launch {
                     fireStoreManager.updateDocument("Parties", partyId, data)
+                    lastLocalReorderTime = System.currentTimeMillis()
                 }
             }
-
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
         })
         itemTouchHelper.attachToRecyclerView(binding.recyclerView)
+
+        binding.simulateRollButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_diceSim)
+        }
     }
 
     private fun handleEndTurn() {
