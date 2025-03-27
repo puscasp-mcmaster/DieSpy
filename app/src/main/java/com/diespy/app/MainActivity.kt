@@ -210,7 +210,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showLeavePartyConfirmation(navController: androidx.navigation.NavController) {
+    fun showLeavePartyConfirmation(navController: androidx.navigation.NavController) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_leave_party_screen, null)
 
         val alertDialog = androidx.appcompat.app.AlertDialog.Builder(this)

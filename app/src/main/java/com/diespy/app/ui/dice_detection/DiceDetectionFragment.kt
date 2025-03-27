@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -18,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.diespy.app.ml.models.DiceBoundingBox
 import com.diespy.app.Constants.LABELS_PATH
 import com.diespy.app.Constants.MODEL_PATH
@@ -54,32 +56,6 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private var currentToast: Toast? = null
 
 
-    override fun onResume() {
-        super.onResume()
-        hideSystemUI()
-    }
-
-    private fun hideSystemUI() {
-        val window = requireActivity().window
-        // Let the window extend into the system window areas, but you'll selectively hide components.
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        // Hide only the navigation bars, leaving the status bar visible.
-        controller.hide(WindowInsetsCompat.Type.navigationBars())
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    }
-
-    private fun showSystemUI() {
-        val window = requireActivity().window
-        WindowCompat.setDecorFitsSystemWindows(window, true)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.show(WindowInsetsCompat.Type.systemBars())
-    }
-    override fun onPause() {
-        super.onPause()
-        showSystemUI()
-    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

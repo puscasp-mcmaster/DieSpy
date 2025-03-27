@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -12,6 +13,7 @@ import com.diespy.app.R
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.diespy.app.MainActivity
 import com.diespy.app.databinding.FragmentPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogManager
@@ -53,6 +55,21 @@ class PartyFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         logManager = LogManager(requireContext())
         partyManager = PartyManager()
+
+        //Throws party leave confirm  if trying to go back after joining party
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                (activity as? MainActivity)?.let { main ->
+                    val navController = main.supportFragmentManager
+                        .findFragmentById(R.id.nav_host_fragment)
+                        ?.findNavController()
+                    if (navController != null) {
+                        main.showLeavePartyConfirmation(navController)
+                    }
+                }
+            }
+        })
+
 
         partyId = SharedPrefManager.getCurrentPartyId(requireContext()) ?: run {
             binding.partyNameTextView.text = "No Party Selected"
