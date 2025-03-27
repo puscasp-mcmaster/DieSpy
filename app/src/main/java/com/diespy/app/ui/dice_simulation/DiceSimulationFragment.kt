@@ -59,14 +59,14 @@ class DiceSimulationFragment : Fragment() {
         }
 
         binding.increaseDiceCountButton.setOnClickListener {
-            if (diceCount < 99) diceCount += 1
+            if (diceCount < 100) diceCount += 1
             binding.diceCountEditText.setText(diceCount.toString())
         }
 
         binding.diceCountEditText.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val input = binding.diceCountEditText.text.toString().toIntOrNull()
-                if (input != null && input > 0 && input < 100) {
+                if (input != null && input > 0 && input < 101) {
                     binding.countErrorMessage.visibility = View.GONE
                     diceCount = input
                 } else {
@@ -81,11 +81,11 @@ class DiceSimulationFragment : Fragment() {
                 binding.diceCountEditText.clearFocus()
                 hideKeyboard()
                 val input = binding.diceCountEditText.text.toString().toIntOrNull()
-                if (input != null && input > 0 && input < 100) {
+                if (input != null && input > 0 && input < 101) {
                     diceCount = input
                 } else {
                     binding.diceCountEditText.setText(diceCount.toString())
-                    binding.countErrorMessage.showError("Number has to be between 0 and 100.")
+                    binding.countErrorMessage.showError("Number has to be between 1 and 100.")
                 }
                 true
             } else {
