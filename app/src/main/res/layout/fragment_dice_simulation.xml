@@ -19,6 +19,16 @@
             android:textColor="@color/text_white"
             android:layout_marginBottom="20dp" />
 
+        <TextView
+            android:id="@+id/countErrorMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/red"
+            android:visibility="gone"
+            android:textSize="14sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="12dp" />
+
         <LinearLayout
             android:id="@+id/diceCountContainer"
             android:layout_width="match_parent"
@@ -51,12 +61,13 @@
                 android:layout_width="60dp"
                 android:layout_height="48dp"
                 android:inputType="number"
-                android:text="5"
+                android:text="8"
                 android:textColor="@color/text_white"
                 android:backgroundTint="@color/gray"
                 android:gravity="center"
                 android:textSize="18sp"
                 android:layout_marginStart="8dp"
+                android:imeOptions="actionDone"
                 android:layout_marginEnd="8dp" />
 
             <androidx.appcompat.widget.AppCompatButton
@@ -110,6 +121,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:layout_marginTop="12dp"
             android:layout_marginBottom="4dp"/>
     </LinearLayout>
 </FrameLayout>

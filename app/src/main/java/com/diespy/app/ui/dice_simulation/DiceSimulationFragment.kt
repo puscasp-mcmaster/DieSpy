@@ -1,15 +1,21 @@
 package com.diespy.app.ui.dice_simulation
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.diespy.app.R
+import com.diespy.app.ui.utils.showError
 import com.diespy.app.databinding.FragmentDiceSimulationBinding
 import com.diespy.app.managers.dice_sim.DiceSimulationManager
 
@@ -18,7 +24,7 @@ class DiceSimulationFragment : Fragment() {
     private var _binding: FragmentDiceSimulationBinding? = null
     private val binding get() = _binding!!
     private lateinit var diceAdapter: DiceSimulationManager
-    private var diceCount = 4
+    private var diceCount = 8
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -27,20 +33,13 @@ class DiceSimulationFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize RecyclerView with a GridLayoutManager (e.g., 3 columns)
         diceAdapter = DiceSimulationManager(emptyList())
         binding.diceRecyclerView.apply {
-            // Assuming you set a span count of 4 in your GridLayoutManager
-            val horizontalSpacing = resources.getDimensionPixelSize(R.dimen.dice_horizontal_spacing) // set to 4dp
-            val verticalSpacing = resources.getDimensionPixelSize(R.dimen.dice_vertical_spacing)     // set to 2dp
-
-            val spanCount = 4
-            binding.diceRecyclerView.addItemDecoration(
-                GridSpacingDecoration(spanCount, horizontalSpacing, verticalSpacing)
-            )
+            // Assuming you set a span count of 4 in your GridLayoutManage
             layoutManager = GridLayoutManager(requireContext(), 4)
             adapter = diceAdapter
         }
@@ -60,20 +59,46 @@ class DiceSimulationFragment : Fragment() {
         }
 
         binding.increaseDiceCountButton.setOnClickListener {
-            diceCount += 1
+            if (diceCount < 99) diceCount += 1
             binding.diceCountEditText.setText(diceCount.toString())
         }
 
         binding.diceCountEditText.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val input = binding.diceCountEditText.text.toString().toIntOrNull()
-                if (input != null && input > 0) {
+                if (input != null && input > 0 && input < 100) {
+                    binding.countErrorMessage.visibility = View.GONE
                     diceCount = input
                 } else {
                     binding.diceCountEditText.setText(diceCount.toString())
+                    binding.countErrorMessage.showError("Number has to be between 0 and 100.")
                 }
             }
         }
+
+        binding.diceCountEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.diceCountEditText.clearFocus()
+                hideKeyboard()
+                val input = binding.diceCountEditText.text.toString().toIntOrNull()
+                if (input != null && input > 0 && input < 100) {
+                    diceCount = input
+                } else {
+                    binding.diceCountEditText.setText(diceCount.toString())
+                    binding.countErrorMessage.showError("Number has to be between 0 and 100.")
+                }
+                true
+            } else {
+                false
+            }
+        }
+
+        binding.root.setOnTouchListener { _, _ ->
+            hideKeyboard()
+            binding.diceCountEditText.clearFocus()
+            false
+        }
+
     }
 
     /**
@@ -99,6 +124,12 @@ class DiceSimulationFragment : Fragment() {
             }
             onComplete(counts)
         }, 800)
+    }
+
+    fun hideKeyboard() {
+        val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
     }
 
     /**

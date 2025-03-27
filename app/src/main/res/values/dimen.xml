@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <dimen name="dice_horizontal_spacing">4dp</dimen>
-    <dimen name="dice_vertical_spacing">2dp</dimen>
-</resources>
