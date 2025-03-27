@@ -18,9 +18,12 @@ import com.diespy.app.databinding.FragmentPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogManager
 import com.diespy.app.managers.party.PartyManager
+import com.diespy.app.managers.profile.PartyCacheManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.diceParse
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -57,18 +60,20 @@ class PartyFragment : Fragment() {
         partyManager = PartyManager()
 
         //Throws party leave confirm  if trying to go back after joining party
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                (activity as? MainActivity)?.let { main ->
-                    val navController = main.supportFragmentManager
-                        .findFragmentById(R.id.nav_host_fragment)
-                        ?.findNavController()
-                    if (navController != null) {
-                        main.showLeavePartyConfirmation(navController)
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    (activity as? MainActivity)?.let { main ->
+                        val navController = main.supportFragmentManager
+                            .findFragmentById(R.id.nav_host_fragment)
+                            ?.findNavController()
+                        if (navController != null) {
+                            main.showLeavePartyConfirmation(navController)
+                        }
                     }
                 }
-            }
-        })
+            })
 
 
         partyId = SharedPrefManager.getCurrentPartyId(requireContext()) ?: run {
@@ -110,30 +115,57 @@ class PartyFragment : Fragment() {
         binding.recyclerView.adapter = turnOrderAdapter
         attachDragAndDrop()
 
-        // After your initial load block (or instead of it, if you prefer to rely on real-time updates):
         partyMembersListener = partyManager.subscribeToPartyMembers(partyId) { updatedUserIds ->
             val now = System.currentTimeMillis()
             if (now - lastLocalReorderTime < reorderCooldownMs) {
                 return@subscribeToPartyMembers
-            }            // Update the local userIds list
-            userIds = updatedUserIds.toMutableList()
+            }
 
-            // Update usernames from Firestore
+            // Cache userIds
+            userIds = updatedUserIds.toMutableList()
+            PartyCacheManager.userIds = userIds
+
             lifecycleScope.launch {
                 val updatedUsernames = mutableListOf<String>()
+                val missingIds = mutableListOf<String>()
+
+                // Load from cache or mark as missing
                 for (id in userIds) {
-                    val userData = fireStoreManager.getDocumentById("Users", id)
-                    val username = userData?.get("username") as? String ?: "Unknown"
-                    updatedUsernames.add(username)
+                    val cached = PartyCacheManager.usernames[id]
+                    if (cached != null) {
+                        updatedUsernames.add(cached)
+                    } else {
+                        updatedUsernames.add("...") // Temporary placeholder
+                        missingIds.add(id)
+                    }
                 }
+
                 usernames = updatedUsernames
                 turnOrderAdapter.updatePlayers(usernames)
 
+                // Load missing usernames in parallel
+                if (missingIds.isNotEmpty()) {
+                    val resolved = missingIds.map { id ->
+                        async {
+                            val userData = fireStoreManager.getDocumentById("Users", id)
+                            val username = userData?.get("username") as? String ?: "Unknown"
+                            id to username
+                        }
+                    }.awaitAll()
+
+                    // Update cache and UI
+                    PartyCacheManager.usernames += resolved.toMap()
+                    usernames = userIds.map { PartyCacheManager.usernames[it] ?: "Unknown" }.toMutableList()
+                    turnOrderAdapter.updatePlayers(usernames)
+                }
+
+                // Subscribe to turn order after usernames loaded
                 if (userIds.isNotEmpty()) {
                     partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
                         val currentTurnIndex = userIds.indexOf(currentTurnUserId)
                         if (currentTurnIndex != -1) {
                             cachedCurrentUserId = currentTurnUserId
+                            PartyCacheManager.turnIndex = currentTurnIndex
                             turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
                         }
                     }
@@ -142,7 +174,8 @@ class PartyFragment : Fragment() {
         }
     }
 
-    private fun attachDragAndDrop() {
+
+        private fun attachDragAndDrop() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
         ) {
