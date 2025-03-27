@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentMembersBinding
 import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.profile.PartyCacheManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.showError
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -46,26 +47,23 @@ class MembersFragment : Fragment() {
             binding.noMembersText.visibility = View.GONE
             return
         }
+        //Check Cache
+        val cachedUsernames = PartyCacheManager.userIds.mapNotNull { PartyCacheManager.usernames[it] }
+        if (cachedUsernames.isNotEmpty()) {
+            binding.noMembersText.visibility = View.GONE
+            binding.membersRecyclerView.visibility = View.VISIBLE
+            val adapter = MembersAdapter(cachedUsernames)
+            binding.membersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+            binding.membersRecyclerView.adapter = adapter
+        }
 
-
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            //Load members
-//            val memberUsernames = fireStoreManager.getUsernamesForParty(partyId)
-//
-//            if (memberUsernames.isEmpty()) {
-//                binding.noMembersText.visibility = View.VISIBLE
-//                binding.membersRecyclerView.visibility = View.GONE
-//            } else {
-//                binding.noMembersText.visibility = View.GONE
-//                binding.membersRecyclerView.visibility = View.VISIBLE
-//
-//                val adapter = MembersAdapter(memberUsernames)
-//                binding.membersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-//                binding.membersRecyclerView.adapter = adapter
-//            }
-//
-            //Load and show party code
-//        }
+        val cachedCode = PartyCacheManager.joinPw
+        if (!cachedCode.isNullOrEmpty()) {
+            binding.partyCodeText.text = "Party Code: $cachedCode"
+            binding.partyCodeText.visibility = View.VISIBLE
+        } else {
+            binding.partyCodeText.visibility = View.GONE
+        }
 
         membersListener = subscribeToPartyMembers(partyId) { userIds ->
             lifecycleScope.launch {
@@ -77,11 +75,22 @@ class MembersFragment : Fragment() {
                     binding.partyCodeText.visibility = View.VISIBLE
                 }
                 val memberUsernames = mutableListOf<String>()
+
+                //cache usernames if possible
                 for (id in userIds) {
-                    val userData = fireStoreManager.getDocumentById("Users", id)
-                    val username = userData?.get("username") as? String ?: "Unknown"
-                    memberUsernames.add(username)
+                    val cached = PartyCacheManager.usernames[id]
+                    if (cached != null) {
+                        memberUsernames.add(cached)
+                    } else {
+                        val userData = fireStoreManager.getDocumentById("Users", id)
+                        val username = userData?.get("username") as? String ?: "Unknown"
+                        memberUsernames.add(username)
+                        PartyCacheManager.usernames = PartyCacheManager.usernames + (id to username)
+                    }
                 }
+
+                // Update cache with new userIds
+                PartyCacheManager.userIds = userIds
 
                 if (memberUsernames.isEmpty()) {
                     binding.noMembersText.visibility = View.VISIBLE
@@ -157,6 +166,7 @@ class MembersFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        membersListener?.remove()
         super.onDestroyView()
         _binding = null
     }

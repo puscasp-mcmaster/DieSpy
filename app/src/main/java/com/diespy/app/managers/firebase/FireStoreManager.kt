@@ -1,5 +1,6 @@
 package com.diespy.app.managers.firestore
 
+import com.diespy.app.managers.profile.PartyCacheManager
 import com.diespy.app.ui.home.PartyItem
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -296,4 +297,22 @@ class FireStoreManager {
             false
         }
     }
+    suspend fun preloadPartyData(partyId: String) {
+        val partyDoc = getDocumentById("Parties", partyId)
+        val userIds = partyDoc?.get("userIds") as? List<String> ?: emptyList()
+        val turnIndex = (partyDoc?.get("turnIndex") as? Long)?.toInt() ?: 0
+
+        val usernamesMap = mutableMapOf<String, String>()
+        for (id in userIds) {
+            val user = getDocumentById("Users", id)
+            val username = user?.get("username") as? String ?: "Unknown"
+            usernamesMap[id] = username
+        }
+
+        // Cache everything
+        PartyCacheManager.userIds = userIds
+        PartyCacheManager.usernames = usernamesMap
+        PartyCacheManager.turnIndex = turnIndex
+    }
+
 }

@@ -13,6 +13,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.diespy.app.databinding.ActivityMainBinding
+import com.diespy.app.managers.profile.PartyCacheManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.firebase.FirebaseApp
 
@@ -223,6 +224,7 @@ class MainActivity : AppCompatActivity() {
         dialogView.findViewById<Button>(R.id.homeButton).setOnClickListener {
             SharedPrefManager.clearCurrentPartyData(this)
             alertDialog.dismiss()
+            PartyCacheManager.clear()
             navController.navigate(R.id.homeFragment)
         }
         alertDialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background)

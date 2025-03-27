@@ -75,8 +75,12 @@ class HomeFragment : Fragment() {
 
                 val adapter = PartyAdapter(partyItems) { party ->
                     SharedPrefManager.saveCurrentPartyId(requireContext(), party.id)
-                    SharedPrefManager.saveCurrentPartyName(requireContext(),party.name)
-                    findNavController().navigate(R.id.action_home_to_party)
+                    SharedPrefManager.saveCurrentPartyName(requireContext(), party.name)
+
+                    lifecycleScope.launch {
+                        fireStoreManager.preloadPartyData(party.id)
+                        findNavController().navigate(R.id.action_home_to_party)
+                    }
                 }
                 binding.partyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
                 binding.partyRecyclerView.adapter = adapter
