@@ -12,16 +12,14 @@ import java.io.File
 data class ChatMessage(
     val username: String = "",
     val msg: String = "",
-    val timeStamp: Timestamp = Timestamp.now()
+    val timestamp: Timestamp = Timestamp.now()
 )
-
 
 class ChatManager(private val context: Context) {
     private val db = FirebaseFirestore.getInstance() // Firestore instance
     private val collection = "Parties"
 
-    fun saveMessage(username: String, message: String, timestamp: String, party: String) {
-        //Create chat object
+    fun saveMessage(username: String, message: String, timestamp: Timestamp, party: String) {
         val chat = hashMapOf(
             "username" to username,
             "msg" to message,
@@ -49,7 +47,6 @@ class ChatManager(private val context: Context) {
         }
     }
 
-    // In ChatManager.kt
     fun subscribeToChatMessages(party: String, onMessagesUpdate: (List<ChatMessage>) -> Unit) {
         db.collection(collection)
             .document(party)

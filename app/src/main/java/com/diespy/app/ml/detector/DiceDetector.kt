@@ -18,7 +18,8 @@ import org.tensorflow.lite.support.common.ops.NormalizeOp
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 /**
  * Detector class responsible for running inference using a TensorFlow Lite model.
  * Detects dice faces in images and returns bounding boxes.
@@ -40,6 +41,9 @@ class DiceDetector(
     private var inputHeight = 0
     private var numChannels = 0
     private var numDetections = 0
+
+    //LOCK TO FIX CAMERA BUGS THANKFULLY
+    private val lock = ReentrantLock()
 
     /*** Image pre-processing pipeline (Normalizes and converts input format */
     private val imageProcessor = ImageProcessor.Builder()
@@ -116,49 +120,54 @@ class DiceDetector(
 
 
     fun close() {
-        isClosed = true
-        interpreter.close()
+        lock.withLock {
+            interpreter.close()
+        }
     }
+
 
     fun detect(image: Bitmap) {
-        if (isClosed || inputWidth == 0 || inputHeight == 0 || numChannels == 0 || numDetections == 0) return
+        if (inputWidth == 0 || inputHeight == 0 || numChannels == 0 || numDetections == 0) return
 
-        var inferenceTime = SystemClock.uptimeMillis()
+        lock.withLock {
 
-        //val resizedImage = Bitmap.createScaledBitmap(image, inputWidth, inputHeight, false)
-        val h = image.getHeight()
-        val w = image.getWidth()
-        val limit = min(h, w)
-        val x = (w - limit)/2
-        val y = (h - limit)/2
-        val croppedImage = Bitmap.createBitmap(image, x, y, limit, limit)
-        val resizedImage = Bitmap.createScaledBitmap(croppedImage, inputWidth, inputHeight, true)
+            var inferenceTime = SystemClock.uptimeMillis()
 
-        val tensorImage = TensorImage(INPUT_DATA_TYPE)
-        tensorImage.load(resizedImage)
-        val processedImage = imageProcessor.process(tensorImage)
-        val inputBuffer = processedImage.buffer
+            val h = image.height
+            val w = image.width
+            val limit = kotlin.math.min(h, w)
+            val x = (w - limit) / 2
+            val y = (h - limit) / 2
+            val croppedImage = Bitmap.createBitmap(image, x, y, limit, limit)
+            val resizedImage = Bitmap.createScaledBitmap(croppedImage, inputWidth, inputHeight, true)
 
-        val outputBuffer = TensorBuffer.createFixedSize(
-            intArrayOf(1, numChannels, numDetections), OUTPUT_DATA_TYPE
-        )
+            val tensorImage = TensorImage(INPUT_DATA_TYPE)
+            tensorImage.load(resizedImage)
+            val processedImage = imageProcessor.process(tensorImage)
+            val inputBuffer = processedImage.buffer
 
-        try {
-            interpreter.run(inputBuffer, outputBuffer.buffer)
-        } catch (e: IllegalStateException) {
-            // Interpreter was closed mid-call
-            return
-        }
+            val outputBuffer = TensorBuffer.createFixedSize(
+                intArrayOf(1, numChannels, numDetections), OUTPUT_DATA_TYPE
+            )
 
-        inferenceTime = SystemClock.uptimeMillis() - inferenceTime
-        val detectedBoxes = extractBoundingBoxes(outputBuffer.floatArray)
+            try {
+                interpreter.run(inputBuffer, outputBuffer.buffer)
+            } catch (e: Exception) {
+                return
+            }
 
-        if (detectedBoxes.isEmpty()) {
-            listener.onEmptyDetect()
-        } else {
-            listener.onDetect(detectedBoxes, inferenceTime)
+            inferenceTime = SystemClock.uptimeMillis() - inferenceTime
+            val detectedBoxes = extractBoundingBoxes(outputBuffer.floatArray)
+
+
+            if (detectedBoxes.isEmpty()) {
+                listener.onEmptyDetect()
+            } else {
+                listener.onDetect(detectedBoxes, inferenceTime)
+            }
         }
     }
+
 
     private fun extractBoundingBoxes(outputArray: FloatArray): List<DiceBoundingBox> {
         val diceBoundingBoxes = mutableListOf<DiceBoundingBox>()
@@ -196,6 +205,6 @@ class DiceDetector(
         private const val INPUT_STD_DEV = 255f // Standard deviation for normalization
         private val INPUT_DATA_TYPE = DataType.FLOAT32 // Input tensor data type
         private val OUTPUT_DATA_TYPE = DataType.FLOAT32 // Output tensor data type
-        private const val CONFIDENCE_THRESHOLD = 0.7F // Minimum confidence score
+        private const val CONFIDENCE_THRESHOLD = 0.5F // Minimum confidence score
     }
 }

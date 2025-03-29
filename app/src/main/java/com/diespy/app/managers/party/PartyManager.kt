@@ -2,6 +2,7 @@ package com.diespy.app.managers.party
 
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogMessage
+import com.diespy.app.managers.profile.PartyCacheManager
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -33,7 +34,9 @@ class PartyManager {
         db.collection(collection).document(party)
             .addSnapshotListener { snapshot, error ->
                 if (error == null && snapshot != null && snapshot.exists()) {
-                    val turnIndex = snapshot.getLong("turnIndex")?.toInt() ?: 0
+                    val rawTurnIndex = snapshot.getLong("turnIndex")?.toInt() ?: 0
+                    val turnIndex = if (rawTurnIndex < 0) 0 else rawTurnIndex
+                    PartyCacheManager.turnIndex = turnIndex
                     if (members.isNotEmpty()) {
                         val currentTurn = members[turnIndex % members.size]
                         val nextTurn = members[(turnIndex + 1) % members.size]
@@ -59,6 +62,7 @@ class PartyManager {
                     @Suppress("UNCHECKED_CAST")
                     val updatedUserIds = rawList as List<String>
                     onUpdate(updatedUserIds)
+                    PartyCacheManager.userIds = updatedUserIds
                 }
             }
         }

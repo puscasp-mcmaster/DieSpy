@@ -3,6 +3,7 @@ package com.diespy.app.ui.chat
 import android.content.Context
 import android.text.Spannable
 import android.text.SpannableString
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import com.diespy.app.managers.chat.ChatMessage
 import com.diespy.app.managers.profile.SharedPrefManager
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class ChatAdapter(private val context: Context, private var messages: List<ChatMessage>) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
     companion object {
@@ -40,8 +42,8 @@ class ChatAdapter(private val context: Context, private var messages: List<ChatM
         val message = messages[position]
 
         // Format the header (username + timestamp) and message
-        val date = message.timeStamp?.toDate() ?: Date()
-        val formattedTime = SimpleDateFormat("yyyy-MM-dd HH:mm").format(date)
+        val date = message.timestamp.toDate()
+        val formattedTime = SimpleDateFormat("MMM dd y, hh:mm", Locale.getDefault()).format(date)
         val header = "${message.username.replaceFirstChar { it.titlecase() }}: $formattedTime\n"
         val fullText = header + message.msg
 

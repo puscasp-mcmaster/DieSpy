@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -12,13 +13,17 @@ import com.diespy.app.R
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.diespy.app.MainActivity
 import com.diespy.app.databinding.FragmentPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogManager
 import com.diespy.app.managers.party.PartyManager
+import com.diespy.app.managers.profile.PartyCacheManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.diceParse
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -36,8 +41,8 @@ class PartyFragment : Fragment() {
     private var usernames: MutableList<String> = mutableListOf()
     private lateinit var turnOrderAdapter: TurnOrderAdapter
     private var partyMembersListener: ListenerRegistration? = null
-    private var cachedCurrentUserId: String? = null
-    private var turnOrderSubscribed = false
+    private var lastLocalReorderTime: Long = 0L
+    private val reorderCooldownMs = 300L // adjust as needed
 
 
     override fun onCreateView(
@@ -51,6 +56,23 @@ class PartyFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         logManager = LogManager(requireContext())
         partyManager = PartyManager()
+
+        //Throws party leave confirm  if trying to go back after joining party
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    (activity as? MainActivity)?.let { main ->
+                        val navController = main.supportFragmentManager
+                            .findFragmentById(R.id.nav_host_fragment)
+                            ?.findNavController()
+                        if (navController != null) {
+                            main.showLeavePartyConfirmation(navController)
+                        }
+                    }
+                }
+            })
+
 
         partyId = SharedPrefManager.getCurrentPartyId(requireContext()) ?: run {
             binding.partyNameTextView.text = "No Party Selected"
@@ -89,65 +111,69 @@ class PartyFragment : Fragment() {
         turnOrderAdapter = TurnOrderAdapter(usernames, onEndTurnClicked = { handleEndTurn() })
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = turnOrderAdapter
-
         attachDragAndDrop()
 
-//        lifecycleScope.launch {
-//            val partyData = fireStoreManager.getDocumentById("Parties", partyId)
-//            partyData?.get("userIds")?.let { rawList ->
-//                @Suppress("UNCHECKED_CAST")
-//                userIds = (rawList as List<String>).toMutableList()
-//                usernames = mutableListOf()
-//                for (id in userIds) {
-//                    val userData = fireStoreManager.getDocumentById("Users", id)
-//                    val username = userData?.get("username") as? String ?: "Unknown"
-//                    usernames.add(username)
-//                }
-//                turnOrderAdapter.updatePlayers(usernames)
-//
-//                partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
-//                    val currentTurnIndex = userIds.indexOf(currentTurnUserId)
-//                    if (currentTurnIndex != -1) {
-//                        cachedCurrentUserId = userIds.getOrNull(currentTurnIndex)
-//                        turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
-//
-//                    }
-//                }
-//            }
-//        }
-        // After your initial load block (or instead of it, if you prefer to rely on real-time updates):
         partyMembersListener = partyManager.subscribeToPartyMembers(partyId) { updatedUserIds ->
-            // Update the local userIds list
-            userIds = updatedUserIds.toMutableList()
+            val now = System.currentTimeMillis()
+            if (now - lastLocalReorderTime < reorderCooldownMs) {
+                return@subscribeToPartyMembers
+            }
 
-            // Update usernames from Firestore
+            // Cache userIds
+            userIds = updatedUserIds.toMutableList()
+            PartyCacheManager.userIds = userIds
+
             lifecycleScope.launch {
                 val updatedUsernames = mutableListOf<String>()
+                val missingIds = mutableListOf<String>()
+
+                // Load from cache or mark as missing
                 for (id in userIds) {
-                    val userData = fireStoreManager.getDocumentById("Users", id)
-                    val username = userData?.get("username") as? String ?: "Unknown"
-                    updatedUsernames.add(username)
+                    val cached = PartyCacheManager.usernames[id]
+                    if (cached != null) {
+                        updatedUsernames.add(cached)
+                    } else {
+                        updatedUsernames.add("...") // Temporary placeholder
+                        missingIds.add(id)
+                    }
                 }
+
                 usernames = updatedUsernames
                 turnOrderAdapter.updatePlayers(usernames)
 
-                // Now, if we haven't yet subscribed to turn order and we have at least one member, subscribe.
-                if (!turnOrderSubscribed && userIds.isNotEmpty()) {
+                // Load missing usernames in parallel
+                if (missingIds.isNotEmpty()) {
+                    val resolved = missingIds.map { id ->
+                        async {
+                            val userData = fireStoreManager.getDocumentById("Users", id)
+                            val username = userData?.get("username") as? String ?: "Unknown"
+                            id to username
+                        }
+                    }.awaitAll()
+
+                    // Update cache and UI
+                    PartyCacheManager.usernames += resolved.toMap()
+                    usernames = userIds.map { PartyCacheManager.usernames[it] ?: "Unknown" }.toMutableList()
+                    turnOrderAdapter.updatePlayers(usernames)
+                }
+
+                // Subscribe to turn order after usernames loaded
+                if (userIds.isNotEmpty()) {
                     partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
                         val currentTurnIndex = userIds.indexOf(currentTurnUserId)
                         if (currentTurnIndex != -1) {
-                            cachedCurrentUserId = userIds[currentTurnIndex]
+                            PartyCacheManager.currentUserId = currentTurnUserId
+                            PartyCacheManager.turnIndex = currentTurnIndex
                             turnOrderAdapter.setCurrentTurnIndex(currentTurnIndex)
                         }
                     }
-                    turnOrderSubscribed = true
                 }
             }
         }
     }
 
 
-    private fun attachDragAndDrop() {
+        private fun attachDragAndDrop() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
         ) {
@@ -167,7 +193,7 @@ class PartyFragment : Fragment() {
             override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
                 super.clearView(recyclerView, viewHolder)
 
-                val currentUserId = cachedCurrentUserId ?: return
+                val currentUserId = PartyCacheManager.currentUserId ?: return
                 val newTurnIndex = userIds.indexOf(currentUserId)
 
                 val data = mapOf(
@@ -177,13 +203,17 @@ class PartyFragment : Fragment() {
 
                 lifecycleScope.launch {
                     fireStoreManager.updateDocument("Parties", partyId, data)
+                    lastLocalReorderTime = System.currentTimeMillis()
                 }
             }
-
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
         })
         itemTouchHelper.attachToRecyclerView(binding.recyclerView)
+
+        binding.simulateRollButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_diceSim)
+        }
     }
 
     private fun handleEndTurn() {

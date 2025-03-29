@@ -117,6 +117,7 @@ class JoinPartyFragment : Fragment() {
         val userIds = partyData?.get("userIds") as? List<*>
         val partyName = partyData?.get("name") as? String
 
+
         if (userIds != null && userIds.contains(userId)) {
             withContext(Dispatchers.Main) {
                 binding.joinPartyErrorMessage.showError("You're already in this party!")
@@ -129,11 +130,13 @@ class JoinPartyFragment : Fragment() {
             "userIds" to com.google.firebase.firestore.FieldValue.arrayUnion(userId)
         ))
 
+
         withContext(Dispatchers.Main) {
             if (success) {
                 SharedPrefManager.saveCurrentPartyId(context, partyId)
                 if (partyName != null) {
                     SharedPrefManager.saveCurrentPartyName(context, partyName)
+
                 } else {
                     binding.joinPartyErrorMessage.showError("Party name not found. Something went wrong.")
                     return@withContext

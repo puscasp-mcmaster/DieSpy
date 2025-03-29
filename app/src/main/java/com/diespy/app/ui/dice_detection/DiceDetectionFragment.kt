@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -18,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.diespy.app.ml.models.DiceBoundingBox
 import com.diespy.app.Constants.LABELS_PATH
 import com.diespy.app.Constants.MODEL_PATH
@@ -31,6 +33,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.diespy.app.managers.logs.LogManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ml.models.MatchCandidate
+import com.diespy.app.ml.models.TrackedDice
 import com.diespy.app.ui.utils.diceParse
 import com.diespy.app.ui.utils.showEditRollDialog
 import kotlinx.coroutines.isActive
@@ -48,38 +52,14 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private var isFrozen = false
     //Buffer to store dice values for each frame.
     private val frameSumsBuffer = mutableListOf<Int>()
-    private val frameDiceBuffer = mutableListOf<List<Int>>()
     private var lastDetectionTime: Long = System.currentTimeMillis()
     private var capturing = false
     private var currentToast: Toast? = null
+    private val trackedDiceBuffer = mutableListOf<TrackedDice>()
+    private val matchThreshold = 40f // px distance to consider same dice
+    private var currentFrameCount = 0
 
 
-    override fun onResume() {
-        super.onResume()
-        hideSystemUI()
-    }
-
-    private fun hideSystemUI() {
-        val window = requireActivity().window
-        // Let the window extend into the system window areas, but you'll selectively hide components.
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        // Hide only the navigation bars, leaving the status bar visible.
-        controller.hide(WindowInsetsCompat.Type.navigationBars())
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    }
-
-    private fun showSystemUI() {
-        val window = requireActivity().window
-        WindowCompat.setDecorFitsSystemWindows(window, true)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.show(WindowInsetsCompat.Type.systemBars())
-    }
-    override fun onPause() {
-        super.onPause()
-        showSystemUI()
-    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -120,14 +100,31 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                 binding.showRollButton.visibility = View.INVISIBLE
                 viewLifecycleOwner.lifecycleScope.launch {
                     val startTime = System.currentTimeMillis()
-                    // Wait up to 5000 ms (5 seconds) for at least 5 frames
+                    val timeout = 4000L // 5 seconds
+                    val minHistoryPerDie = 4
                     showToast("Capturing dice...")
-                    while (frameDiceBuffer.size < 5 && System.currentTimeMillis() - startTime < 5000) {
+                    while (System.currentTimeMillis() - startTime < timeout) {
+                        // Wait a short interval (let frames build)
                         delay(50)
+
+                        // Check how many dice have enough history
+                        val stableDice =
+                            trackedDiceBuffer.count { it.predictions.size >= minHistoryPerDie }
+
+                        //counted at least one dice
+                        if (stableDice >= 1) {
+                            break // good to go
+                        }
                     }
-                    if (currentParty!="") binding.showRollButton.visibility = View.VISIBLE
-                    if (frameDiceBuffer.size < 5) {
-                        showToast("No dice detected, please try again")
+
+                    // Show roll button if we’re in a party
+                    if (currentParty.isNotEmpty()) {
+                        binding.showRollButton.visibility = View.VISIBLE
+                    }
+
+                    // Evaluate the result — even if it didn't meet threshold, still try
+                    if (trackedDiceBuffer.count { it.predictions.size >= minHistoryPerDie } < 1) {
+                        showToast("Not enough stable dice detected, please try again")
                         capturing = false
                         binding.freezeButton.isEnabled = true
                     } else {
@@ -144,27 +141,19 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
         viewLifecycleOwner.lifecycleScope.launch {
             while (isActive and !isFrozen) {
-                delay(1000)
-                if (!isFrozen && System.currentTimeMillis() - lastDetectionTime > 3000) {
+                delay(500)
+                if (!isFrozen && System.currentTimeMillis() - lastDetectionTime > 1000) {
                     frameSumsBuffer.clear()
-                    frameDiceBuffer.clear()
+                    trackedDiceBuffer.clear()
                 }
             }
         }
     }
 
     override fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) {
-        val safeBinding = _binding ?: return
         if (!isAdded) return // Prevent crash if fragment is not attached
-
+        currentFrameCount++
         requireActivity().runOnUiThread {
-//            diceStatsManager.updateStats(diceBoundingBoxes)
-//            safeBinding.statsCalc.text = diceStatsManager.getStatSummary()
-//            safeBinding.statsFaces.text = diceStatsManager.getFaceCounts()
-//            safeBinding.overlay.apply {
-//                setResults(diceBoundingBoxes)
-//                invalidate()
-//            }
 
             //update the buffers if not frozen
             if (!isFrozen) {
@@ -178,11 +167,48 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                     frameSumsBuffer.removeAt(0)
                 }
 
-                //Store the full list of predictions for breakdown later
-                frameDiceBuffer.add(frameDice)
-                if (frameDiceBuffer.size > 20) {
-                    frameDiceBuffer.removeAt(0)
+
+
+                // Track dice across frames using greedy matching
+                val candidates = mutableListOf<MatchCandidate>()
+
+                diceBoundingBoxes.forEach { box ->
+                    val cx = (box.x1 + box.x2) / 2f
+                    val cy = (box.y1 + box.y2) / 2f
+                    trackedDiceBuffer.forEach { tracked ->
+                        val dist = tracked.distanceTo(cx, cy)
+                        if (dist < matchThreshold) {
+                            candidates.add(MatchCandidate(tracked, box, dist))
+                        }
+                    }
                 }
+
+                val matchedTracked = mutableSetOf<TrackedDice>()
+                val matchedBoxes = mutableSetOf<DiceBoundingBox>()
+
+                candidates.sortedBy { it.distance }.forEach { candidate ->
+                    if (candidate.tracked !in matchedTracked && candidate.box !in matchedBoxes) {
+                        candidate.tracked.centerX = (candidate.box.x1 + candidate.box.x2) / 2f
+                        candidate.tracked.centerY = (candidate.box.y1 + candidate.box.y2) / 2f
+                        candidate.tracked.addPrediction(candidate.box.classIndex)
+
+                        candidate.tracked.lastSeenFrame = currentFrameCount
+
+
+                        matchedTracked.add(candidate.tracked)
+                        matchedBoxes.add(candidate.box)
+                    }
+                }
+
+                // Track new dice that didn’t match any existing one
+                diceBoundingBoxes.filter { it !in matchedBoxes }.forEach { box ->
+                    val cx = (box.x1 + box.x2) / 2f
+                    val cy = (box.y1 + box.y2) / 2f
+                    trackedDiceBuffer.add(TrackedDice(cx, cy, mutableListOf(box.classIndex)))
+                }
+
+
+                trackedDiceBuffer.removeAll { currentFrameCount - it.lastSeenFrame > 6 }
             }
         }
     }
@@ -193,8 +219,6 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         requireActivity().runOnUiThread {
             diceStatsManager.reset()
             safeBinding.overlay.clear()
-//            safeBinding.statsCalc.text = diceStatsManager.getStatSummary()
-//            safeBinding.statsFaces.text = diceStatsManager.getFaceCounts()
         }
     }
 
@@ -207,11 +231,23 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         binding.freezeButton.isEnabled = true  // re-enable button
 
         //Compute dice breakdown and save log
-        val breakdown = getModeDiceBreakdown(frameDiceBuffer)
+        val faceCounts = IntArray(12) // supports classes 0–11
+        trackedDiceBuffer.forEach { tracked ->
+            tracked.getStablePrediction()?.let { classIndex ->
+                if (classIndex in 0..11) {
+                    faceCounts[classIndex]++
+                }
+            }
+        }
+
+        val breakdown = "1: ${faceCounts[0] + faceCounts[6]}      4: ${faceCounts[3] + faceCounts[9]}\n" +
+                "2: ${faceCounts[1] + faceCounts[7]}      5: ${faceCounts[4] + faceCounts[10]}\n" +
+                "3: ${faceCounts[2] + faceCounts[8]}      6: ${faceCounts[5] + faceCounts[11]}"
+
         val username = SharedPrefManager.getCurrentUsername(requireContext()) ?: "User"
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
         if (currentParty != "") {
-            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
             logManager.saveLog(username, breakdown, timestamp, currentParty)
             showRollDialog()
         } else {
@@ -229,10 +265,11 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         isFrozen = false
         cameraManager.startCamera(binding.viewFinder)
         frameSumsBuffer.clear()
-        frameDiceBuffer.clear()
+        currentFrameCount = 0
         capturing = false
         binding.freezeButton.text = "Capture"
         binding.freezeButton.isEnabled = true
+        trackedDiceBuffer.clear()
     }
 
     //Permissions for camera
@@ -256,23 +293,6 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                 showToast("Camera permission is required.")
             }
         }
-
-    //Helper functions for mode for last 10 frames
-    private fun getModeDiceBreakdown(frames: List<List<Int>>): String {
-        if (frames.isEmpty()) return "No frames"
-        // For each dice face 1-6, compute the combined count (face + face+6) per frame,
-        // then determine the most frequent count (the mode) across all frames.
-        val modeCounts = (1..6).map { face ->
-            val counts = frames.map { frame ->
-                frame.count { it == face } + frame.count { it == face + 6 }
-            }
-            counts.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 0
-        }
-        // Format the result into two columns.
-        return "1: ${modeCounts[0]}      4: ${modeCounts[3]}\n" +
-                "2: ${modeCounts[1]}      5: ${modeCounts[4]}\n" +
-                "3: ${modeCounts[2]}      6: ${modeCounts[5]}"
-    }
 
     //In a Party roll breakdown
     @SuppressLint("SetTextI18n")
@@ -382,3 +402,4 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 }
+
