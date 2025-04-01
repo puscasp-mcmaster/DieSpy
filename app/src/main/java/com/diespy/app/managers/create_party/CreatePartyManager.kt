@@ -8,7 +8,7 @@ data class Party(
     val userIds: List<String> = emptyList()
 )
 
-class PartyManager {
+class CreatePartyManager {
 
     private val fireStoreManager = FireStoreManager()
     private val partiesCollection = "Parties"

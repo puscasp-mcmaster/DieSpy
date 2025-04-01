@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.diespy.app.R
 
-data class PartyItem(val id: String, val name: String, val userCount: Int, val ipAddress : String? = null, val port : String? = null)
+data class PartyItem(val id: String, val name: String, val userCount: Int)
 
 class PartyAdapter(
     private val parties: List<PartyItem>,

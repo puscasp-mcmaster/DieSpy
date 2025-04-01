@@ -1,11 +1,18 @@
+
 package com.diespy.app.ui.join_party
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -18,6 +25,7 @@ import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.showError
 import com.diespy.app.ui.utils.clearError
 import com.diespy.app.ui.home.PartyAdapter
+import com.diespy.app.ui.home.PartyItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,6 +35,19 @@ class JoinPartyFragment : Fragment() {
     private var _binding: FragmentJoinPartyBinding? = null
     private val binding get() = _binding!!
     private val firestoreManager = FireStoreManager()
+    private var partyItems = ArrayList<PartyItem>()
+    private var partyNames = ArrayList<String>()
+    //_---------------------------------
+    private val requestBluetoothPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("Permission", "BLUETOOTH_SCAN permission granted")
+        } else {
+            Log.e("Permission", "BLUETOOTH_SCAN permission denied")
+        }
+    }
+    //_---------------------------------
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -39,17 +60,18 @@ class JoinPartyFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val nm = PublicNetworkManager.getInstance(requireContext())
         viewLifecycleOwner.lifecycleScope.launch {
-            nm.discoverServices {}
-           // Thread.sleep(5000)
-            Log.d("NetworkManager", "Ready to party")
-            val partyItems = nm.discoveredDeviceMap.values.toList()
-
+            var partyName = ""
+         //   nm.messageList.forEach {
+          //      verifyParty(it)
+        //    }
             val adapter = PartyAdapter(partyItems) { party ->
-                SharedPrefManager.saveCurrentPartyId(requireContext(), party.id)
-                SharedPrefManager.saveCurrentPartyName(requireContext(),party.name)
-                nm.openClientSocket(party)
-
-                findNavController().navigate(R.id.action_home_to_party)
+                partyName = party.name
+                viewLifecycleOwner.lifecycleScope.launch {
+                    if (partyName != "") {
+                        joinPartyByField("name", partyName)
+                        Log.d("JPF", "Joined party '${partyName}'")
+                    }
+                }
             }
             binding.joinPartyRecycleView.layoutManager = LinearLayoutManager(requireContext())
             binding.joinPartyRecycleView.adapter = adapter
@@ -64,39 +86,72 @@ class JoinPartyFragment : Fragment() {
             }
 
             lifecycleScope.launch {
-                joinPartyWithPassword(inputPassword)
+                joinPartyByField("joinPw", inputPassword)
             }
         }
 
         //reloads search.
         binding.joinPartyConnectButton.setOnClickListener {
-            nm.discoverServices {}
-            // Thread.sleep(5000)
-            Log.d("NetworkManager", "Ready to party")
-            val partyItems = nm.discoveredDeviceMap.values.toList()
-        }
-        binding.joinPartyHostButton.setOnClickListener {
-            nm.initAsHost(requireContext())
-            Log.d("NetworkManager", "Host init complete")
-           /* Thread.sleep(100)
-            nm.openClientSocket(null)
-            Log.d("NetworkManager", "ClientSocket init complete")
-            Thread.sleep(100)
-            nm.sendMessageToHost("This is a client message");
-            Log.d("NetworkManager", "Client Message Sent complete")
-            Thread.sleep(100)
-            Log.d("TEST", nm.getMessage())
-            nm.sendMessageToClients("This is a host message")
-            Log.d("NetworkManager", "Host Message Sent complete")
-            Thread.sleep(100)
-            Log.d("TEST", nm.getMessage())*/
+        //if we want to reload, enable
+            partyNames.clear()
+            partyItems.clear()
+            nm.messageList.clear()
+
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.BLUETOOTH_SCAN
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestBluetoothPermission.launch(Manifest.permission.BLUETOOTH_SCAN)
+            } else {
+                    binding.joinPartyNoUpdateText.text = "Searching for avaliable parties..."
+                    Handler(Looper.getMainLooper()).postDelayed(
+                        {
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                var updateAdapter = false
+                                nm.messageList.forEach {
+                                    if(!partyNames.contains(it)) {
+                                        Log.d("Messages", "New Party Recieved: $it")
+                                        partyNames.add(it)
+                                        verifyParty(it)
+                                        updateAdapter = true
+                                    }
+                                }
+                                binding.joinPartyRecycleView.adapter?.notifyDataSetChanged()
+                                if(updateAdapter) {
+                                    binding.joinPartyNoUpdateText.text = ""
+                                } else {
+                                    binding.joinPartyNoUpdateText.text = "No parties detected"
+                                }
+
+                            }
+                            Log.d("JPF", "Listening done!")
+
+                        }, 6000
+                    )
+
+                    nm.listen()
+
+            }
+
         }
     }
 
-    private suspend fun joinPartyWithPassword(password: String) {
+    public suspend fun verifyParty(partyName: String) {
+        try {
+            val partyData = firestoreManager.queryDocument("Parties", "name", partyName)
+        } catch(e: Exception) {
+            Log.e("JoinPartyFragment", "Error trying to find party ${partyName}: ${e}")
+            return
+        }
+        partyItems.add(PartyItem("e", partyName, 0))
+
+    }
+
+    private suspend fun joinPartyByField(field: String, value: String) {
         val context = requireContext()
 
-        val partyId = firestoreManager.getDocumentIdByField("Parties", "joinPw", password)
+        val partyId = firestoreManager.getDocumentIdByField("Parties", field, value)
         if (partyId == null) {
             withContext(Dispatchers.Main) {
                 binding.joinPartyErrorMessage.showError("No party found with that password.")
@@ -112,8 +167,7 @@ class JoinPartyFragment : Fragment() {
             return
         }
 
-        // Get party data
-        val partyData = firestoreManager.queryDocument("Parties", "joinPw", password)
+        val partyData = firestoreManager.queryDocument("Parties", field, value)
         val userIds = partyData?.get("userIds") as? List<*>
         val partyName = partyData?.get("name") as? String
 
@@ -125,7 +179,6 @@ class JoinPartyFragment : Fragment() {
             return
         }
 
-        // Add user to the party's 'userIds'
         val success = firestoreManager.updateDocument("Parties", partyId, mapOf(
             "userIds" to com.google.firebase.firestore.FieldValue.arrayUnion(userId)
         ))

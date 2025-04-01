@@ -11,7 +11,8 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentCreatePartyBinding
-import com.diespy.app.managers.create_party.PartyManager
+import com.diespy.app.managers.network.PublicNetworkManager
+import com.diespy.app.managers.create_party.CreatePartyManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.clearError
 import com.diespy.app.ui.utils.showError
@@ -20,7 +21,7 @@ import kotlinx.coroutines.launch
 class CreatePartyFragment : Fragment() {
     private var _binding: FragmentCreatePartyBinding? = null
     private val binding get() = _binding!!
-    private val partyManager = PartyManager()
+    private val createPartyManager = CreatePartyManager()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCreatePartyBinding.inflate(inflater, container, false)
@@ -37,8 +38,10 @@ class CreatePartyFragment : Fragment() {
 
             if (partyName.isNotEmpty()) {
                 lifecycleScope.launch {
-                    val success = partyManager.createParty(partyName, userId)
+                    val success = createPartyManager.createParty(partyName, userId)
                     if (success != null) {
+                        val nm = PublicNetworkManager.getInstance(requireContext())
+
                         SharedPrefManager.saveCurrentPartyId(requireContext(), success)
                         SharedPrefManager.saveCurrentPartyName(requireContext(), partyName)
                         binding.partyNameInput.text.clear()

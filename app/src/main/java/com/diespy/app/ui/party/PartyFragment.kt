@@ -1,11 +1,16 @@
 package com.diespy.app.ui.party
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -17,9 +22,11 @@ import com.diespy.app.MainActivity
 import com.diespy.app.databinding.FragmentPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogManager
+import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.party.PartyManager
 import com.diespy.app.managers.profile.PartyCacheManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.ui.home.PartyAdapter
 import com.diespy.app.ui.utils.diceParse
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.async
@@ -44,6 +51,17 @@ class PartyFragment : Fragment() {
     private var lastLocalReorderTime: Long = 0L
     private val reorderCooldownMs = 300L // adjust as needed
 
+
+    private var cachedCurrentUserId: String? = null
+    private val requestBluetoothPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("Permission", "BLUETOOTH_ADVERTISE permission granted")
+        } else {
+            Log.e("Permission", "BLUETOOTH_ADVERTISE permission denied")
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -80,6 +98,18 @@ class PartyFragment : Fragment() {
         }
         val partyName = SharedPrefManager.getCurrentPartyName(requireContext()) ?: "Party Name"
         binding.partyNameTextView.text = partyName
+
+        val nm = PublicNetworkManager.getInstance(requireContext())
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_ADVERTISE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestBluetoothPermission.launch(Manifest.permission.BLUETOOTH_ADVERTISE)
+        } else {
+            nm.broadcast(partyName)
+        }
+
 
         partyManager.subscribeToLatestLog(partyId) { lastLog ->
             _binding?.let { binding ->
@@ -169,6 +199,10 @@ class PartyFragment : Fragment() {
                     }
                 }
             }
+        }
+
+        binding.simulateRollButton.setOnClickListener {
+            findNavController().navigate(R.id.action_party_to_diceSim)
         }
     }
 

@@ -11,7 +11,7 @@ object SharedPrefManager {
     private const val KEY_CURRENT_USERNAME = "currentUsername"
     private const val KEY_CURRENT_PARTY_ID = "currentPartyId"
     private const val KEY_CURRENT_PARTY_NAME = "currentPartyName"
-
+    private const val CURRENT_PARTY_USER_COUNT = "currentPartyUserCount"
     // Get SharedPreferences Instance
     private fun getPreferences(context: Context) =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -87,10 +87,28 @@ object SharedPrefManager {
         getPreferences(context).edit().remove(KEY_CURRENT_PARTY_NAME).apply()
     }
 
+    // Save Current Party User Count
+    fun saveCurrentPartyUserCount(context: Context, id: String) {
+        getPreferences(context).edit().putString(CURRENT_PARTY_USER_COUNT, id).apply()
+    }
+
+    // Retrieve Current Party User Count
+    fun getCurrentPartyUserCount(context: Context): String? {
+        return getPreferences(context).getString(CURRENT_PARTY_USER_COUNT, null)
+    }
+
+    // Clear Current Party User Count
+    private fun clearCurrentPartyUserCount(context: Context) {
+        getPreferences(context).edit().remove(CURRENT_PARTY_USER_COUNT).apply()
+    }
+
+
+
     // Clear All Current Party Data
     fun clearCurrentPartyData(context: Context) {
         clearCurrentPartyId(context)
         clearCurrentPartyName(context)
+        clearCurrentPartyUserCount(context)
     }
 
     //----- ALL DATA ----------------------------------------------------------------

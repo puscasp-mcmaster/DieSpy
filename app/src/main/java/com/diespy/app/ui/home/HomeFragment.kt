@@ -1,6 +1,13 @@
 package com.diespy.app.ui.home
 
+
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,14 +22,29 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.R
 import com.diespy.app.databinding.FragmentHomeBinding
 import com.diespy.app.managers.firestore.FireStoreManager
+import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.diespy.app.ui.utils.showError
 import kotlinx.coroutines.launch
+import android.net.wifi.p2p.WifiP2pManager
+import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val fireStoreManager = FireStoreManager()
+    private val requestBluetoothPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("Permission", "BLUETOOTH_ADVERTISE permission granted")
+        } else {
+            Log.e("Permission", "BLUETOOTH_ADVERTISE permission denied")
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -32,6 +54,7 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         super.onViewCreated(view, savedInstanceState)
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
@@ -40,7 +63,14 @@ class HomeFragment : Fragment() {
                 }
             })
 
+        val nm = PublicNetworkManager.getInstance(requireContext())
+        try {
+            nm.stopBroadcast()
+        } catch (e: Exception) {
+            Log.e("Home", "Unable to stop broadcasting: ${e}")
+        }
         binding.addPartyButton.setOnClickListener {
+
             val dialogView = layoutInflater.inflate(R.layout.dialog_add_party, null)
             val dialog = AlertDialog.Builder(requireContext())
                 .setView(dialogView)
@@ -84,9 +114,11 @@ class HomeFragment : Fragment() {
                     SharedPrefManager.saveCurrentPartyName(requireContext(), party.name)
 
                     lifecycleScope.launch {
+                        val nm = PublicNetworkManager.getInstance(requireContext())
                         fireStoreManager.preloadPartyData(party.id)
                         findNavController().navigate(R.id.action_home_to_party)
                     }
+                    
                 }
                 binding.partyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
                 binding.partyRecyclerView.adapter = adapter
@@ -99,4 +131,9 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+
+
+
+
 }
