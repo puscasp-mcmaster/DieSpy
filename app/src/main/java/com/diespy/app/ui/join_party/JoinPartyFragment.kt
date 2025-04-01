@@ -94,7 +94,8 @@ class JoinPartyFragment : Fragment() {
         binding.joinPartyConnectButton.setOnClickListener {
         //if we want to reload, enable
             partyNames.clear()
-
+            partyItems.clear()
+            nm.messageList.clear()
 
             if (ContextCompat.checkSelfPermission(
                     requireContext(),
@@ -103,7 +104,7 @@ class JoinPartyFragment : Fragment() {
             ) {
                 requestBluetoothPermission.launch(Manifest.permission.BLUETOOTH_SCAN)
             } else {
-                    binding.joinPartyNoUpdateText.text = "Searching for new parties..."
+                    binding.joinPartyNoUpdateText.text = "Searching for avaliable parties..."
                     Handler(Looper.getMainLooper()).postDelayed(
                         {
                             viewLifecycleOwner.lifecycleScope.launch {
@@ -116,12 +117,11 @@ class JoinPartyFragment : Fragment() {
                                         updateAdapter = true
                                     }
                                 }
-
+                                binding.joinPartyRecycleView.adapter?.notifyDataSetChanged()
                                 if(updateAdapter) {
-                                    binding.joinPartyRecycleView.adapter?.notifyDataSetChanged()
                                     binding.joinPartyNoUpdateText.text = ""
                                 } else {
-                                    binding.joinPartyNoUpdateText.text = "No new parties detected"
+                                    binding.joinPartyNoUpdateText.text = "No parties detected"
                                 }
 
                             }

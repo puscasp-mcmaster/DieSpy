@@ -115,7 +115,6 @@ class HomeFragment : Fragment() {
 
                     lifecycleScope.launch {
                         val nm = PublicNetworkManager.getInstance(requireContext())
-                        nm.initAsHost() //initializs serversocket
                         fireStoreManager.preloadPartyData(party.id)
                         findNavController().navigate(R.id.action_home_to_party)
                     }
