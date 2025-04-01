@@ -97,6 +97,13 @@
             android:textAllCaps="false"
             android:textColor="@color/white" />
 
+        <TextView
+            android:id="@+id/joinPartyNoUpdateText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:textSize="24sp" />
+
         <!-- Host Button -->
     </LinearLayout>
 

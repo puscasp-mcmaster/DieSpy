@@ -1,227 +1,217 @@
+package com.diespy.app.managers.network
+
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.wifi.p2p.*
-import android.net.wifi.WpsInfo
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.diespy.app.managers.firestore.FireStoreManager
-import com.diespy.app.managers.profile.SharedPrefManager
-import com.diespy.app.ui.home.PartyItem
-import java.io.PrintWriter
-import java.net.ServerSocket
-import java.net.Socket
-import java.io.BufferedWriter
-import java.io.OutputStreamWriter
-import java.net.Inet4Address
-import java.net.NetworkInterface
 
+
+import android.bluetooth.le.AdvertiseData
+import android.bluetooth.le.AdvertiseSettings
+import android.bluetooth.le.*
+import android.bluetooth.*
+import android.os.ParcelUuid
 /*
-------------------------------------------------
-THIS IS NOT THE FRONTFACING CLASS! FOR THAT SEE PublicNetworkManager.kt!!!!
-THIS IS THE BACKEND NETWORK MANAGER CODE!
+NETWORKMANAGER:
+
+Networkmanager provides a backend for the peer-to-peer connections which allow for local party joining.
+Uses Bluetooth Low Energy (BLE) to broadcast avaliable party names allowing for fast and easy connections.
+
+In order to keep the state constant, we store a single instance of a NetworkManager in the PublicNetworkManager
+class.
+*/
 
 
-two distinct steps: 1) connection to a device via wifip2p to obtain local ip,
-2) tcp connection to local ip to send data.
-
-ALWAYS USE  sendHostMessage(), sendClientMessage() and getMessage()!
-
-
--PP
-
-
- */
 class NetworkManager(private val context: Context) {
-    private val wifiP2pManager: WifiP2pManager? = context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager?
-    private val channel: WifiP2pManager.Channel? = wifiP2pManager?.initialize(context, Looper.getMainLooper(), null)
-    private var peerReceiver: BroadcastReceiver? = null
-    private var discoveryCallback: ((List<WifiP2pDevice>) -> Unit)? = null
-    private val connectedClients = mutableListOf<Socket>()
-    private var serverSocket: ServerSocket? = null
-    private var hostAddress: String? = null
-    val discoveredDeviceMap = mutableMapOf<String, PartyItem>()
-    var latestMessage: String? = null
-    private val fireStoreManager = FireStoreManager()
+    //16b uuid used = 0000B81D-0000-1000-8000-00805F9B34FB
+    private val NETWORK_UUID = ParcelUuid.fromString("0000B81D-0000-1000-8000-00805F9B34FB")
+    val messageList = mutableListOf<String>()
+    private val scanCallback = object : ScanCallback() {
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            result.scanRecord?.serviceData?.get(NETWORK_UUID)?.let { bytes ->
+                try {
+                    val message = String(bytes, Charsets.UTF_8)
 
-    //advertise stays
-    private fun advertiseService(groupName: String, groupId: String, groupUserCount: String) {
-        val record = hashMapOf(
-            "service_name" to "DiespyApp",
-            "groupName" to groupName,
-            "groupID" to groupId,
-            "groupUserCount" to groupUserCount
-        )
-        val serviceInfo =
-            WifiP2pDnsSdServiceInfo.newInstance("DiespyService", "_diespy._tcp", record)
+                    if (message !in messageList) {  // Prevent duplicates
+                        messageList.add(message)
+                        Log.d("BLE", "Received message: $message")
+                    } else {
+                        Log.d("BLE", "Duplicate Message Recieved.")
+                    }
 
-        //Permission checking code autofilled by android studio
+                } catch (e: Exception) {
+                    Log.e("BLE", "Error decoding message", e)
+                }
+            }
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            Log.e("BLE", "Scan failed with error: $errorCode")
+        }
+    }
+    private val advertiseCallback = object : AdvertiseCallback() {
+        override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+            Log.i("BLE", "Broadcast started successfully")
+        }
+
+        override fun onStartFailure(errorCode: Int) {
+            Log.e("BLE", "Broadcast failed: ${errorCodeToString(errorCode)}")
+        }
+    }
+
+
+    /*
+    broadcast: String --> Boolean
+    Broadcasts a message (designed for party name) over the network UUID. Continues indefinitely,
+    terminates upon calling stopBroadCast() or application closure.
+     */
+    fun broadcast(message: String): Boolean {
+        val messageBytes = message.toByteArray(Charsets.US_ASCII)
+        val maxBytes = 30 // BLE advertising limit (31 bytes)
+
+        //the UUID we use is 16 bytes + 15 for message
+        if (messageBytes.size + 16 > maxBytes) {
+            Log.e("BLE", "Message $message (${messageBytes}) too long (${messageBytes.size} bytes). Max: $maxBytes bytes")
+            return false
+        }
+
+        // Get BLE advertiser
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+        val bluetoothAdapter = bluetoothManager?.adapter ?: run {
+            Log.e("BLE", "Bluetooth not supported")
+            return false
+        }
+
+        if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
+            Log.e("BLE", "Advertising not supported")
+            return false
+        }
+
+        val advertiser = bluetoothAdapter.bluetoothLeAdvertiser
+
+        // Advertisement packet consists of the UUID and the title name.
+        val advertiseData = AdvertiseData.Builder()
+            .setIncludeDeviceName(true)
+            .addServiceUuid(NETWORK_UUID)
+            .addServiceData(
+                NETWORK_UUID,
+                messageBytes
+            )
+            .build()
+
+        val settings = AdvertiseSettings.Builder()
+            .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+            .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
+            .setConnectable(false)
+            .build()
+
+        // Start broadcasting
         if (ActivityCompat.checkSelfPermission(
                 context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.NEARBY_WIFI_DEVICES
+                Manifest.permission.BLUETOOTH_ADVERTISE
             ) != PackageManager.PERMISSION_GRANTED
-        ) {Log.e("NetworkManager", "Permissions not granted for Service Advertising")}
-        wifiP2pManager?.addLocalService(
-            channel,
-            serviceInfo,
-            object : WifiP2pManager.ActionListener {
-                override fun onSuccess() {
-                    Log.d("NetworkManager", "Service advertised successfully.")
+        ) {
+            Log.e("BLE", "Error: Permission BLUETOOTH_ADVERTISE not granted")
+            return false
+        }
+        advertiser.startAdvertising(settings, advertiseData, advertiseCallback)
+        return true
+    }
+    /*
+    stopBroadcast
+    Terminates BLE broadcasting. Used when exiting a party.
+     */
+    fun stopBroadcast() {
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+        val bluetoothAdapter = bluetoothManager?.adapter ?: run {
+            Log.e("BLE", "Bluetooth not available")
+            return
+        }
+
+        if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
+            Log.e("BLE", "Advertising not supported")
+            return
+        }
+
+        try {
+            bluetoothAdapter.bluetoothLeAdvertiser?.apply {
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.BLUETOOTH_ADVERTISE
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Log.e("NetworkManager", "Error: Permission BLUETOOTH_ADVERTISE not granted")
+                    return
                 }
-                override fun onFailure(code: Int) {
-                    Log.e("NetworkManager", "Failed to advertise service: $code")
-                }
-            })
+                stopAdvertising(advertiseCallback)
+                Log.d("BLE", "Broadcasting stopped successfully")
+            }
+        } catch (e: IllegalStateException) {
+            Log.e("BLE", "Error stopping broadcast: ${e.message}")
+        }
     }
 
-    public fun discoverServices(callback: (List<WifiP2pDevice>) -> Unit) {
-        discoveryCallback = callback
-        Log.d("NetworkManager", "Callback is ${if (discoveryCallback != null) "set: ${discoveryCallback}" else "null"}")
-       // requestPermissionsIfNeeded()
-        val permissions = listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.NEARBY_WIFI_DEVICES,
-            Manifest.permission.CHANGE_WIFI_STATE,
-            Manifest.permission.ACCESS_WIFI_STATE
-        )
+    //Util for error readability visibility
+    private fun errorCodeToString(errorCode: Int): String = when (errorCode) {
+        AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE -> "Data too large"
+        AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS -> "Too many advertisers"
+        AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED -> "Already started"
+        else -> "Unknown error"
+    }
 
-        for (permission in permissions) {
-            val isGranted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-            Log.d("NetworkManager", "$permission granted: $isGranted")
+    /*
+    listen()
+
+    For 5 seconds, listens for any messages (partynames) recieved from the networkUUID. If any new
+    names are encountered, they're stored in the message list, which can be read by external usrs.
+     */
+    fun listen() {
+        val bluetoothAdapter = context.getSystemService(Context.BLUETOOTH_SERVICE)?.let {
+            it as android.bluetooth.BluetoothManager
+        }?.adapter
+
+        val bleScanner = bluetoothAdapter?.bluetoothLeScanner ?: run {
+            Log.e("BLE", "BLE scanner not available")
+            return
         }
 
-        //ServiceListener for callbacks
-        val serviceListener = WifiP2pManager.DnsSdServiceResponseListener { instanceName, _, srcDevice ->
-            Log.d("NetworkManager", "DnsSdServiceResponseListener triggered")
-            if (instanceName == "DiespyService") {
-                Log.d("NetworkManager", "Found Diespy device: ${srcDevice.deviceName}")
-                discoveryCallback?.invoke(listOf(srcDevice))
-            } else {
-                Log.d("NetworkManager", "Service found, but not  DiespyService: $instanceName")
-            }
+        // Scan settings for low latency
+        val settings = ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .build()
+
+        // Filter for our specific service UUID
+        val filter = ScanFilter.Builder()
+            .setServiceUuid(NETWORK_UUID)
+            .build()
+
+        // Start scanning
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.BLUETOOTH_SCAN
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.e("BLE", "Error, Permission BLUETOOTH_SCAN not granted")// for ActivityCompat#requestPermissions for more details.
+            return
         }
 
-        //TextListener to actually read the info
-        val txtRecordListener = WifiP2pManager.DnsSdTxtRecordListener { fullDomainName, txtRecordMap, srcDevice ->
-            Log.d("NetworkManager", "TXT Record received: $txtRecordMap")
-            val groupName = txtRecordMap["groupName"] as String ?: "Unnamed Group"
-            val groupId = txtRecordMap["groupId"] as String ?: "N/A"
-            val groupUserCount =  txtRecordMap["groupUserCount"] as String ?: "N/A"
-            srcDevice.deviceAddress?.let { deviceAddress ->
-                discoveredDeviceMap[deviceAddress] = PartyItem(groupId, groupName, groupUserCount.toInt())
-                //discoveredDeviceMap[deviceAddress] = Triple(hostIp, hostPort.toInt(), groupName)
+        bleScanner.startScan(listOf(filter), settings, scanCallback)
+        Log.d("BLE", "Started listening...")
+
+        // Stop scanning after 5 seconds
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.BLUETOOTH_SCAN
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.e("BLE", "Permission Denied: BLUETOOTH_SCAN")
             }
-        }
-
-        wifiP2pManager?.setDnsSdResponseListeners(channel, serviceListener, txtRecordListener)
-        Log.d("NetworkManager", "Ready to discover services!")
-        Log.d("NetworkManager", "wifiP2pManager is ${if (wifiP2pManager != null) "initialized" else "null"}")
-        Log.d("NetworkManager", "channel is ${if (channel != null) "initialized" else "null"}")
-        // Stop peer discovery
-        wifiP2pManager?.stopPeerDiscovery(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                Log.d("NetworkManager", "Peer discovery stopped successfully.")
-
-                // Stop service discovery
-                wifiP2pManager?.clearServiceRequests(channel, object : WifiP2pManager.ActionListener {
-                    override fun onSuccess() {
-                        Log.d("NetworkManager", "Service discovery stopped successfully.")
-                    }
-
-                    override fun onFailure(code: Int) {
-                        Log.e("NetworkManager", "Failed to stop service discovery: $code")
-                    }
-                })
-            }
-            override fun onFailure(code: Int) {
-                Log.e("NetworkManager", "Failed to stop peer discovery: $code")
-            }
-        })
-
-
-
-        //Discover peers, if successful discover services.
-        wifiP2pManager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                Log.d("NetworkManager", "Peer discovery started successfully.")
-                // Starts a handler to search for peers in the background, after 10 loops it forces a callback with the empty list
-                Handler(Looper.getMainLooper()).postDelayed({
-                    // Asynchronously requests peers. Internal logic (peerlist ->) runs only upon completion.
-                    if (ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.NEARBY_WIFI_DEVICES
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        Log.e("NetworkManager", "Permissions not granted for service discovery.")
-                        return@postDelayed
-                    }
-
-                    //PEER DISCOVERY:
-                    wifiP2pManager?.requestPeers(channel) { peerList ->
-                        if (peerList.deviceList.isNotEmpty()) {
-                            Log.d("NetworkManager", "Peers discovered: ${peerList.deviceList.size}")
-                            // Add service request before starting service discovery
-                            val serviceRequest = WifiP2pDnsSdServiceRequest.newInstance()
-                            wifiP2pManager?.addServiceRequest(channel, serviceRequest, object : WifiP2pManager.ActionListener {
-                                @SuppressLint("MissingPermission")
-                                override fun onSuccess() {
-                                    Log.d("NetworkManager", "Service request added successfully.")
-                                    // Start service discovery
-                                    wifiP2pManager?.discoverServices(channel, object : WifiP2pManager.ActionListener {
-                                        override fun onSuccess() {
-                                            Log.d("NetworkManager", "Service discovery started successfully.")
-                                        }
-                                        override fun onFailure(code: Int) {
-                                            Log.e("NetworkManager", "Service discovery failed: $code")
-                                        }
-                                    })
-                                }
-
-                                override fun onFailure(code: Int) {
-                                    Log.e("NetworkManager", "Failed to add service request: $code")
-                                }
-                            })
-                        } else {
-                            // Forces return of empty list after 10 seconds of handler not found.
-                            Log.e("NetworkManager", "No peers found.")
-                            discoveryCallback?.invoke(emptyList())
-                        }
-                    }
-                }, 10000) // 10 second search period to find devices and services.
-            }
-
-            override fun onFailure(code: Int) {
-                Log.e("NetworkManager", "Peer discovery failed: $code")
-            }
-        })
-
+            bleScanner.stopScan(scanCallback)
+            Log.d("BLE", "Stopped listening. Total messages: ${messageList.size}")
+        }, 5000)
     }
-
-    public fun initAsHost() {
-        val partyName : String = SharedPrefManager.getCurrentPartyName(context) ?: "Unnamed Party"
-        val partyId :String = SharedPrefManager.getCurrentPartyId(context) ?: "N/A"
-        val partyUC :String = SharedPrefManager.getCurrentPartyUserCount(context) ?: "N/A"
-        advertiseService(partyName, partyId, partyUC)
-
-    }
-    public fun getMessage(): String {
-        if(latestMessage.isNullOrEmpty())
-            return ""
-        else
-            return latestMessage!!
-    }
-
 }

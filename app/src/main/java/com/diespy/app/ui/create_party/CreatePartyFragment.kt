@@ -41,7 +41,7 @@ class CreatePartyFragment : Fragment() {
                     val success = createPartyManager.createParty(partyName, userId)
                     if (success != null) {
                         val nm = PublicNetworkManager.getInstance(requireContext())
-                        nm.initAsHost() //initializs serversocket
+
                         SharedPrefManager.saveCurrentPartyId(requireContext(), success)
                         SharedPrefManager.saveCurrentPartyName(requireContext(), partyName)
                         binding.partyNameInput.text.clear()
