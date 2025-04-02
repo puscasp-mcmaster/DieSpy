@@ -62,7 +62,15 @@ class PartyFragment : Fragment() {
             Log.e("Permission", "BLUETOOTH_ADVERTISE permission denied")
         }
     }
-
+    private val requestBluetoothConnectPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("Permission", "BLUETOOTH_CONNECT permission granted")
+        } else {
+            Log.e("Permission", "BLUETOOTH_CONNECT permission denied")
+        }
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -100,13 +108,22 @@ class PartyFragment : Fragment() {
         binding.partyNameTextView.text = partyName
 
         val nm = PublicNetworkManager.getInstance(requireContext())
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.BLUETOOTH_ADVERTISE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        val hasAdvertise = ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.BLUETOOTH_ADVERTISE
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val hasConnect = ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.BLUETOOTH_CONNECT
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasAdvertise) {
             requestBluetoothPermission.launch(Manifest.permission.BLUETOOTH_ADVERTISE)
-        } else {
+        }
+        if (!hasConnect) {
+            requestBluetoothConnectPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
+        }
+
+        if (hasAdvertise && hasConnect) {
             nm.broadcast(partyName)
         }
 
