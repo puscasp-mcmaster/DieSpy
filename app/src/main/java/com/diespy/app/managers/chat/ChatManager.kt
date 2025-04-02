@@ -5,6 +5,7 @@ import com.diespy.app.managers.firestore.FireStoreManager
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import com.google.type.Date
 import kotlinx.coroutines.tasks.await
 import java.io.File
@@ -35,7 +36,7 @@ class ChatManager(private val context: Context) {
                 .document(party)
                 .collection("chat")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
-                .get()
+                .get(Source.SERVER)
                 .await()
 
             querySnapshot.documents.mapNotNull { doc ->

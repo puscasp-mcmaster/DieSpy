@@ -3,6 +3,7 @@ package com.diespy.app.managers.logs
 import android.content.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
 
 data class LogMessage(
@@ -34,7 +35,7 @@ class LogManager(private val context: Context) {
                 .document(party)
                 .collection("logs")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
-                .get()
+                .get(Source.SERVER)
                 .await()
             querySnapshot.documents.mapNotNull { doc ->
                 val data = doc.data
