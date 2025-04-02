@@ -133,7 +133,7 @@ class NetworkManager(private val context: Context) {
     Terminates BLE broadcasting. Used when exiting a party.
      */
     fun stopBroadcast() {
-        if(isAdvertising) {
+        if(!isAdvertising) {
             return
         }
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
