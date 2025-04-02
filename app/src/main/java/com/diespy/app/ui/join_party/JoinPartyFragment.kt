@@ -37,14 +37,27 @@ class JoinPartyFragment : Fragment() {
     private val firestoreManager = FireStoreManager()
     private var partyItems = ArrayList<PartyItem>()
     private var partyNames = ArrayList<String>()
+    private var blueToothScanGranted = false
+    private var blueToothConnectGranted = false
     //_---------------------------------
-    private val requestBluetoothPermission = registerForActivityResult(
+    private val requestBluetoothScanPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             Log.d("Permission", "BLUETOOTH_SCAN permission granted")
+            blueToothScanGranted = true
         } else {
             Log.e("Permission", "BLUETOOTH_SCAN permission denied")
+        }
+    }
+    private val requestBluetoothConnectPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("Permission", "BLUETOOTH_CONNECT permission granted")
+            blueToothConnectGranted = true
+        } else {
+            Log.e("Permission", "BLUETOOTH_CONNECT permission denied")
         }
     }
     //_---------------------------------
@@ -102,35 +115,49 @@ class JoinPartyFragment : Fragment() {
                     Manifest.permission.BLUETOOTH_SCAN
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                requestBluetoothPermission.launch(Manifest.permission.BLUETOOTH_SCAN)
+                requestBluetoothScanPermission.launch(Manifest.permission.BLUETOOTH_SCAN)
+            }else {
+                blueToothScanGranted = true
+            }
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestBluetoothConnectPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
             } else {
-                    binding.joinPartyNoUpdateText.text = "Searching for avaliable parties..."
-                    Handler(Looper.getMainLooper()).postDelayed(
-                        {
-                            viewLifecycleOwner.lifecycleScope.launch {
-                                var updateAdapter = false
-                                nm.messageList.forEach {
-                                    if(!partyNames.contains(it)) {
-                                        Log.d("Messages", "New Party Recieved: $it")
-                                        partyNames.add(it)
-                                        verifyParty(it)
-                                        updateAdapter = true
-                                    }
-                                }
-                                binding.joinPartyRecycleView.adapter?.notifyDataSetChanged()
-                                if(updateAdapter) {
-                                    binding.joinPartyNoUpdateText.text = ""
-                                } else {
-                                    binding.joinPartyNoUpdateText.text = "No parties detected"
-                                }
+                blueToothConnectGranted = true
+            }
 
+
+            if(blueToothScanGranted && blueToothConnectGranted) {
+                binding.joinPartyNoUpdateText.text = "Searching for avaliable parties..."
+                Handler(Looper.getMainLooper()).postDelayed(
+                    {
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            var updateAdapter = false
+                            nm.messageList.forEach {
+                                if (!partyNames.contains(it)) {
+                                    Log.d("Messages", "New Party Recieved: $it")
+                                    partyNames.add(it)
+                                    verifyParty(it)
+                                    updateAdapter = true
+                                }
                             }
-                            Log.d("JPF", "Listening done!")
+                            binding.joinPartyRecycleView.adapter?.notifyDataSetChanged()
+                            if (updateAdapter) {
+                                binding.joinPartyNoUpdateText.text = ""
+                            } else {
+                                binding.joinPartyNoUpdateText.text = "No parties detected"
+                            }
 
-                        }, 6000
-                    )
+                        }
+                        Log.d("JPF", "Listening done!")
 
-                    nm.listen()
+                    }, 6000
+                )
+
+                nm.listen()
 
             }
 
@@ -140,11 +167,11 @@ class JoinPartyFragment : Fragment() {
     public suspend fun verifyParty(partyName: String) {
         try {
             val partyData = firestoreManager.queryDocument("Parties", "name", partyName)
+            partyItems.add(PartyItem("e", partyName, (partyData?.get("userIds") as? List<*>)?.size ?: 0))
         } catch(e: Exception) {
             Log.e("JoinPartyFragment", "Error trying to find party ${partyName}: ${e}")
             return
         }
-        partyItems.add(PartyItem("e", partyName, 0))
 
     }
 
