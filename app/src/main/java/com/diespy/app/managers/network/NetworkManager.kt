@@ -29,6 +29,7 @@ class NetworkManager(private val context: Context) {
     //16b uuid used = 0000B81D-0000-1000-8000-00805F9B34FB
     private val NETWORK_UUID = ParcelUuid.fromString("0000B81D-0000-1000-8000-00805F9B34FB")
     val messageList = mutableListOf<String>()
+    private var isAdvertising = false
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             result.scanRecord?.serviceData?.get(NETWORK_UUID)?.let { bytes ->
@@ -67,8 +68,14 @@ class NetworkManager(private val context: Context) {
     broadcast: String --> Boolean
     Broadcasts a message (designed for party name) over the network UUID. Continues indefinitely,
     terminates upon calling stopBroadCast() or application closure.
+
+    Returns status of broadcast starting.
      */
     fun broadcast(message: String): Boolean {
+        if (isAdvertising) {
+            return false
+        }
+
         val messageBytes = message.toByteArray(Charsets.US_ASCII)
         val maxBytes = 30 // BLE advertising limit (31 bytes)
 
@@ -118,6 +125,7 @@ class NetworkManager(private val context: Context) {
             return false
         }
         advertiser.startAdvertising(settings, advertiseData, advertiseCallback)
+        isAdvertising = true
         return true
     }
     /*
@@ -125,6 +133,9 @@ class NetworkManager(private val context: Context) {
     Terminates BLE broadcasting. Used when exiting a party.
      */
     fun stopBroadcast() {
+        if(!isAdvertising) {
+            return
+        }
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         val bluetoothAdapter = bluetoothManager?.adapter ?: run {
             Log.e("BLE", "Bluetooth not available")
@@ -147,6 +158,7 @@ class NetworkManager(private val context: Context) {
                     return
                 }
                 stopAdvertising(advertiseCallback)
+                isAdvertising = false
                 Log.d("BLE", "Broadcasting stopped successfully")
             }
         } catch (e: IllegalStateException) {
