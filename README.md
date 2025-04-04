@@ -95,7 +95,7 @@ Or if youd prefer to run as a developer,
 
 All other features are free for exploratory testing
 
-Once ready to start detecting die, you can use any real die, or use our test image set here: TODO
+Once ready to start detecting die, you can use any real die, or use our test image set here: [drive link](https://drive.google.com/drive/folders/1QGVqBwHcTLTuscgx2YIgEt5LUxCrjM93?usp=drive_link)
 
 ---
 
