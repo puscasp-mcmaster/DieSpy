@@ -40,6 +40,7 @@ The model was evaluated on the test dataset by running the yolo_val.py file. The
   <img src="runs/detect/m_4_2_200_s/R_curve.png" width="49%" />
   <img src="runs/detect/m_4_2_200_s/confusion_matrix.png" width="49%" />
   <img src="runs/detect/m_4_2_200_s/confusion_matrix_normalized.png" width="49%" />
+  <img src="runs/detect/m_4_2_200_s/test_output.png" width="49%" />
 </p>
 
 
