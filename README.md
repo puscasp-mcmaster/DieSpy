@@ -37,6 +37,12 @@
 
 ---
 
+## Testing
+
+All testing results can be found in the Verification and Validation document
+
+---
+
 ## Main Project Structure
 
 Highlighted below is the main coding structure for the project.
