@@ -20,7 +20,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class DiceDetector(
+class DiceDetectionManager(
     private val context: Context,
     private val modelFilePath: String,
     private val labelFilePath: String?,
