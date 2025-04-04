@@ -1,5 +1,5 @@
 # Authentication Manager 
-This module handles user authentication logic for the DieSpy app. It supports account creation, email verification, login, and password recovery
+This module handles user authentication logic for the DieSpy app. It supports account creation, login, password resetting, and account deletion.
 
 ## Features
 - Authentication, and account management tools
