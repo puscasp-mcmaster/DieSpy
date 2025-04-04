@@ -85,7 +85,7 @@ Or if youd prefer to run as a developer,
 ## Test Credentials
 1. Login using Username: CapstoneTest, Password: 4ZP6AB
 2. A mock party will be setup for you to join on the home page
-3. You can also join a different mock party with join code: mZANxj through the join party screen
+3. You can also join a different mock party with join code: J1Qubb through the join party screen
 
 All other features are free for exploratory testing
 
