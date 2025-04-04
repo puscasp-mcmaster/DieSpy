@@ -22,6 +22,7 @@ import com.diespy.app.databinding.FragmentJoinPartyBinding
 import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.network.PublicNetworkManager
 import com.diespy.app.managers.profile.SharedPrefManager
+import com.diespy.app.managers.join_party.JoinPartyManager
 import com.diespy.app.ui.utils.showError
 import com.diespy.app.ui.utils.clearError
 import com.diespy.app.ui.home.PartyAdapter
@@ -39,6 +40,8 @@ class JoinPartyFragment : Fragment() {
     private var partyNames = ArrayList<String>()
     private var blueToothScanGranted = false
     private var blueToothConnectGranted = false
+    private val joinPartyManager = JoinPartyManager()
+
     //_---------------------------------
     private val requestBluetoothScanPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -74,9 +77,7 @@ class JoinPartyFragment : Fragment() {
         val nm = PublicNetworkManager.getInstance(requireContext())
         viewLifecycleOwner.lifecycleScope.launch {
             var partyName = ""
-         //   nm.messageList.forEach {
-          //      verifyParty(it)
-        //    }
+
             val adapter = PartyAdapter(partyItems) { party ->
                 partyName = party.name
                 viewLifecycleOwner.lifecycleScope.launch {
@@ -165,66 +166,23 @@ class JoinPartyFragment : Fragment() {
     }
 
     private suspend fun verifyParty(partyName: String) {
-        try {
-            val partyData = firestoreManager.queryDocument("Parties", "name", partyName)
-            partyItems.add(PartyItem("e", partyName, (partyData?.get("userIds") as? List<*>)?.size ?: 0))
-        } catch(e: Exception) {
-            Log.e("JoinPartyFragment", "Error trying to find party ${partyName}: ${e}")
-            return
+        val item = joinPartyManager.verifyParty(partyName)
+        if (item != null) {
+            partyItems.add(item)
         }
-
     }
 
     private suspend fun joinPartyByField(field: String, value: String) {
         val context = requireContext()
 
-        val partyId = firestoreManager.getDocumentIdByField("Parties", field, value)
-        if (partyId == null) {
-            withContext(Dispatchers.Main) {
-                binding.joinPartyErrorMessage.showError("No party found with that password.")
-            }
-            return
-        }
-
-        val userId = SharedPrefManager.getCurrentUserId(context)
-        if (userId == null) {
-            withContext(Dispatchers.Main) {
-                binding.joinPartyErrorMessage.showError("User not found.")
-            }
-            return
-        }
-
-        val partyData = firestoreManager.queryDocument("Parties", field, value)
-        val userIds = partyData?.get("userIds") as? List<*>
-        val partyName = partyData?.get("name") as? String
-
-
-        if (userIds != null && userIds.contains(userId)) {
-            withContext(Dispatchers.Main) {
-                binding.joinPartyErrorMessage.showError("You're already in this party!")
-            }
-            return
-        }
-
-        val success = firestoreManager.updateDocument("Parties", partyId, mapOf(
-            "userIds" to com.google.firebase.firestore.FieldValue.arrayUnion(userId)
-        ))
-
+        val result = joinPartyManager.joinPartyByField(context, field, value)
 
         withContext(Dispatchers.Main) {
-            if (success) {
-                SharedPrefManager.saveCurrentPartyId(context, partyId)
-                if (partyName != null) {
-                    SharedPrefManager.saveCurrentPartyName(context, partyName)
-
-                } else {
-                    binding.joinPartyErrorMessage.showError("Party name not found. Something went wrong.")
-                    return@withContext
-                }
-                Toast.makeText(context, "Party joined!", Toast.LENGTH_SHORT).show()
+            if (result.isSuccess) {
+                Toast.makeText(context, result.getOrNull(), Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_joinParty_to_party)
             } else {
-                binding.joinPartyErrorMessage.showError("Failed to join the party. Please try again.")
+                binding.joinPartyErrorMessage.showError(result.exceptionOrNull()?.message ?: "Unknown error.")
             }
         }
     }
