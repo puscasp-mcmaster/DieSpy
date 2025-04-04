@@ -1,11 +1,11 @@
 package com.diespy.app.managers.logs
 
-import android.content.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
 
+//Object for Logs
 data class LogMessage(
     val id: String = "",
     val username: String = "",
@@ -13,10 +13,11 @@ data class LogMessage(
     val timestamp: String = ""
 )
 
-class LogManager(private val context: Context) {
+class LogManager() {
     private val db = FirebaseFirestore.getInstance()
     private val collection = "Parties"
 
+    //Saving logs to Firestore
     fun saveLog(username: String, logMessage: String, timestamp: String, party: String) {
         val log = hashMapOf(
             "username" to username,
@@ -29,6 +30,7 @@ class LogManager(private val context: Context) {
             .add(log)
     }
 
+    //Load logs from snapshot
     suspend fun loadLogs(party: String): List<LogMessage> {
         return try {
             val querySnapshot = db.collection(collection)
@@ -54,6 +56,7 @@ class LogManager(private val context: Context) {
         }
     }
 
+    //Delete log from Firestore
     suspend fun deleteLog(party: String, logId: String) {
         db.collection(collection)
             .document(party)
@@ -63,6 +66,7 @@ class LogManager(private val context: Context) {
             .await()
     }
 
+    //Update log, used for editing rolls
     suspend fun updateLog(party: String, logId: String, newLog: String) {
         db.collection(collection)
             .document(party)
@@ -72,7 +76,7 @@ class LogManager(private val context: Context) {
             .await()
     }
 
-    // In LogManager.kt
+    //Real time updates for logs
     fun subscribeToLogs(party: String, onLogsUpdate: (List<LogMessage>) -> Unit) {
         db.collection(collection)
             .document(party)
@@ -81,7 +85,6 @@ class LogManager(private val context: Context) {
             .addSnapshotListener { snapshots, error ->
                 if (error == null && snapshots != null) {
                     val newLogs = snapshots.documents.mapNotNull { doc ->
-                        // Convert the document to a LogMessage and update the id
                         doc.toObject(LogMessage::class.java)?.copy(id = doc.id)
                     }
                     onLogsUpdate(newLogs)

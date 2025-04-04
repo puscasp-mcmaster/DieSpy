@@ -78,7 +78,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
             this,
             ::showToast
         )
-        logManager = LogManager(requireContext())
+        logManager = LogManager()
         cameraManager = CameraManager(requireContext(), viewLifecycleOwner) { frame ->
             //Only process frames if not frozen.
             if (!isFrozen) {
@@ -93,6 +93,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         }
         requestCameraPermissions()
 
+        //Capture button logic
         binding.freezeButton.setOnClickListener {
             if (!isFrozen && !capturing) {
                 capturing = true
@@ -100,29 +101,29 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                 binding.showRollButton.visibility = View.INVISIBLE
                 viewLifecycleOwner.lifecycleScope.launch {
                     val startTime = System.currentTimeMillis()
-                    val timeout = 4000L // 5 seconds
+                    val timeout = 4000L
                     val minHistoryPerDie = 4
                     showToast("Capturing dice...")
                     while (System.currentTimeMillis() - startTime < timeout) {
-                        // Wait a short interval (let frames build)
+                        //Wait a short interval to let frames build
                         delay(50)
 
-                        // Check how many dice have enough history
+                        //Check how many dice have enough history
                         val stableDice =
                             trackedDiceBuffer.count { it.predictions.size >= minHistoryPerDie }
 
                         //counted at least one dice
                         if (stableDice >= 1) {
-                            break // good to go
+                            break
                         }
                     }
 
-                    // Show roll button if we’re in a party
+                    //Show roll button if we’re in a party
                     if (currentParty.isNotEmpty()) {
                         binding.showRollButton.visibility = View.VISIBLE
                     }
 
-                    // Evaluate the result — even if it didn't meet threshold, still try
+                    //Evaluate the result — even if it didn't meet threshold, still try
                     if (trackedDiceBuffer.count { it.predictions.size >= minHistoryPerDie } < 1) {
                         showToast("Not enough stable dice detected, please try again")
                         capturing = false
@@ -151,7 +152,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     }
 
     override fun onDetect(diceBoundingBoxes: List<DiceBoundingBox>, inferenceTime: Long) {
-        if (!isAdded) return // Prevent crash if fragment is not attached
+        if (!isAdded) return //Prevent crash if fragment is not attached
         currentFrameCount++
         requireActivity().runOnUiThread {
 
@@ -167,9 +168,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                     frameSumsBuffer.removeAt(0)
                 }
 
-
-
-                // Track dice across frames using greedy matching
+                //Track dice across frames using greedy matching
                 val candidates = mutableListOf<MatchCandidate>()
 
                 diceBoundingBoxes.forEach { box ->
@@ -200,7 +199,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
                     }
                 }
 
-                // Track new dice that didn’t match any existing one
+                //Track new dice that didn’t match any existing one
                 diceBoundingBoxes.filter { it !in matchedBoxes }.forEach { box ->
                     val cx = (box.x1 + box.x2) / 2f
                     val cy = (box.y1 + box.y2) / 2f
@@ -226,7 +225,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     private fun freezeCameraAndComputeMode() {
         isFrozen = true
         cameraManager.stopCamera()
-        capturing = false  // capturing is done
+        capturing = false  //capturing is done
         binding.freezeButton.text = "Unfreeze"
         binding.freezeButton.isEnabled = true  // re-enable button
 

@@ -90,7 +90,7 @@ class HomeFragment : Fragment() {
             dialog.show()
         }
 
-
+        //Save user ID to persistent storage
         val userId = SharedPrefManager.getCurrentUserId(requireContext())
         if (userId == null) {
             binding.homeErrorMessage.showError("User not logged in")

@@ -89,7 +89,7 @@ class MembersFragment : Fragment() {
                     }
                 }
 
-                // Update cache with new userIds
+                //Update cache with new userIds
                 PartyCacheManager.userIds = userIds
 
                 if (memberUsernames.isEmpty()) {
@@ -112,6 +112,7 @@ class MembersFragment : Fragment() {
         }
     }
 
+    //Live updates for party members
     private fun subscribeToPartyMembers(
         partyId: String,
         onUpdate: (List<String>) -> Unit
@@ -126,6 +127,7 @@ class MembersFragment : Fragment() {
         }
     }
 
+    //Confirm for leave party, once done, clear cache
     private fun partyLeaveConfirmation() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_leave_party, null)
 

@@ -3,16 +3,12 @@ package com.diespy.app.managers.authentication
 import com.diespy.app.managers.firestore.FireStoreManager
 import java.security.MessageDigest
 
-data class User(
-    val username: String = "",
-    val hashedPw: String = ""
-)
-
 class AuthenticationManager {
 
     private val fireStoreManager = FireStoreManager()
     private val usersCollection = "Users"
 
+    //Encryption for password hashing
     private fun String.encrypt(): String {
         val bytes = this.toByteArray()
         val digest = MessageDigest.getInstance("SHA-256")
@@ -20,6 +16,7 @@ class AuthenticationManager {
         return hashBytes.joinToString("") { "%02x".format(it) }
     }
 
+    //Check firebase for user and password combo
     suspend fun authenticate(username: String, password: String): Int {
         return try {
             val userData = fireStoreManager.queryDocument(usersCollection, "username", username)
@@ -29,7 +26,7 @@ class AuthenticationManager {
                     return 1 // Login successful
                 }
             }
-            0 // Login failed
+            0 //Login failed
         } catch (e: Exception) {
             e.printStackTrace()
             0
@@ -54,8 +51,6 @@ class AuthenticationManager {
         }
     }
 
-
-
     suspend fun checkUserExists(username: String): Int {
         return if (fireStoreManager.documentExists(usersCollection, "username", username)) 1 else 0
     }
@@ -73,7 +68,7 @@ class AuthenticationManager {
             )
 
             val documentId = fireStoreManager.createDocument(usersCollection, user)
-            documentId != null // Return true if user was created successfully
+            documentId != null
         } catch (e: Exception) {
             e.printStackTrace()
             false

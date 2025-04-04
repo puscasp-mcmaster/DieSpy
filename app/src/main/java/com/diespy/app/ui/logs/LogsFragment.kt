@@ -34,7 +34,7 @@ class LogsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        logManager = LogManager(requireContext())
+        logManager = LogManager()
 
         logAdapter = LogAdapter(
             logs = emptyList(),
@@ -75,6 +75,7 @@ class LogsFragment : Fragment() {
         }
     }
 
+    //Loading in logs to screen
     private fun loadLogs() {
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: return
         lifecycleScope.launch {
@@ -85,6 +86,7 @@ class LogsFragment : Fragment() {
         }
     }
 
+    //Confirmation that you want to delete
     private fun showDeleteConfirmationDialog(log: LogMessage) {
         val context = requireContext()
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_delete_log, null)

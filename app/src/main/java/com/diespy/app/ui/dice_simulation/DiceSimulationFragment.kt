@@ -44,7 +44,7 @@ class DiceSimulationFragment : Fragment() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        logManager = LogManager(requireContext())
+        logManager = LogManager()
 
         diceAdapter = DiceSimulationManager(emptyList())
         binding.diceRecyclerView.apply {
@@ -185,7 +185,7 @@ class DiceSimulationFragment : Fragment() {
         rollHandler?.postDelayed(rollRunnable!!, 800)
     }
 
-    fun hideKeyboard() {
+    private fun hideKeyboard() {
         val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
                 as android.view.inputmethod.InputMethodManager
         imm.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
@@ -203,6 +203,7 @@ class DiceSimulationFragment : Fragment() {
         binding.face6.text = "6: ${rolls[5]}"
     }
 
+    //Image display for each face
     private fun getDiceFaceRes(face: Int): Int {
         return when (face) {
             1 -> R.drawable.dice_1

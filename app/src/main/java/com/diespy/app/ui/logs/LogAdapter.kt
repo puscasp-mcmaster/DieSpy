@@ -60,7 +60,7 @@ class LogAdapter(
         ) {
             val context = itemView.context
 
-            // Format and display log summary
+            //Format and display log summary
             val rolls = diceParse(log.log)
             var totalSum = 0
             rolls.forEachIndexed { index, count ->

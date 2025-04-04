@@ -31,7 +31,7 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Retrieve logged in information and move to home screen if already logged in
+        //Retrieve logged in information and move to home screen if already logged in
         val savedUserId = SharedPrefManager.getCurrentUserId(requireContext())
         if (!savedUserId.isNullOrEmpty()) {
             findNavController().navigate(R.id.action_login_to_home)
@@ -100,7 +100,6 @@ class LoginFragment : Fragment() {
             }
         }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

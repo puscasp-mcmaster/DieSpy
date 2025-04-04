@@ -1,6 +1,5 @@
 package com.diespy.app.managers.party
 
-import com.diespy.app.managers.firestore.FireStoreManager
 import com.diespy.app.managers.logs.LogMessage
 import com.diespy.app.managers.profile.PartyCacheManager
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,6 +11,7 @@ class PartyManager {
     private val db = FirebaseFirestore.getInstance()
     private val collection = "Parties"
 
+    //Live updates to party log
     fun subscribeToLatestLog(party: String, onLatestLogUpdate: (LogMessage?) -> Unit) {
         db.collection("Parties")
             .document(party)
@@ -26,6 +26,7 @@ class PartyManager {
                 }
             }
     }
+    //Live update to turn order
     fun subscribeToTurnOrder(
         party: String,
         members: List<String>,
@@ -46,6 +47,7 @@ class PartyManager {
             }
     }
 
+    //Live update to party members
     fun subscribeToPartyMembers(
         partyId: String,
         onUpdate: (List<String>) -> Unit
@@ -68,6 +70,7 @@ class PartyManager {
         }
     }
 
+    //Push turn order to Firestore
     suspend fun updateTurnOrder(party: String) {
         val partyRef = db.collection(collection).document(party)
         db.runTransaction { transaction ->
@@ -75,7 +78,7 @@ class PartyManager {
             val members = snapshot.get("userIds") as? List<String> ?: emptyList()
             if (members.isNotEmpty()) {
                 val currentTurnIndex = snapshot.getLong("turnIndex")?.toInt() ?: 0
-                // Compute the new turn index (wrap around if needed)
+                //Compute the new turn index (wrap around if needed)
                 val newTurnIndex = (currentTurnIndex + 1) % members.size
                 transaction.update(partyRef, "turnIndex", newTurnIndex)
             }

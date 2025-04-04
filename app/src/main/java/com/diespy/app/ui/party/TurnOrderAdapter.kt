@@ -15,7 +15,7 @@ class TurnOrderAdapter(
     private val onEndTurnClicked: () -> Unit
 ) : RecyclerView.Adapter<TurnOrderAdapter.PlayerViewHolder>() {
 
-    var currentTurnIndex = 0
+    private var currentTurnIndex = 0
         private set
 
     fun setCurrentTurnIndex(index: Int) {
@@ -41,7 +41,7 @@ class TurnOrderAdapter(
 
         val isCurrentTurn = position == currentTurnIndex
 
-        // Highlight background based on current turn
+        //Highlight background based on current turn
         val ctx = holder.itemView.context
         val bubbleBackground = if (isCurrentTurn)
             ContextCompat.getDrawable(ctx, R.drawable.member_order_bubble_background) // active
@@ -51,7 +51,7 @@ class TurnOrderAdapter(
         holder.usernameText.background = bubbleBackground
 
 
-        // Show/hide end turn button
+        //Show/hide end turn button
         holder.endTurnButton.visibility = if (isCurrentTurn) View.VISIBLE else View.GONE
         holder.endTurnButton.setOnClickListener {
             if (isCurrentTurn) onEndTurnClicked()

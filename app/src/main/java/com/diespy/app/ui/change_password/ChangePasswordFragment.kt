@@ -122,7 +122,7 @@ class ChangePasswordFragment : Fragment() {
             oldPassword.isBlank() || password1.isBlank() || password2.isBlank() -> "Password cannot be empty."
             password1 != password2 -> "Passwords do not match"
             password1.length < 6 -> "Password must be at least 6 characters"
-            else -> null // No errors
+            else -> null
         }
     }
 

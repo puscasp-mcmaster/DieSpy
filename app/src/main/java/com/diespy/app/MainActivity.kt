@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Force Light mode
+        //Force Light mode so we can use our own theme
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             val currentPartyId = SharedPrefManager.getCurrentPartyId(this)
             val shouldShow = destination.id in setOf(
                 R.id.partyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment,
-                R.id.rollsFragment, R.id.diceDetectionFragment, R.id.simulationFragment
+                R.id.diceDetectionFragment, R.id.simulationFragment
             ) && currentPartyId != null
             findViewById<View>(R.id.customBottomNav).visibility = if (shouldShow) View.VISIBLE else View.GONE
 
@@ -141,7 +141,7 @@ class MainActivity : AppCompatActivity() {
             val showTopNav = destination.id in setOf(
                 R.id.partyFragment, R.id.homeFragment, R.id.createAccountFragment, R.id.joinPartyFragment,
                 R.id.createPartyFragment, R.id.chatFragment, R.id.membersFragment, R.id.logsFragment,
-                R.id.loginFragment, R.id.settingsFragment, R.id.profileFragment, R.id.rollsFragment,
+                R.id.loginFragment, R.id.settingsFragment, R.id.profileFragment,
                 R.id.changePasswordFragment, R.id.diceDetectionFragment, R.id.simulationFragment
             )
             customTopNav.visibility = if (showTopNav) View.VISIBLE else View.GONE
@@ -171,10 +171,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            // Enable/disable icons
+            //Enable/disable icons for nav bar
             when (destination.id) {
                 R.id.createAccountFragment, R.id.settingsFragment, R.id.profileFragment,
-                R.id.diceDetectionFragment, R.id.changePasswordFragment, R.id.rollsFragment -> {
+                R.id.diceDetectionFragment, R.id.changePasswordFragment -> {
                     setEnabled(navBack, true)
                     setEnabled(navProfile, false)
                     setEnabled(navCamera, false)
@@ -210,6 +210,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //Deals with leaving party and deleting cache if so
     fun showLeavePartyConfirmation(navController: androidx.navigation.NavController) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_leave_party_screen, null)
 
