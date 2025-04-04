@@ -56,6 +56,11 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         super.onViewCreated(view, savedInstanceState)
+        val username = SharedPrefManager.getCurrentUsername(requireContext())
+        val formattedName = username?.replaceFirstChar { it.uppercase() }
+        binding.welcomeTextView.text = "Welcome ${formattedName ?: "User"}!"
+
+
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
