@@ -1,7 +1,7 @@
 # ML Training
 
 ## Requirements
-See requirements.txt with python 3.11.10
+See [requirements.txt](requirements.txt) with python 3.11.10
 
 ## Training
 The model was trained by running the yolo_train.py file with the initial model as yolov10s.pt. 
