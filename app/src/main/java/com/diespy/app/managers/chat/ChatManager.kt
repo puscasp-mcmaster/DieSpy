@@ -17,7 +17,7 @@ class ChatManager {
     private val db = FirebaseFirestore.getInstance()
     private val collection = "Parties"
 
-    //Saving to Firestone
+    //Saving to Firestore
     fun saveMessage(username: String, message: String, timestamp: Timestamp, party: String) {
         val chat = hashMapOf(
             "username" to username,
@@ -28,7 +28,7 @@ class ChatManager {
         db.collection(collection).document(party).collection("chat").add(chat)
     }
 
-    //Loading from Firestone
+    //Loading from Firestore
     suspend fun loadMessages(party: String): List<ChatMessage> {
         return try {
             val querySnapshot = db.collection(collection)

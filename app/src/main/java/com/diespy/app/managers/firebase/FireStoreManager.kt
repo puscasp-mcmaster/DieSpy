@@ -311,7 +311,7 @@ class FireStoreManager {
             usernamesMap[id] = username
         }
 
-        // Cache everything
+        //Cache everything
         PartyCacheManager.userIds = userIds
         PartyCacheManager.usernames = usernamesMap
         PartyCacheManager.turnIndex = turnIndex
