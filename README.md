@@ -89,6 +89,8 @@ Or if youd prefer to run as a developer,
 
 All other features are free for exploratory testing
 
+Once ready to start detecting die, you can use any real die, or use our test image set here: TODO
+
 ---
 
 ## Contributors
