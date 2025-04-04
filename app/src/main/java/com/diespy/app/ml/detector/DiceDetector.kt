@@ -192,6 +192,6 @@ class DiceDetector(
         private const val INPUT_STD_DEV = 255f // Standard deviation for normalization
         private val INPUT_DATA_TYPE = DataType.FLOAT32 // Input tensor data type
         private val OUTPUT_DATA_TYPE = DataType.FLOAT32 // Output tensor data type
-        private const val CONFIDENCE_THRESHOLD = 0.8F // Minimum confidence score
+        private const val CONFIDENCE_THRESHOLD = 0.75F // Minimum confidence score
     }
 }
