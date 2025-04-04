@@ -19,7 +19,7 @@ Handles live dice detection using CameraX, TensorFlow Lite, and a SORT-based tra
 ## Supporting Classes
 | File                 | Description                                                      |
 |----------------------|------------------------------------------------------------------|
-| `DiceDetector.kt`    | Handles inference using TFLite model and bounding box extraction |
+| `DiceDetectionManager.kt`    | Handles inference using TFLite model and bounding box extraction |
 | `TrackedDice.kt`     | Keeps track of each die's position and history across frames     |
 | `MatchCandidate.kt`  | Utility for comparing tracked dice to current detections         |
 | `DiceBoundingBox.kt` | Represents a single detection result from the model              |

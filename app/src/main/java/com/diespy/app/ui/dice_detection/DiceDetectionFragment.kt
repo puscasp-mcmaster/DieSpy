@@ -11,20 +11,15 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.diespy.app.ml.models.DiceBoundingBox
 import com.diespy.app.Constants.LABELS_PATH
 import com.diespy.app.Constants.MODEL_PATH
 import com.diespy.app.R
-import com.diespy.app.ml.detector.DiceDetector
+import com.diespy.app.ml.detector.DiceDetectionManager
 import com.diespy.app.managers.camera.CameraManager
 import com.diespy.app.databinding.FragmentDiceDetectionBinding
 import com.diespy.app.managers.game.DiceStatsManager
@@ -42,12 +37,12 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
+class DiceDetectionFragment : Fragment(), DiceDetectionManager.DetectorListener {
     private var _binding: FragmentDiceDetectionBinding? = null
     private val binding get() = _binding!!
     private lateinit var logManager: LogManager
     private lateinit var cameraManager: CameraManager
-    private var diceDetector: DiceDetector? = null
+    private var diceDetectionManager: DiceDetectionManager? = null
     private val diceStatsManager = DiceStatsManager()
     private var isFrozen = false
     //Buffer to store dice values for each frame.
@@ -71,7 +66,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        diceDetector = DiceDetector(
+        diceDetectionManager = DiceDetectionManager(
             requireContext(),
             MODEL_PATH,
             LABELS_PATH,
@@ -82,7 +77,7 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
         cameraManager = CameraManager(requireContext(), viewLifecycleOwner) { frame ->
             //Only process frames if not frozen.
             if (!isFrozen) {
-                diceDetector?.detect(frame)
+                diceDetectionManager?.detect(frame)
             }
 
         }
@@ -393,8 +388,8 @@ class DiceDetectionFragment : Fragment(), DiceDetector.DetectorListener {
     override fun onDestroy() {
         super.onDestroy()
         cameraManager.stopCamera()
-        diceDetector?.close()
-        diceDetector = null
+        diceDetectionManager?.close()
+        diceDetectionManager = null
     }
 
     companion object {
