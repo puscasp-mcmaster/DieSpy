@@ -80,10 +80,10 @@ class PartyFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        logManager = LogManager(requireContext())
+        logManager = LogManager()
         partyManager = PartyManager()
 
-        //Throws party leave confirm  if trying to go back after joining party
+        //Throws party leave confirm if trying to go back after joining party
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
@@ -127,7 +127,6 @@ class PartyFragment : Fragment() {
             nm.broadcast(partyName)
         }
 
-
         partyManager.subscribeToLatestLog(partyId) { lastLog ->
             _binding?.let { binding ->
                 if (lastLog != null) {
@@ -166,7 +165,7 @@ class PartyFragment : Fragment() {
                 return@subscribeToPartyMembers
             }
 
-            // Cache userIds
+            //Cache userIds
             userIds = updatedUserIds.toMutableList()
             PartyCacheManager.userIds = userIds
 
@@ -174,7 +173,7 @@ class PartyFragment : Fragment() {
                 val updatedUsernames = mutableListOf<String>()
                 val missingIds = mutableListOf<String>()
 
-                // Load from cache or mark as missing
+                //Load from cache or mark as missing
                 for (id in userIds) {
                     val cached = PartyCacheManager.usernames[id]
                     if (cached != null) {
@@ -188,7 +187,7 @@ class PartyFragment : Fragment() {
                 usernames = updatedUsernames
                 turnOrderAdapter.updatePlayers(usernames)
 
-                // Load missing usernames in parallel
+                //Load missing usernames in parallel
                 if (missingIds.isNotEmpty()) {
                     val resolved = missingIds.map { id ->
                         async {
@@ -198,13 +197,13 @@ class PartyFragment : Fragment() {
                         }
                     }.awaitAll()
 
-                    // Update cache and UI
+                    //Update cache and UI
                     PartyCacheManager.usernames += resolved.toMap()
                     usernames = userIds.map { PartyCacheManager.usernames[it] ?: "Unknown" }.toMutableList()
                     turnOrderAdapter.updatePlayers(usernames)
                 }
 
-                // Subscribe to turn order after usernames loaded
+                //Live updates after usernames loaded
                 if (userIds.isNotEmpty()) {
                     partyManager.subscribeToTurnOrder(partyId, userIds) { currentTurnUserId, _ ->
                         val currentTurnIndex = userIds.indexOf(currentTurnUserId)
@@ -222,7 +221,6 @@ class PartyFragment : Fragment() {
             findNavController().navigate(R.id.action_party_to_diceSim)
         }
     }
-
 
         private fun attachDragAndDrop() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(

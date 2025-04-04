@@ -1,9 +1,6 @@
 package com.diespy.app.ui.chat
 
 import android.os.Bundle
-import android.text.Spannable
-import android.text.SpannableString
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,17 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.diespy.app.databinding.FragmentChatBinding
 import com.diespy.app.managers.chat.ChatManager
-import androidx.recyclerview.widget.RecyclerView
-import android.widget.TextView
-import com.diespy.app.R
-import com.diespy.app.managers.chat.ChatMessage
-import com.google.firebase.firestore.Query
-import java.text.SimpleDateFormat
-import java.util.Date
 import androidx.lifecycle.lifecycleScope
 import com.diespy.app.managers.profile.SharedPrefManager
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 class ChatFragment : Fragment() {
@@ -42,7 +31,7 @@ class ChatFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val currentParty = SharedPrefManager.getCurrentPartyId(requireContext()) ?: ""
 
-        chatManager = ChatManager(requireContext())
+        chatManager = ChatManager()
         chatAdapter = ChatAdapter(requireContext(), emptyList()) // Start with an empty list
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
             stackFromEnd = true
@@ -73,7 +62,7 @@ class ChatFragment : Fragment() {
 
                     //Scroll to the last message
                     binding.recyclerView.post {
-                        binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                        binding.recyclerView.smoothScrollToPosition(chatAdapter.itemCount)
                     }
                 }
             }
@@ -85,7 +74,7 @@ class ChatFragment : Fragment() {
                 val layoutManager = binding.recyclerView.layoutManager as? LinearLayoutManager
                 layoutManager?.let {
                     val lastVisibleItem = it.findLastVisibleItemPosition()
-                    // Check if the user is near the bottom (within 2 items)
+                    //Check if the user is near the bottom (within 2 items)
                     if (lastVisibleItem >= chatAdapter.itemCount - 3) {
                         binding.recyclerView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
                             override fun onLayoutChange(

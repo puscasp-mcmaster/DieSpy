@@ -81,7 +81,7 @@ class SettingsFragment : Fragment() {
                 return@launch
             }
 
-            // First remove user from all parties and clean up empty ones
+            //First remove user from all parties and clean up empty ones
             val cleaned = fireStoreManager.removeUserFromAllParties(userId)
 
             if (!cleaned) {
@@ -89,7 +89,7 @@ class SettingsFragment : Fragment() {
                 return@launch
             }
 
-            // Then delete user
+            //Then delete user
             val deleteSuccess = fireStoreManager.deleteDocument("Users", userDocumentId)
             if (deleteSuccess) {
                 SharedPrefManager.clearCurrentUserData(requireContext())

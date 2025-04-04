@@ -29,6 +29,7 @@ class ChatAdapter(private val context: Context, private var messages: List<ChatM
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
+        //Message goes left or right depending on the user that sends it
         val layoutId = if (viewType == VIEW_TYPE_RIGHT) {
             R.layout.chat_message_right
         } else {
@@ -41,7 +42,7 @@ class ChatAdapter(private val context: Context, private var messages: List<ChatM
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         val message = messages[position]
 
-        // Format the header (username + timestamp) and message
+        //Format the header (username + timestamp) and message
         val date = message.timestamp.toDate()
         val formattedTime = SimpleDateFormat("MMM dd y, hh:mm", Locale.getDefault()).format(date)
         val header = "${message.username.replaceFirstChar { it.titlecase() }}: $formattedTime\n"

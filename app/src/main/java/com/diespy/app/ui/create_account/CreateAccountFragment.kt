@@ -113,12 +113,13 @@ class CreateAccountFragment : Fragment() {
         }
     }
 
+    //Limitations to account creation.
     private fun validateInput(username: String, password1: String, password2: String): String? {
         return when {
             username.isBlank() || password1.isBlank() -> "Username and password cannot be empty"
             password1 != password2 -> "Passwords do not match"
             password1.length < 6 -> "Password must be at least 6 characters"
-            username.length > 12 -> "Username must be 12 characters or smaller"
+            username.length > 12 -> "Username must be 12 characters or less"
             else -> null // No errors
         }
     }

@@ -2,6 +2,7 @@ package com.diespy.app.managers.create_party
 
 import com.diespy.app.managers.firestore.FireStoreManager
 
+//Object for a party
 data class Party(
     val name: String = "",
     val joinPw: String = "",
@@ -13,20 +14,15 @@ class CreatePartyManager {
     private val fireStoreManager = FireStoreManager()
     private val partiesCollection = "Parties"
 
-    /**
-     * Creates a new party with the given details using FireStoreManager.
-     * Returns the Firestore-generated party document ID if successful, null otherwise.
-     */
     suspend fun createParty(name: String, userId: String): String? {
         return try {
-            // Create a Party object
             val partyData = mapOf(
                 "name" to name,
                 "joinPw" to generateRandomPassword(),
                 "userIds" to listOf(userId)
             )
 
-            // Use FireStoreManager to create a document and return the generated document ID
+            //FireStoreManager to create a party and return the generated document ID for later
             fireStoreManager.createDocument(partiesCollection, partyData)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -34,11 +30,11 @@ class CreatePartyManager {
         }
     }
 
-    fun generateRandomPassword(length: Int = 6): String {
+    //Generation of join password 
+    private fun generateRandomPassword(length: Int = 6): String {
         val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         return (1..length)
             .map { characters.random() }
             .joinToString("")
     }
-
 }

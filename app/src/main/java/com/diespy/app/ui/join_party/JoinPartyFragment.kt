@@ -164,7 +164,7 @@ class JoinPartyFragment : Fragment() {
         }
     }
 
-    public suspend fun verifyParty(partyName: String) {
+    private suspend fun verifyParty(partyName: String) {
         try {
             val partyData = firestoreManager.queryDocument("Parties", "name", partyName)
             partyItems.add(PartyItem("e", partyName, (partyData?.get("userIds") as? List<*>)?.size ?: 0))

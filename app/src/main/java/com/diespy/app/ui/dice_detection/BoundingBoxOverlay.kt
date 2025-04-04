@@ -6,12 +6,16 @@ import android.util.AttributeSet
 import android.view.View
 import com.diespy.app.ml.models.DiceBoundingBox
 
+/**
+ * This file is mainly used for Debugging and none of these boxes are in the production version
+ */
+
 class BoundingBoxOverlay(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
-    // List to store detected bounding boxes
+    //List to store detected bounding boxes
     private var results = listOf<DiceBoundingBox>()
 
-    // Paint objects for drawing bounding boxes and labels
+    //Paint objects for drawing bounding boxes and labels
     private val boxPaint = Paint().apply { style = Paint.Style.STROKE; strokeWidth = 8F }
     private val textPaint = Paint().apply { color = Color.WHITE; textSize = 42f; style = Paint.Style.FILL }
     private val textBackgroundPaint = Paint().apply { style = Paint.Style.FILL }
@@ -55,10 +59,10 @@ class BoundingBoxOverlay(context: Context?, attrs: AttributeSet?) : View(context
         val right = diceBoundingBox.x2
         val bottom = diceBoundingBox.y2
 
-        // Draw bounding box
+        //Draw bounding box
         canvas.drawRoundRect(left, top, right, bottom, 16f, 16f, boxPaint)
 
-        // Format label text
+        //Format label text
         var className = diceBoundingBox.className
         if (className.endsWith("n")) {
             className = className.dropLast(1)
@@ -67,7 +71,7 @@ class BoundingBoxOverlay(context: Context?, attrs: AttributeSet?) : View(context
 
         textPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
 
-        // Draw background for label
+        //Draw background for label
         val textBackgroundRect = RectF(
             left,
             top,
@@ -77,7 +81,7 @@ class BoundingBoxOverlay(context: Context?, attrs: AttributeSet?) : View(context
         textBackgroundPaint.color = color
         canvas.drawRoundRect(textBackgroundRect, 8f, 8f, textBackgroundPaint)
 
-        // Draw label text
+        //Draw label text
         canvas.drawText(drawableText, left, top + bounds.height(), textPaint)
     }
 

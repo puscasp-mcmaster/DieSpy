@@ -1,12 +1,9 @@
 package com.diespy.app.managers.camera
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
-import android.view.Surface
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -16,9 +13,6 @@ import com.diespy.app.ui.dice_detection.DiceDetectionFragment
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-/**
- * Manages CameraX setup, permissions, and frame capturing.
- */
 class CameraManager(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
@@ -29,9 +23,7 @@ class CameraManager(
     private lateinit var cameraExecutor: ExecutorService
     private var isFrontCamera = false
 
-    /**
-     * Initializes and starts the camera.
-     */
+    //Camera X setup
     fun startCamera(viewFinder: PreviewView) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -43,9 +35,6 @@ class CameraManager(
         }, ContextCompat.getMainExecutor(context))
     }
 
-    /**
-     * Configures and binds camera preview & image analysis.
-     */
     private fun bindCameraUseCases(viewFinder: PreviewView) {
         val cameraProvider = cameraProvider ?: return
 
@@ -80,9 +69,7 @@ class CameraManager(
         }
     }
 
-    /**
-     * Processes frames and sends them to the callback.
-     */
+    //Frame processing
     private fun processImage(imageProxy: ImageProxy) {
         if ((lifecycleOwner as? DiceDetectionFragment)?.isRemoving == true) {
             imageProxy.close()
@@ -95,9 +82,7 @@ class CameraManager(
         imageProxy.close()
     }
 
-    /**
-     * Rotates image to correct orientation.
-     */
+    //Images need to be rotated to match ML
     private fun rotateBitmap(bitmap: Bitmap, rotationDegrees: Int): Bitmap {
         val matrix = Matrix().apply {
             postRotate(rotationDegrees.toFloat())
@@ -106,9 +91,6 @@ class CameraManager(
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
-    /**
-     * Cleans up resources when camera is no longer needed.
-     */
     fun stopCamera() {
         cameraExecutor.shutdown()
         imageAnalyzer?.clearAnalyzer()

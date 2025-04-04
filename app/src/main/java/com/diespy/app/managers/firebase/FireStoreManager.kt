@@ -297,6 +297,8 @@ class FireStoreManager {
             false
         }
     }
+
+    //Loads all party data into cache
     suspend fun preloadPartyData(partyId: String) {
         val partyDoc = getDocumentById("Parties", partyId)
         val userIds = partyDoc?.get("userIds") as? List<String> ?: emptyList()
