@@ -77,7 +77,7 @@ DieSpy/
 
 ## Use APK:
 
-TODO
+[Download Here](https://github.com/puscasp-mcmaster/DieSpy/releases/tag/v1.0.0)
 
 Or if youd prefer to run as a developer,
 
