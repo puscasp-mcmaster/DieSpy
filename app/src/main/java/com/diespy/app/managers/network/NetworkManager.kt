@@ -213,7 +213,14 @@ class NetworkManager(private val context: Context) {
             Log.e("BLE", "Error, Permission BLUETOOTH_SCAN not granted")// for ActivityCompat#requestPermissions for more details.
             return
         }
-
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.e("BLE", "Error, Permission ACCESS_FINE_LOCATION not granted")
+            return
+        }
         bleScanner.startScan(listOf(filter), settings, scanCallback)
         Log.d("BLE", "Started listening...")
 
@@ -226,6 +233,8 @@ class NetworkManager(private val context: Context) {
             ) {
                 Log.e("BLE", "Permission Denied: BLUETOOTH_SCAN")
             }
+
+
             bleScanner.stopScan(scanCallback)
             Log.d("BLE", "Stopped listening. Total messages: ${messageList.size}")
         }, 5000)

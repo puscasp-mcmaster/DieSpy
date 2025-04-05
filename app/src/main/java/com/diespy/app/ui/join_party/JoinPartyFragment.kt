@@ -40,6 +40,7 @@ class JoinPartyFragment : Fragment() {
     private var partyNames = ArrayList<String>()
     private var blueToothScanGranted = false
     private var blueToothConnectGranted = false
+    private var accessFineLocationGranted = false
     private val joinPartyManager = JoinPartyManager()
 
     //_---------------------------------
@@ -61,6 +62,16 @@ class JoinPartyFragment : Fragment() {
             blueToothConnectGranted = true
         } else {
             Log.e("Permission", "BLUETOOTH_CONNECT permission denied")
+        }
+    }
+    private val requestFineLocationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("Permission", "ACCESS_FINE_LOCATION permission granted")
+            accessFineLocationGranted = true
+        } else {
+            Log.e("Permission", "ACCESS_FINE_LOCATION permission denied")
         }
     }
     //_---------------------------------
@@ -129,9 +140,18 @@ class JoinPartyFragment : Fragment() {
             } else {
                 blueToothConnectGranted = true
             }
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestBluetoothScanPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }else {
+                accessFineLocationGranted = true
+            }
 
 
-            if(blueToothScanGranted && blueToothConnectGranted) {
+            if(blueToothScanGranted && blueToothConnectGranted && accessFineLocationGranted) {
                 binding.joinPartyNoUpdateText.text = "Searching for avaliable parties..."
                 Handler(Looper.getMainLooper()).postDelayed(
                     {
